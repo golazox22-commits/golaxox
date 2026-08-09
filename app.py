@@ -749,6 +749,10 @@ html[data-theme="dark"] .mwarning { background:#3B1D0B; border-color:#7C2D12; co
 .acc-btn:hover { border-color:var(--ac); }
 .acc-sec { display:none; }
 .acc-sec.on { display:block; }
+.acc-szlist { display:flex; flex-direction:column; gap:10px; }
+.acc-szrow { display:flex; align-items:center; justify-content:space-between; gap:12px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px 16px; }
+.acc-szrow a { text-decoration:none; color:var(--txt); font-weight:800; }
+.acc-szrow a:hover { color:var(--ac); }
 .acc-box { max-width:740px; margin:0 auto; }
 .acc-card { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:16px; margin-bottom:12px; }
 .acc-ord { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
@@ -964,9 +968,14 @@ function submitNotify(){
 }
 function addCart(id,size,qty){
   if(!size){ toast(gxT('size_required')); return; }
+  if(GX.user) saveSize(id,size);
   var cart=gxGet('gx_cart',[]); var f=cart.find(function(x){return x.id===id&&x.size===size;});
   if(f){ f.qty+=qty; } else { cart.push({id:id,size:size,qty:qty}); }
   gxSet('gx_cart',cart); renderCart(); toast(gxT('add')+' ✓');
+}
+function saveSize(pid,sz){
+  fetch('/api/size/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({product:pid,size:sz})})
+  .catch(function(){});
 }
 function changeCart(id,size,d){ var cart=gxGet('gx_cart',[]); var i=cart.findIndex(function(x){return x.id===id&&x.size===size;});
   if(i>-1){ cart[i].qty+=d; if(cart[i].qty<=0) cart.splice(i,1); } gxSet('gx_cart',cart); renderCart(); }
@@ -1701,9 +1710,9 @@ def header_html(active=""):
         if me.get("role") in ("admin", "super_admin"):
             acc_btn = '<a href="/admin" class="hbtn admin-btn">👑 ' + d["admin_dash_short"] + '</a>'
         else:
-            acc_btn = '<a href="/account" class="hbtn">👤 ' + d["ac_account"] + '</a>'
+            acc_btn = '<a href="/account" class="hbtn">👤 ' + esc(me.get("name") or d["ac_account"]) + '</a>'
     else:
-        acc_btn = '<button class="hbtn" onclick="openLogin()">👤 ' + d["ac_login"] + '</button>'
+        acc_btn = '<a href="/login" class="hbtn">👤 ' + d["ac_login"] + '</a>'
     cheer = ('<button class="hbtn" id="cheerBtn" onclick="cheerNow()" title="' + d["ch_title"] + '">⚽ ' + d["ch_btn"] + '</button>') if match_info() else ""
     fav_btn = '<button class="hbtn hicon" onclick="openFavs()" title="' + d["fav_filter"] + '">❤️<span class="hcount" id="favcount">0</span></button>'
     return ('<div class="hd"><div class="hd-in">'
@@ -1721,7 +1730,7 @@ def header_html(active=""):
 def footer_html():
     d = cfg.L[lang()]
     links = ("<a href='/products'>{0}</a><a href='/size-guide'>{1}</a>"
-             "<a href='/care'>{2}</a><a href='/returns'>{3}</a>"
+             "<a href='/care'>{2}</a><a href='/return-policy'>{3}</a>"
              "<a href='/how-to-order'>{4}</a><a onclick='openModal(\"m-contact\")'>{5}</a>").format(
         d["nav_jerseys"], d["nav_sizes"], d["wash_title"], d["ret_title"], d["how_title"], d["nav_contact"])
     return ('<footer class="ft"><div class="ft-in">'
@@ -1764,6 +1773,35 @@ def size_diagram():
 <polygon points="238,214 233,204 243,204" fill="#3B82F6"/>
 <text x="251" y="122" text-anchor="middle" font-size="15" font-weight="700" fill="#3B82F6" font-family="Arial" transform="rotate(90 251 122)">LEN</text>
 </svg>""".replace("CHEST", chest).replace("LEN", length)
+
+
+def auth_box_html():
+    d = cfg.L[lang()]
+    return ('<div class="auth-box">'
+            '<p class="mnote">{sub}</p>'
+            '<div class="auth-tabs">'
+            '<button class="atab on" data-tab="otp" onclick="authTab(\'otp\')">{t1}</button>'
+            '<button class="atab" data-tab="pw" onclick="authTab(\'pw\')">{t2}</button></div>'
+            '<div class="auth-pane" id="auth_pane_otp">'
+            '<div class="fld"><label>{ph}</label><input id="au_phone" inputmode="tel" placeholder="+973 ________"></div>'
+            '<div class="auth-step2" id="au_step2">'
+            '<div class="fld"><label>{otp}</label><input id="au_code" inputmode="numeric"></div>'
+            '<div class="fld" id="au_newbox"><label>{nm}</label><input id="au_name"></div>'
+            '<div class="fld" id="au_pwbox"><label>{ps}</label><input id="au_pw" type="password"></div>'
+            '<div class="auth-new" id="au_new">{new}</div>'
+            '<div class="auth-demo" id="au_demo">{demo} <b id="au_democode"></b></div>'
+            '<button class="btn pri big" onclick="authVerify()">{v}</button></div>'
+            '<div class="auth-step1" id="au_step1">'
+            '<button class="btn pri big" onclick="authSendCode()">{s}</button></div></div>'
+            '<div class="auth-pane" id="auth_pane_pw" style="display:none">'
+            '<div class="fld"><label>{ph}</label><input id="pw_phone" inputmode="tel" placeholder="+973 ________"></div>'
+            '<div class="fld"><label>{pw}</label><input id="pw_pass" type="password"></div>'
+            '<button class="btn pri big" onclick="authPwLogin()">{pb}</button></div>'
+            '</div>'
+            ).format(sub=d["auth_sub"], ph=d["auth_phone"], otp=d["auth_otp_ph"],
+                     nm=d["auth_name_ph"], ps=d["auth_pw_set"], new=d["auth_new"], demo=d["auth_demo_note"],
+                     v=d["auth_verify"], s=d["auth_otp_btn"], t1=d["auth_tab_otp"], t2=d["auth_tab_pw"],
+                     pw=d["auth_pw_ph"], pb=d["auth_pw_btn"])
 
 
 def modals_html():
@@ -1881,31 +1919,7 @@ def modals_html():
                       '<button class="btn pri big" onclick="submitPriceDrop()">{btn}</button>'
                       ).format(sub=d["pd_sub"], ph=d["pd_phone"], btn=d["pd_btn"])
 
-    login_body = ('<div class="auth-box">'
-                  '<p class="mnote">{sub}</p>'
-                  '<div class="auth-tabs">'
-                  '<button class="atab on" data-tab="otp" onclick="authTab(\'otp\')">{t1}</button>'
-                  '<button class="atab" data-tab="pw" onclick="authTab(\'pw\')">{t2}</button></div>'
-                  '<div class="auth-pane" id="auth_pane_otp">'
-                  '<div class="fld"><label>{ph}</label><input id="au_phone" inputmode="tel" placeholder="+973 ________"></div>'
-                  '<div class="auth-step2" id="au_step2">'
-                  '<div class="fld"><label>{otp}</label><input id="au_code" inputmode="numeric"></div>'
-                  '<div class="fld" id="au_newbox"><label>{nm}</label><input id="au_name"></div>'
-                  '<div class="fld" id="au_pwbox"><label>{ps}</label><input id="au_pw" type="password"></div>'
-                  '<div class="auth-new" id="au_new">{new}</div>'
-                  '<div class="auth-demo" id="au_demo">{demo} <b id="au_democode"></b></div>'
-                  '<button class="btn pri big" onclick="authVerify()">{v}</button></div>'
-                  '<div class="auth-step1" id="au_step1">'
-                  '<button class="btn pri big" onclick="authSendCode()">{s}</button></div></div>'
-                  '<div class="auth-pane" id="auth_pane_pw" style="display:none">'
-                  '<div class="fld"><label>{ph}</label><input id="pw_phone" inputmode="tel" placeholder="+973 ________"></div>'
-                  '<div class="fld"><label>{pw}</label><input id="pw_pass" type="password"></div>'
-                  '<button class="btn pri big" onclick="authPwLogin()">{pb}</button></div>'
-                  '</div>'
-                  ).format(sub=d["auth_sub"], ph=d["auth_phone"], otp=d["auth_otp_ph"],
-                           nm=d["auth_name_ph"], ps=d["auth_pw_set"], new=d["auth_new"], demo=d["auth_demo_note"],
-                           v=d["auth_verify"], s=d["auth_otp_btn"], t1=d["auth_tab_otp"], t2=d["auth_tab_pw"],
-                           pw=d["auth_pw_ph"], pb=d["auth_pw_btn"])
+    login_body = auth_box_html()
 
     reorder_body = '<div id="ro_body"></div>'
 
@@ -2255,16 +2269,32 @@ def product_body(pid):
         s=p["imgs"][i], c="on" if i == 0 else "", i=i) for i in range(len(p["imgs"])))
 
     sizes = ""
+    my_sz = ""
+    prev_note = ""
     if not is_mug:
+        u = current_user()
+        if u:
+            my_sz = db.user_sizes(u["id"]).get(p["id"], "")
+            for o in db.orders_by_user(u["id"]):
+                hit = next((it for it in o["data"].get("items", []) if it.get("id") == p["id"]), None)
+                if hit:
+                    prev_note = d["last_order"].format(sz=hit.get("size", "—"), q=hit.get("qty", 1))
+                    if not my_sz and hit.get("size"):
+                        my_sz = hit.get("size")
+                    break
         chips = ""
         for sz in cfg.SIZE_ORDER:
             q = stock.get(sz, 0)
             oos = q <= 0
-            chips += ("<button class='size-chip{s}' data-sz='{sz}' onclick='selectSize(this)'>{sz}"
-                      "{x}</button>").format(s=" oos" if oos else "", sz=sz, x="<span class='xs'>×</span>" if oos else "")
+            on = " on" if (not oos and sz == my_sz) else ""
+            chips += ("<button class='size-chip{s}{o}' data-sz='{sz}' onclick='selectSize(this)'>{sz}"
+                      "{x}</button>").format(s=(" oos" if oos else ""), o=on, sz=sz,
+                                             x="<span class='xs'>×</span>" if oos else "")
         sizes = ('<div class="szsec"><div class="lbl"><span>{sl}</span>'
                  '<span class="szlink" onclick="openModal(\'m-sizes\')">📏 {sg}</span></div>'
-                 '<div class="sizes">{chips}</div></div>').format(sl=d["size_label"], sg=d["size_guide"], chips=chips)
+                 '<div class="sizes">{chips}</div>{note}</div>').format(
+            sl=d["size_label"], sg=d["size_guide"], chips=chips,
+            note=('<p class="mnote sz-note">' + (prev_note or d["saved_size"].format(sz=my_sz)) + '</p>') if (prev_note or my_sz) else "")
 
     trust = ""
     if avail_total <= 0:
@@ -2333,7 +2363,7 @@ def product_body(pid):
            '<div class="grid">{cards}</div></div>').format(t=d["you_may_like"],
            cards="".join(product_card(x) for x in others[:4]))
 
-    page_js = ('<script>var GARR=' + arr + ';'
+    page_js = ('<script>var GARR=' + arr + ';' + ('selSize=' + json_d(my_sz) + ';' if my_sz else '') +
                'document.addEventListener("DOMContentLoaded",function(){ setGal(0,GARR); buildReviews("%s"); });</script>') % p["id"]
 
     trybtn = ""
@@ -2431,15 +2461,13 @@ def user_clubs(user):
 
 
 def login_page():
-    en = lang() == "en"
     d = cfg.L[lang()]
-    body = ('<div class="wrap"><div class="ok-card" style="max-width:520px;margin:0 auto">'
-            '<div style="font-size:52px">👤</div><h1 style="margin-top:10px">{t}</h1>'
-            '<p class="mnote" style="margin-top:10px">{g}</p>'
-            '<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:22px">'
-            '<button class="btn pri" onclick="openLogin()">{l}</button>'
-            '<a class="btn ghost" href="/home">{b}</a></div></div></div>'
-            ).format(t=d["auth_title"], g=d["acc_guest"], l=d["ac_login"], b=d["back"])
+    body = ('<div class="wrap" style="max-width:500px;margin:0 auto;padding-top:46px">'
+            '<div class="page-head" style="text-align:center"><h1>👤 {t}</h1><p>{g}</p></div>'
+            + auth_box_html() +
+            '<p style="text-align:center;margin-top:20px"><a class="back" href="/home">← {b}</a></p>'
+            '</div>'
+            ).format(t=d["auth_title"], g=d["acc_guest"], b=d["back"])
     return base_page(body)
 
 
@@ -2516,10 +2544,25 @@ def account_page():
                 '<button class="hbtn" onclick="saveAccountData()">{sv}</button></div>'
                 ).format(sub=d["auth_sub"], st=d["set_title"], sv=d["ok_saved"])
 
+    saved_sizes = db.user_sizes(u["id"])
+    sz_prods = [p for p in cfg.PRODUCTS if p["id"] in saved_sizes and not p.get("hidden")]
+    if sz_prods:
+        sz_html = ""
+        for p in sz_prods:
+            sz_html += ('<div class="acc-szrow">'
+                        '<a href="/product/{id}"><b>{e} {n}</b></a>'
+                        '<span class="pill">{sw} {s}</span></div>').format(
+                id=p["id"], e=p.get("emoji", "⚽"), n=esc(p.get("name_ar") if not en else p.get("name_en")),
+                sw=d["size_w"], s=esc(saved_sizes[p["id"]]))
+        sizes_html = '<div class="acc-szlist">' + sz_html + '</div>'
+    else:
+        sizes_html = '<p class="mnote">' + d["acc_sizes_empty"] + '</p>'
+
     tabs = [("acc-orders", d["acc_orders"]), ("acc-favs", d["acc_favs"]),
-            ("acc-alerts", d["acc_alerts"]), ("acc-points", d["acc_points"]),
-            ("acc-passport", d["acc_passport"]), ("acc-dna", d["acc_dna"]),
-            ("acc-data", d["acc_data"]), ("acc-settings", d["acc_settings"])]
+            ("acc-sizes", d["acc_sizes"]), ("acc-alerts", d["acc_alerts"]),
+            ("acc-points", d["acc_points"]), ("acc-passport", d["acc_passport"]),
+            ("acc-dna", d["acc_dna"]), ("acc-data", d["acc_data"]),
+            ("acc-settings", d["acc_settings"])]
     nav = "".join('<button class="acc-btn%s" data-tab="%s" onclick="accTab(\'%s\')">%s</button>' % (
         " on" if i == 0 else "", sid, sid, lbl) for i, (sid, lbl) in enumerate(tabs))
 
@@ -2530,6 +2573,7 @@ def account_page():
         '<div class="acc-nav">{nav}</div>'
         '<div class="acc-sec on" id="acc-orders">{orders}</div>'
         '<div class="acc-sec" id="acc-favs"><div id="favsBox"></div></div>'
+        '<div class="acc-sec" id="acc-sizes">{sizes}</div>'
         '<div class="acc-sec" id="acc-alerts"><div id="alertsBox"></div></div>'
         '<div class="acc-sec" id="acc-points"><div id="pointsBox"></div></div>'
         '<div class="acc-sec" id="acc-passport">{pp}{rw}</div>'
@@ -2539,7 +2583,7 @@ def account_page():
         '</div></div>'
     ).format(w=d["acc_welcome"], n=esc(u.get("name", "") or "👤"), since=d["acc_member_since"],
              d=u.get("created", ""), sp=d["acc_spent"], s=fmt_cur(spent), c=cur(), out=d["ac_logout"],
-             nav=nav, orders=ord_html, pp=pp_html, rw=rw_html, data=data_html, set=set_html)
+             nav=nav, orders=ord_html, sizes=sizes_html, pp=pp_html, rw=rw_html, data=data_html, set=set_html)
     return base_page(body)
 
 
@@ -2716,35 +2760,47 @@ def admin_order_page(code):
     if not o:
         return admin_page("<div class='msg'>طلب غير موجود</div>")
     dta = o["data"]
-    items = "".join(
-        '<tr><td>{e} {n}</td><td>{s}</td><td>{q}</td><td>{pr} {cu}</td></tr>'.format(
-            e=it.get("emoji", "⚽"), n=esc(it.get("name", "")),
-            s=it.get("size", "") or "—", q=it.get("qty", 1),
-            pr=fmt_cur(it.get("price", 0)), cu=cur())
-        for it in dta.get("items", []))
     st_opts = "".join('<option value="%s"%s>%s</option>' % (v, " selected" if o["status"] == v else "", lb)
                       for v, lb in [("pending", "جديد"), ("confirmed", "مؤكد"), ("preparing", "قيد التجهيز"),
-                                    ("delivering", "خرج للتوصيل"), ("delivered", "تم التسليم"), ("cancelled", "ملغي")])
+                                    ("delivering", "تم الشحن"), ("delivered", "مكتمل"), ("cancelled", "ملغي")])
     pay_opts = "".join('<option value="%s"%s>%s</option>' % (v, " selected" if o["payment"] == v else "", lb)
                        for v, lb in [("pending", "بانتظار الدفع"), ("paid", "تم الدفع"), ("not", "لم يتم الدفع")])
+    item_rows = ""
+    for i, it in enumerate(dta.get("items", [])):
+        sz_sel = it.get("size", "OS")
+        if it.get("kind") == "mug":
+            size_ctl = '<input type="hidden" name="it_sz_%d" value="%s">OS' % (i, esc(sz_sel))
+        else:
+            sz_opts = "".join('<option value="%s"%s>%s</option>' % (s, " selected" if s == sz_sel else "", s)
+                              for s in cfg.SIZE_ORDER)
+            size_ctl = '<select name="it_sz_%d">%s</select>' % (i, sz_opts)
+        item_rows += ('<tr><td>{e} {n}</td><td>{sz}</td>'
+                      '<td><input type="number" name="it_q_{i}" value="{q}" min="0" style="width:70px"></td>'
+                      '<td>{pr} {cu}</td></tr>').format(
+            e=it.get("emoji", "⚽"), n=esc(it.get("name", "")), sz=size_ctl, i=i,
+            q=it.get("qty", 1), pr=fmt_cur(it.get("price", 0)), cu=cur())
     body = ('<div class="adm">'
             '<div class="hd-in" style="justify-content:space-between;padding:14px 0"><b style="font-size:1.2rem">📦 #{c}</b>'
             '<a href="/admin" class="hbtn">← لوحة التحكم</a></div>'
-            '<div class="adm-card"><h3>العميل</h3><table>'
-            '<tr><td>الاسم</td><td>{n}</td></tr><tr><td>الهاتف</td><td>{p}</td></tr>'
-            '<tr><td>المنطقة</td><td>{a}</td></tr><tr><td>العنوان</td><td>{ad}</td></tr>'
-            '<tr><td>ملاحظات</td><td>{no}</td></tr></table></div>'
-            '<div class="adm-card"><h3>المنتجات</h3><table><tr><th>المنتج</th><th>المقاس</th><th>الكمية</th><th>السعر</th></tr>{items}</table>'
-            '<p style="margin-top:10px;font-weight:900">الإجمالي: {tot} {cu}</p></div>'
-            '<form method="post" style="display:grid;gap:10px;max-width:420px"><input type="hidden" name="act" value="order">'
+            '<form method="post"><input type="hidden" name="act" value="order_save">'
             '<input type="hidden" name="code" value="{c}">'
-            '<label>الحالة</label><select name="status">{st}</select>'
-            '<label>الدفع</label><select name="payment">{pay}</select>'
-            '<button class="hbtn">حفظ</button></form>'
-            '</div>').format(c=code, n=esc(dta.get("name", "—")), p=esc(dta.get("phone", "—")),
-                             a=esc(dta.get("area", "—")), ad=esc(dta.get("address", "—")),
-                             no=esc(dta.get("notes", "")), items=items, tot=fmt_cur(dta.get("total", 0)),
-                             cu=cur(), st=st_opts, pay=pay_opts)
+            '<div class="adm-card"><h3>👤 بيانات العميل</h3><div style="display:grid;gap:8px;max-width:520px">'
+            '<label>الاسم</label><input class="sel" name="name" value="{n}">'
+            '<label>الهاتف</label><input class="sel" name="phone" value="{p}" dir="ltr">'
+            '<label>المنطقة</label><input class="sel" name="area" value="{a}">'
+            '<label>العنوان</label><input class="sel" name="address" value="{ad}">'
+            '<label>ملاحظات</label><textarea class="sel" name="notes" rows="2">{no}</textarea></div></div>'
+            '<div class="adm-card"><h3>📦 المنتجات (تعديل المقاس/الكمية)</h3>'
+            '<table><tr><th>المنتج</th><th>المقاس</th><th>الكمية</th><th>السعر</th></tr>{items}</table>'
+            '<p style="margin-top:10px;font-weight:900">الإجمالي: {tot} {cu}</p></div>'
+            '<div class="adm-card"><h3>⚙️ الحالة</h3><div style="display:grid;gap:10px;max-width:420px">'
+            '<label>الحالة</label><select class="sel" name="status">{st}</select>'
+            '<label>الدفع</label><select class="sel" name="payment">{pay}</select>'
+            '<button class="btn pri">💾 حفظ الطلب</button></div></div>'
+            '</form></div>').format(c=code, n=esc(dta.get("name", "—")), p=esc(dta.get("phone", "—")),
+                                    a=esc(dta.get("area", "—")), ad=esc(dta.get("address", "—")),
+                                    no=esc(dta.get("notes", "")), items=item_rows, tot=fmt_cur(dta.get("total", 0)),
+                                    cu=cur(), st=st_opts, pay=pay_opts)
     return admin_template(body)
 
 
@@ -2972,6 +3028,13 @@ def returns_page():
     return info_page("ret")
 
 
+@app.route("/return-policy")
+def return_policy_page():
+    if not has_lang():
+        return redirect("/")
+    return info_page("ret")
+
+
 @app.route("/how-to-order")
 def how_page():
     if not has_lang():
@@ -3073,6 +3136,15 @@ def account():
     if not has_lang():
         return redirect("/")
     return account_page()
+
+
+@app.route("/login")
+def login_route():
+    if not has_lang():
+        return redirect("/")
+    if current_user():
+        return redirect("/account")
+    return login_page()
 
 
 @app.route("/admin/order/<code>")
@@ -3195,6 +3267,20 @@ def api_favs():
     favs = data.get("favs", [])
     valid = [f for f in favs if any(x["id"] == f for x in cfg.PRODUCTS)]
     db.user_favs_set(u["id"], valid)
+    return json_d({"ok": True})
+
+
+@app.route("/api/size/save", methods=["POST"])
+def api_size_save():
+    u = current_user()
+    if not u:
+        return json_d({"ok": False})
+    data = request.get_json(force=True)
+    pid = str(data.get("product", ""))
+    sz = str(data.get("size", "") or "")
+    if not any(x["id"] == pid for x in cfg.PRODUCTS):
+        return json_d({"ok": False})
+    db.user_size_set(u["id"], pid, sz)
     return json_d({"ok": True})
 
 
@@ -3432,6 +3518,36 @@ def admin():
             db.order_update(request.form.get("code", ""), status=request.form.get("status", "pending"),
                             payment=request.form.get("payment", "pending"))
             return admin_page("<div class='msg'>تم الحفظ</div>")
+        if act == "order_save":
+            code = request.form.get("code", "")
+            o = db.order_get(code)
+            if o:
+                dta = dict(o["data"])
+                dta["name"] = request.form.get("name", dta.get("name", ""))
+                dta["phone"] = request.form.get("phone", dta.get("phone", ""))
+                dta["area"] = request.form.get("area", dta.get("area", ""))
+                dta["address"] = request.form.get("address", dta.get("address", ""))
+                dta["notes"] = request.form.get("notes", dta.get("notes", ""))
+                items = []
+                total = 0
+                for i, it in enumerate(dta.get("items", [])):
+                    sz = request.form.get("it_sz_" + str(i), it.get("size", "OS"))
+                    try:
+                        q = max(0, int(request.form.get("it_q_" + str(i), it.get("qty", 1))))
+                    except Exception:
+                        q = it.get("qty", 1)
+                    if q <= 0:
+                        continue
+                    it = dict(it)
+                    it["size"] = sz
+                    it["qty"] = q
+                    total += it.get("price", 0) * q
+                    items.append(it)
+                dta["items"] = items
+                dta["total"] = total
+                db.order_update(code, data=dta, status=request.form.get("status", o["status"]),
+                                payment=request.form.get("payment", o["payment"]))
+            return admin_page("<div class='msg'>💾 تم حفظ الطلب</div>")
         if act == "stock":
             pid = request.form.get("pid", "")
             stock = eff_stock(next((x for x in cfg.PRODUCTS if x["id"] == pid), cfg.PRODUCTS[0]))
@@ -3542,7 +3658,13 @@ def admin():
                 arr = [c.strip() for c in cols.split(",") if c.strip()][:2]
                 rec["colors"] = [arr[0], arr[0]] if len(arr) == 1 else arr
             bad = request.form.get("badges", "").strip()
-            rec["badges"] = [b.strip() for b in bad.split(",") if b.strip()] if bad else []
+            badges = [b.strip() for b in bad.split(",") if b.strip()] if bad else []
+            for key, tag in (("b_new", "new"), ("b_best", "best")):
+                if request.form.get(key) and tag not in badges:
+                    badges.append(tag)
+                elif not request.form.get(key) and tag in badges:
+                    badges.remove(tag)
+            rec["badges"] = badges
             imgs = request.form.get("imgs", "").strip()
             if imgs:
                 rec["imgs"] = [x.strip() for x in imgs.split(",") if x.strip()]
@@ -3711,11 +3833,30 @@ def admin_page(msg=""):
     rev_month = sum(o["data"].get("total", 0) for o in orders
                     if o["status"] != "cancelled" and str(o["data"].get("date", "")).startswith(ym))
     cnt = {}
+    cntq = {}
     for o in orders:
         for it in o["data"].get("items", []):
-            k = it.get("name", "؟")
-            cnt[k] = cnt.get(k, 0) + it.get("qty", 1)
-    top = max(cnt, key=cnt.get) if cnt else "—"
+            pid = it.get("id", "")
+            if not pid:
+                continue
+            cnt[pid] = cnt.get(pid, 0) + 1
+            cntq[pid] = cntq.get(pid, 0) + it.get("qty", 1)
+    ranked = sorted(cntq.items(), key=lambda kv: -kv[1])
+    top = "—"
+    if ranked:
+        tp = next((x for x in cfg.PRODUCTS if x["id"] == ranked[0][0]), None)
+        top = (tp.get("name_ar", "") if tp else ranked[0][0]) or ranked[0][0]
+    top_rows = ""
+    for pid, q in ranked[:10]:
+        tp = next((x for x in cfg.PRODUCTS if x["id"] == pid), None)
+        if not tp:
+            continue
+        top_rows += ("<tr><td>{rank}</td><td>{e} {n}</td>"
+                     "<td>{t} {cu}</td><td>{q} قطع</td></tr>").format(
+            rank=ranked.index((pid, q)) + 1, e=tp.get("emoji", "⚽"), n=esc(tp.get("name_ar", pid)),
+            t=fmt_cur(eff_price(tp)), cu=cur(), q=q)
+    top_card = ('<div class="adm-card"><h3>🏆 المنتجات الأكثر طلبًا</h3>'
+                '<table><tr><th>#</th><th>المنتج</th><th>السعر</th><th>الكمية المطلوبة</th></tr>{top_rows}</table></div>').format(top_rows=top_rows) if top_rows else ""
     n_cust = len(db.users_list())
 
     price_rows = ""
@@ -3739,7 +3880,10 @@ def admin_page(msg=""):
                      '<input name="name_en" placeholder="الاسم (إنجليزي)"></div>'
                      '<div style="display:flex;gap:8px;flex-wrap:wrap"><input class="mini" name="price" type="number" step="0.5" value="7">'
                      '<input class="mini" name="emoji" value="👕"><input class="mini" name="colors" value="#E11D48,#F97316">'
-                     '<input class="mini" name="badges" placeholder="new/best/offer"></div>'
+                     '<input class="mini" name="badges" placeholder="badges إضافية (offer)"></div>'
+                     '<div style="display:flex;gap:14px;align-items:center">'
+                     '<label style="font-size:.82rem">⭐ جديد<input type="checkbox" name="b_new" value="1"></label>'
+                     '<label style="font-size:.82rem">🔥 الأكثر مبيعًا<input type="checkbox" name="b_best" value="1"></label></div>'
                      '<input name="imgs" placeholder="الصور مفصولة بفاصلة (مثال: j7_1,j7_2)">'
                      '<input name="stock" placeholder="المخزون: S:3,M:5,L:8,XL:4,2XL:2,3XL:0">'
                      '<button class="hbtn">💾 حفظ المنتج</button></form></div>')
@@ -3758,7 +3902,9 @@ def admin_page(msg=""):
                       '<input class="mini" name="emoji" value="{em}">'
                       '<input class="mini" name="badges" value="{bad}" placeholder="badges">'
                       '<input class="mini" name="stock" value="{st_txt}" placeholder="مخزون"></div>'
-                      '<div style="display:flex;gap:10px;align-items:center">'
+                      '<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">'
+                      '<label style="font-size:.78rem">⭐ جديد<input type="checkbox" name="b_new" value="1"{bnew}></label>'
+                      '<label style="font-size:.78rem">🔥 الأكثر مبيعًا<input type="checkbox" name="b_best" value="1"{bbest}></label>'
                       '<label style="font-size:.78rem">إخفاء<input type="checkbox" name="hidden"{hc}></label>'
                       '<button class="hbtn">حفظ</button></form></div></td>'
                       '<td><form method="post" onsubmit="return confirm(\'هل تريد حذف المنتج؟\')">'
@@ -3767,7 +3913,9 @@ def admin_page(msg=""):
                       ).format(id=p["id"], name=p.get("name_ar", ""), kind=d.get("type_jersey") if p["kind"] == "jersey" else d.get("type_mug", ""),
                                price=fmt_cur(eff_price(p)), cu=cur(), hid=" · مخفي" if p.get("hidden") else "",
                                na=p.get("name_ar", ""), ne=p.get("name_en", ""), pr=eff_price(p),
-                               em=p.get("emoji", "👕"), bad=bad, st_txt=st_txt, hc=" checked" if p.get("hidden") else "")
+                               em=p.get("emoji", "👕"), bad=bad, st_txt=st_txt, hc=" checked" if p.get("hidden") else "",
+                               bnew=" checked" if "new" in p.get("badges", []) else "",
+                               bbest=" checked" if "best" in p.get("badges", []) else "")
     prod_card = prod_add_form + '<div class="adm-card"><h3>📋 المنتجات (إضافة / تعديل / حذف)</h3><table>' + prod_rows + '</table></div>'
 
     rev_rows = ""
@@ -3874,6 +4022,7 @@ def admin_page(msg=""):
             '<div class="stat"><b>{nc}</b><span>العملاء</span></div>'
             '<div class="stat"><b>{n3}</b><span>تنبيهات جاهزة</span></div></div>'
             '<div class="adm-card"><h3>📦 الطلبات</h3><table><tr><th>الرقم</th><th>العميل</th><th>المنتجات</th><th>الإجمالي</th><th>الحالة</th><th>الدفع</th><th></th></tr>{rows}</table></div>'
+            + top_card +
             '<div class="adm-card"><h3>💰 الأسعار</h3><table><tr><th>المنتج</th><th>السعر الحالي</th><th>تعديل</th></tr>{price_rows}</table></div>'
             '<div class="adm-card"><h3>📦 المخزون</h3><table><tr><th>المنتج</th><th>المقاسات (الكمية)</th><th></th></tr>{stock_rows}</table></div>'
             + prod_card +

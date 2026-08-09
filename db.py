@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS users(
   phone TEXT UNIQUE, name TEXT DEFAULT '', role TEXT DEFAULT 'customer',
   status TEXT DEFAULT 'active', lang TEXT DEFAULT 'ar', theme TEXT DEFAULT 'light',
   font TEXT DEFAULT 'b', area TEXT DEFAULT '', address TEXT DEFAULT '',
-  password TEXT DEFAULT '', favs TEXT DEFAULT '[]',
+  password TEXT DEFAULT '', favs TEXT DEFAULT '[]', sizes TEXT DEFAULT '{}',
   created TEXT, last_login TEXT);
 CREATE TABLE IF NOT EXISTS otps(
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -76,6 +76,8 @@ def init_db(products, prefix="GOAL"):
         conn.execute("ALTER TABLE users ADD COLUMN password TEXT DEFAULT ''")
     if "favs" not in cols:
         conn.execute("ALTER TABLE users ADD COLUMN favs TEXT DEFAULT '[]'")
+    if "sizes" not in cols:
+        conn.execute("ALTER TABLE users ADD COLUMN sizes TEXT DEFAULT '{}'")
     # seed stock defaults for products that have none in DB
     for p in products:
         for size, qty in p.get("stock", {}).items():
@@ -143,12 +145,14 @@ def order_get(code):
     return d
 
 
-def order_update(code, status=None, payment=None):
+def order_update(code, status=None, payment=None, data=None):
     conn = _conn()
     if status:
         conn.execute("UPDATE orders SET status=? WHERE code=?", (status, code))
     if payment:
         conn.execute("UPDATE orders SET payment=? WHERE code=?", (payment, code))
+    if data is not None:
+        conn.execute("UPDATE orders SET data=? WHERE code=?", (json.dumps(data, ensure_ascii=False), code))
     conn.commit()
     conn.close()
 
@@ -580,7 +584,7 @@ def user_by_id(uid):
 
 
 def user_update(uid, **kw):
-    allowed = ("name", "role", "status", "lang", "theme", "font", "area", "address", "password", "favs")
+    allowed = ("name", "role", "status", "lang", "theme", "font", "area", "address", "password", "favs", "sizes")
     fields = {k: v for k, v in kw.items() if k in allowed}
     if not fields:
         return
@@ -605,6 +609,23 @@ def user_favs(uid):
 
 def user_favs_set(uid, favs):
     user_update(uid, favs=json.dumps([f for f in favs if f], ensure_ascii=False))
+
+
+def user_sizes(uid):
+    u = user_by_id(uid)
+    if not u:
+        return {}
+    try:
+        v = json.loads(u.get("sizes") or "{}")
+        return v if isinstance(v, dict) else {}
+    except Exception:
+        return {}
+
+
+def user_size_set(uid, pid, size):
+    sizes = user_sizes(uid)
+    sizes[pid] = size
+    user_update(uid, sizes=json.dumps(sizes, ensure_ascii=False))
 
 
 def users_list():

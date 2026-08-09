@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """
 golazox — configuration, products, clubs, size chart, rewards, translations.
 """
@@ -9,13 +9,13 @@ WHATSAPP = os.environ.get("WHATSAPP", "97338818226")
 ADMIN_PASS = os.environ.get("ADMIN_PASS", "golazox2026")
 TG_USER = "rms_2o"
 TG_LINK = "https://t.me/rms_2o"
-CURRENCY_AR = "ر.س"
-CURRENCY_EN = "SAR"
-PRICE_JERSEY = 129.0
-PRICE_MUG = 49.0
-DELIVERY_FEE = 25.0
+CURRENCY_AR = "د.ب"
+CURRENCY_EN = "BHD"
+PRICE_JERSEY = 13.0
+PRICE_MUG = 5.0
+DELIVERY_FEE = 2.0
 ORDER_PREFIX = "GX"
-POINTS_PER_SAR = 0.01
+POINTS_PER_BHD = 1.0
 
 # ============================== SIZE CHART (cm) ==============================
 SIZE_ORDER = ["S", "M", "L", "XL", "2XL", "3XL"]
@@ -76,7 +76,7 @@ PRODUCTS = [
      "desc_ar": "القميص الأساسي لريال مدريد 2025/2026. قماش رياضي خفيف ومريح بتهوية ممتازة.", "desc_en": "Real Madrid home jersey 2025/2026. Light, breathable athletic fabric.",
      "colors": ["#F8F9FA", "#C9A24B"], "emoji": "👕", "imgs": ["j1_1"],
      "badges": ["best"], "stock": dict(DEFAULT_JERSEY_STOCK)},
-    {"id": "j13", "kind": "jersey", "club_id": "real", "price": 119.0,
+    {"id": "j13", "kind": "jersey", "club_id": "real", "price": 12.0,
      "name_ar": "تيشيرت ريال مدريد — الاحتياطي", "name_en": "Real Madrid Away Jersey",
      "desc_ar": "القميص الاحتياطي الأزرق الداكن لريال مدريد. خامة رياضية فاخرة.", "desc_en": "Real Madrid away jersey in dark navy. Premium athletic fabric.",
      "colors": ["#1F3864", "#C9A24B"], "emoji": "👕", "imgs": ["j13_1"],
@@ -106,7 +106,7 @@ PRODUCTS = [
      "desc_ar": "قميص أرسنال الأحمر الكلاسيكي 2025/2026. قماش رياضي خفيف ومريح.", "desc_en": "Classic red Arsenal jersey 2025/2026. Light athletic fabric.",
      "colors": ["#EF0107", "#9E0000"], "emoji": "👕", "imgs": ["j7_1"],
      "badges": ["best"], "stock": dict(DEFAULT_JERSEY_STOCK)},
-    {"id": "j14", "kind": "jersey", "club_id": "arsenal", "price": 119.0,
+    {"id": "j14", "kind": "jersey", "club_id": "arsenal", "price": 12.0,
      "name_ar": "تيشيرت أرسنال — الإصدار الأحمر", "name_en": "Arsenal Red Edition Jersey",
      "desc_ar": "إصدار أحمر خاص من قميص أرسنال. تصميم مميز وخامة رياضية عالية الجودة.", "desc_en": "Special red edition Arsenal jersey. Distinct design, premium athletic fabric.",
      "colors": ["#D4000F", "#7A0C20"], "emoji": "👕", "imgs": ["j14_1"],
@@ -166,10 +166,10 @@ PRODUCTS = [
 
 # ============================== REWARDS (GOAL POINTS) ==============================
 REWARDS = [
-    {"points": 50,  "ar": "خصم 10 ر.س",      "en": "10 SAR off",      "discount": 10.0},
-    {"points": 100, "ar": "خصم 25 ر.س",     "en": "25 SAR off",      "discount": 25.0},
-    {"points": 200, "ar": "هدية مق",         "en": "Free mug",        "discount": 49.0},
-    {"points": 300, "ar": "خصم خاص 60 ر.س", "en": "60 SAR special off", "discount": 60.0},
+    {"points": 5,   "ar": "خصم 1 د.ب",       "en": "1 BHD off",       "discount": 1.0},
+    {"points": 10,  "ar": "خصم 2 د.ب",       "en": "2 BHD off",       "discount": 2.0},
+    {"points": 20,  "ar": "هدية مق",         "en": "Free mug",        "discount": 5.0},
+    {"points": 30,  "ar": "خصم خاص 4 د.ب",   "en": "4 BHD special off", "discount": 4.0},
 ]
 
 # ============================== NEW DROP / MATCHDAY (manual config) ==============================
@@ -195,15 +195,23 @@ L = {
         "hero_t1": "تشكيلة تيشرتات الأندية", "hero_t2": "والمقّات الرياضية",
         "hero_sub": "تشكيلة فخمة ومتجددة من تيشرتات الأندية والمقّات الرياضية بجودة عالية — اطلب الآن.",
         "hero_cta_j": "تسوّق التيشرتات", "hero_cta_m": "شوف المقّات",
-        "sec_jerseys": "جميع التيشيرتات", "sec_jerseys_sub": "سعر يبدأ من 119 ر.س — المقاسات S إلى 3XL",
-        "sec_mugs": "المقّات", "sec_mugs_sub": "49 ر.س فقط",
+        "sec_jerseys": "أحدث التيشيرتات", "sec_jerseys_sub": "تشكيلة موسم 2025/2026 — المقاسات S إلى 3XL",
+        "sec_mugs": "المقّات", "sec_mugs_sub": "5 د.ب فقط",
         "cat_jersey": "تيشيرت النادي", "cat_mug": "مق رياضي",
         "view": "عرض المنتج", "add": "أضف للسلة",
-        "price_jersey": "129 ر.س", "price_mug": "49 ر.س",
+        "price_jersey": "13 د.ب", "price_mug": "5 د.ب",
         "order_tg": "اطلب الآن عبر تيليجرام", "ft_tg": "اطلب عبر تيليجرام",
-        "sort_label": "ترتيب", "sort_new": "الأحدث", "sort_lo": "السعر: من الأقل للأعلى",
+        "sort_label": "ترتيب حسب:", "sort_new": "الأحدث", "sort_lo": "السعر: من الأقل للأعلى",
         "sort_hi": "السعر: من الأعلى للأقل", "sort_best": "الأكثر مبيعًا",
         "filters_btn": "الفلاتر", "show_all": "عرض جميع التيشيرتات",
+        "fp_title": "تصفية المنتجات", "fp_colors": "اللون", "fp_cat": "الأكثر مبيعًا",
+        "fp_club": "النادي", "fp_size": "المقاس", "fp_more": "المزيد +",
+        "cat_best": "الأكثر مبيعًا", "cat_new": "الجديد", "cat_offer": "الخصومات",
+        "show_results": "عرض النتائج 🛒",
+        "feat_1_t": "توصيل سريع", "feat_1_d": "إلى كافة مناطق المملكة",
+        "feat_2_t": "دفع آمن", "feat_2_d": "خيارات دفع متعددة",
+        "feat_3_t": "جودة عالية", "feat_3_d": "خامات أصلية 100%",
+        "feat_4_t": "ضمان الاستبدال", "feat_4_d": "استبدال واسترجاع سهل وسريع",
         "b_new": "جديد ✨", "b_best": "الأكثر مبيعًا 🔥", "b_offer": "عرض 🏷️", "b_soldout": "غير متوفر",
         "search_ph": "🔍 ابحث عن نادي أو منتج...",
         "filter_club": "النادي", "filter_type": "نوع المنتج", "filter_size": "المقاس",
@@ -265,10 +273,10 @@ L = {
         "next_match": "المباراة القادمة ⚽", "next_match_sub": "شجع فريقك وارتدِ ألوانه",
         "club_shop": "تسوق منتجات الفريق", "club_products": "منتجات النادي",
         "view_all": "عرض الكل",
-        "home_hero_t1": "تيشيرتك.. فريقك..",
-        "home_hero_t2": "شغفك ⚽",
-        "home_hero_sub": "اختر قميص ناديك المفضل واطلبه الآن.",
-        "home_cta_shop": "تسوق الآن",
+        "home_hero_t1": "تيشيرتك .. فريقك .. شغفك",
+        "home_hero_t2": "اختر تيشيرت ناديك المفضل واطلبه الآن",
+        "home_hero_sub": "تيشيرتات أصلية بأجود الخامات، وخامة رياضية مريحة تدوم معك طويلًا. سجّل دخولك واطلب في دقائق.",
+        "home_cta_shop": "تسوّق الآن",
         "home_cta_team": "اختار فريقك",
         "home_cta_team_scroll": "ألوانك تبدأ من فريقك",
         "clubs_pick_title": "مين تشجع؟ 🔥",
@@ -497,15 +505,23 @@ L = {
         "hero_t1": "Football Club Jerseys", "hero_t2": "& Sports Mugs",
         "hero_sub": "A premium collection of club jerseys and sports mugs at a flat fixed price — order now on WhatsApp.",
         "hero_cta_j": "Shop Jerseys", "hero_cta_m": "View Mugs",
-        "sec_jerseys": "All Jerseys", "sec_jerseys_sub": "From 119 SAR — sizes S to 3XL",
-        "sec_mugs": "Mugs", "sec_mugs_sub": "Only 49 SAR",
+        "sec_jerseys": "Latest Jerseys", "sec_jerseys_sub": "2025/2026 collection — sizes S to 3XL",
+        "sec_mugs": "Mugs", "sec_mugs_sub": "Only 5 BHD",
         "cat_jersey": "Club Jersey", "cat_mug": "Sports Mug",
         "view": "View Product", "add": "Add to Cart",
-        "price_jersey": "129 SAR", "price_mug": "49 SAR",
+        "price_jersey": "13 BHD", "price_mug": "5 BHD",
         "order_tg": "Order now on Telegram", "ft_tg": "Order via Telegram",
-        "sort_label": "Sort", "sort_new": "Newest", "sort_lo": "Price: Low to High",
+        "sort_label": "Sort by:", "sort_new": "Newest", "sort_lo": "Price: Low to High",
         "sort_hi": "Price: High to Low", "sort_best": "Best Selling",
         "filters_btn": "Filters", "show_all": "Show all jerseys",
+        "fp_title": "Filter Products", "fp_colors": "Color", "fp_cat": "Best Selling",
+        "fp_club": "Club", "fp_size": "Size", "fp_more": "More +",
+        "cat_best": "Best Selling", "cat_new": "New", "cat_offer": "Discounts",
+        "show_results": "Show Results 🛒",
+        "feat_1_t": "Fast Delivery", "feat_1_d": "To all areas of the Kingdom",
+        "feat_2_t": "Secure Payment", "feat_2_d": "Multiple payment options",
+        "feat_3_t": "High Quality", "feat_3_d": "100% original fabrics",
+        "feat_4_t": "Exchange Guarantee", "feat_4_d": "Easy fast exchange & returns",
         "b_new": "New ✨", "b_best": "Best Seller 🔥", "b_offer": "Offer 🏷️", "b_soldout": "Sold Out",
         "search_ph": "🔍 Search club or product...",
         "filter_club": "Club", "filter_type": "Type", "filter_size": "Size",

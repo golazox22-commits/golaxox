@@ -30,6 +30,36 @@ STOCK = db.get_stock()  # {product: {size: qty}}
 
 STATIC_IMG = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "img")
 
+# Color filter palette: (key, label, hex). First 6 are visible; the rest appear behind "المزيد +".
+COLOR_FILTERS = [
+    ("white", "أبيض", "#FFFFFF"), ("black", "أسود", "#0B0B0C"), ("red", "أحمر", "#DC2626"),
+    ("blue", "أزرق", "#2563EB"), ("yellow", "أصفر", "#EAB308"), ("green", "أخضر", "#16A34A"),
+    ("purple", "بنفسجي", "#8B5CF6"), ("gold", "ذهبي", "#C9A24B"),
+]
+
+
+def hex_rgb(h):
+    h = h.lstrip("#")
+    if len(h) == 3:
+        h = "".join(c * 2 for c in h)
+    try:
+        return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
+    except ValueError:
+        return (0, 0, 0)
+
+
+def nearest_color(hexc):
+    """Return the palette hex closest to the given hex (used for the color filter)."""
+    rgb = hex_rgb(hexc)
+    best, bd = COLOR_FILTERS[0][2], 10 ** 9
+    for _, _, pc in COLOR_FILTERS:
+        p = hex_rgb(pc)
+        d = sum((a - b) ** 2 for a, b in zip(rgb, p))
+        if d < bd:
+            best, bd = pc, d
+    return best
+
+
 
 # ============================== HELPERS ==============================
 def lang():
@@ -106,7 +136,7 @@ def gx_data():
         "lang": lang(), "cur": cur(), "wa": cfg.WHATSAPP, "tg": cfg.TG_LINK, "tg_user": cfg.TG_USER,
         "delivery": cfg.DELIVERY_FEE,
         "sizes": cfg.SIZE_ORDER, "chart": cfg.SIZE_CHART, "rewards": cfg.REWARDS,
-        "products": products, "clubs": clubs, "points_per": cfg.POINTS_PER_SAR,
+        "products": products, "clubs": clubs, "points_per": cfg.POINTS_PER_BHD,
         "match": m, "drop": d, "poll": poll, "now": datetime.datetime.now().isoformat(),
         "user": user,
         "T": cfg.L[lang()],
@@ -1011,6 +1041,146 @@ html[dir="ltr"] .ft-in, html[dir="ltr"] .ft-grid, html[dir="ltr"] .ft-col { text
   .ft-grid { grid-template-columns:1fr; gap:22px; }
   .ft-desc { max-width:100%; }
 }
+/* ============================== LUXURY THEME (BLACK / WHITE / GOLD) ============================== */
+:root {
+  --bg:#FFFFFF; --card:#FFFFFF; --card2:#F6F6F4; --line:#E7E5E0; --txt:#0C0C0D; --mut:#6B6B74;
+  --brand1:#C9A24B; --brand2:#A8852E; --green:#25D366; --gold:#C9A24B; --ok:#16A34A; --err:#DC2626;
+  --ac:#C9A24B; --ac2:#A8852E; --dark:#0B0B0C;
+  --sh:0 6px 24px rgba(12,12,13,.07); --sh2:0 16px 42px rgba(12,12,13,.13);
+  --glow:rgba(201,162,75,.35);
+}
+html[data-theme="dark"] { --bg:#0C0C0D; --card:#141416; --card2:#1D1D21; --line:#2A2A30; --txt:#F5F5F4; --mut:#A1A1AA; }
+/* header */
+.hd { background:#0B0B0C; border-bottom:1px solid #232326; box-shadow:0 2px 18px rgba(0,0,0,.28); }
+html[data-club] .hd::after { background:linear-gradient(90deg,#C9A24B,#F5D97A); }
+.logo { color:#fff; }
+.logo .ball { filter:drop-shadow(0 0 6px rgba(201,162,75,.6)); }
+.nv { color:#B8B8BF; }
+.nv:hover { color:#fff; background:rgba(255,255,255,.08); }
+.nv.on { background:linear-gradient(90deg,#C9A24B,#E2C26C); color:#0B0B0C; }
+.hbtn { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14); color:#E9E9EC; }
+.hbtn:hover { border-color:#C9A24B; color:#fff; }
+.hcount { background:#C9A24B; color:#0B0B0C; }
+.hd-search { width:100%; display:flex; justify-content:center; margin-top:8px; }
+.hd-sbox { max-width:560px; width:100%; background:rgba(255,255,255,.07); border:1.5px solid rgba(255,255,255,.16); }
+.hd-sbox input { color:#fff; }
+.hd-sbox input::placeholder { color:#8F8F96; }
+.hd-sbox button { background:linear-gradient(90deg,#C9A24B,#E2C26C); color:#0B0B0C; border-radius:10px; }
+/* buttons */
+.btn.pri { background:linear-gradient(90deg,#C9A24B,#E2C26C); color:#0B0B0C; box-shadow:0 12px 30px rgba(201,162,75,.35); }
+.btn.pri:hover { transform:translateY(-2px); }
+.btn.dark { background:#0B0B0C; color:#fff; border:1px solid #0B0B0C; box-shadow:0 12px 28px rgba(12,12,13,.22); }
+.btn.dark:hover { transform:translateY(-2px); background:#1D1D20; }
+.btn.ghost { background:#fff; border:1.5px solid #DCD8CF; color:#0B0B0C; }
+.btn.ghost:hover { border-color:#C9A24B; color:#A8852E; }
+/* hero: night stadium */
+.hero { border:1px solid var(--line); border-radius:26px; position:relative; overflow:hidden;
+  background:radial-gradient(1100px 520px at 78% -20%, rgba(226,194,108,.20), transparent 60%),
+             radial-gradient(900px 500px at 8% 120%, rgba(201,162,75,.10), transparent 55%),
+             linear-gradient(120deg,#101014 0%, #1A1A1F 58%, #26201A 100%);
+  color:#F5F5F4; padding:54px 44px; margin-bottom:26px; }
+.hero::before { content:''; position:absolute; inset:0; pointer-events:none; opacity:.5;
+  background:repeating-linear-gradient(0deg, transparent 0 34px, rgba(255,255,255,.025) 34px 36px),
+             radial-gradient(circle at 50% 125%, rgba(226,194,108,.28), transparent 55%);
+  animation:luxGlow 12s ease-in-out infinite; }
+@keyframes luxGlow { 0%,100% { opacity:.35; } 50% { opacity:.6; } }
+.hero h1 { color:#F5F5F4; font-size:2.5rem; position:relative; z-index:1; }
+.hero h1 .g { background:linear-gradient(90deg,#E2C26C,#C9A24B); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.hero p { color:#C9C9CF; position:relative; z-index:1; }
+.hero-tag { color:#E2C26C; position:relative; z-index:1; }
+.hero .btn.ghost { background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.2); color:#F5F5F4; }
+.hero .btn.ghost:hover { border-color:#E2C26C; color:#E2C26C; }
+.hero-btns { position:relative; z-index:1; }
+.hero-ball { opacity:.2; position:absolute; inset-inline-end:6%; top:50%; transform:translateY(-50%); }
+/* features strip */
+.feat-bar { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; background:#fff; border:1px solid var(--line);
+  border-radius:20px; padding:20px 18px; margin-bottom:30px; box-shadow:var(--sh); }
+.feat { display:flex; align-items:center; gap:12px; }
+.feat .fic { width:46px; height:46px; border-radius:14px; background:#0B0B0C; color:#E2C26C; font-size:21px;
+  display:flex; align-items:center; justify-content:center; flex:none; }
+.feat b { font-size:.92rem; font-weight:800; display:block; }
+.feat span { font-size:.78rem; color:var(--mut); }
+@media (max-width:720px){ .feat-bar { grid-template-columns:1fr 1fr; gap:14px 10px; } .feat .fic{ width:40px; height:40px; font-size:18px; } }
+/* shop layout */
+.shop-wrap { display:grid; grid-template-columns:268px 1fr; gap:26px; align-items:start; }
+.shop-main { min-width:0; }
+@media (max-width:900px){ .shop-wrap { grid-template-columns:1fr; } }
+/* filter panel */
+.filters-panel { background:#fff; border:1px solid var(--line); border-radius:20px; padding:18px 16px; box-shadow:var(--sh); }
+.fp-title { font-weight:900; font-size:1.02rem; display:flex; align-items:center; gap:8px;
+  padding-bottom:12px; border-bottom:2px solid #0B0B0C; margin-bottom:14px; }
+.fp-sec { margin-bottom:16px; }
+.fp-lbl { font-size:.84rem; font-weight:800; margin-bottom:10px; display:flex; align-items:center; gap:6px; color:var(--txt); }
+.fp-colors { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+.col-dot { width:26px; height:26px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 1.5px var(--line);
+  cursor:pointer; transition:transform .15s ease, box-shadow .15s ease; }
+.col-dot:hover { transform:scale(1.15); }
+.col-dot.on { box-shadow:0 0 0 2.5px #0B0B0C; transform:scale(1.1); }
+.col-dot.hide { display:none; }
+.col-more { background:none; border:none; color:#A8852E; font-weight:800; font-size:.78rem; cursor:pointer; padding:4px 2px; }
+.fp-cats { display:flex; flex-direction:column; gap:8px; }
+.cat-opt { display:flex; align-items:center; gap:9px; font-size:.88rem; font-weight:700; color:var(--mut); cursor:pointer; }
+.cat-opt input { accent-color:#0B0B0C; width:16px; height:16px; }
+.cat-opt.on { color:var(--txt); }
+.fp-clubs { display:flex; flex-direction:column; gap:6px; }
+.club-opt { display:flex; align-items:center; gap:8px; font-size:.85rem; font-weight:700; color:var(--mut);
+  cursor:pointer; padding:6px 8px; border-radius:10px; }
+.club-opt:hover { background:var(--card2); }
+.club-opt.on { background:#0B0B0C; color:#fff; }
+.fp-sizes { display:flex; flex-wrap:wrap; gap:7px; }
+.sz-btn { min-width:38px; text-align:center; padding:7px 8px; border-radius:9px; border:1.5px solid var(--line);
+  background:#fff; font-weight:800; font-size:.8rem; cursor:pointer; color:var(--txt); }
+.sz-btn:hover { border-color:#C9A24B; }
+.sz-btn.on { background:#0B0B0C; border-color:#0B0B0C; color:#fff; }
+details.fp-acc { border-top:1px solid var(--line); padding-top:12px; }
+details.fp-acc summary { list-style:none; cursor:pointer; font-size:.84rem; font-weight:800;
+  display:flex; justify-content:space-between; align-items:center; }
+details.fp-acc summary::-webkit-details-marker { display:none; }
+details.fp-acc summary::after { content:'+'; color:#A8852E; font-weight:900; }
+details.fp-acc[open] summary::after { content:'−'; }
+.fp-colors.show .col-dot.hide { display:inline-flex; }
+.btn.dark { background:linear-gradient(90deg,#0B0B0C,#1F1F24); color:#E2C26C; border:1.5px solid #C9A24B; }
+.btn.dark:hover { transform:translateY(-2px); box-shadow:0 12px 26px rgba(12,12,13,.3); }
+.fp-apply { width:100%; justify-content:center; margin-top:8px; font-size:.92rem; }
+@media (min-width:561px) { .fbtn { display:none !important; } }
+/* sort bar */
+.sort-bar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:16px; }
+.sort-bar .sort-lbl { font-size:.9rem; font-weight:800; color:var(--txt); }
+select.sort { border:1.5px solid var(--line); border-radius:12px; padding:9px 14px; font-size:.85rem;
+  font-weight:800; background:#fff; color:var(--txt); font-family:inherit; }
+/* product card */
+.pcard { background:#fff; border:1px solid var(--line); border-radius:18px; overflow:hidden; box-shadow:var(--sh); }
+.pcard:hover { transform:translateY(-5px); box-shadow:var(--sh2); border-color:#D8D3C6; }
+.pimg { height:210px; background:#FBFBFA; }
+.badge.best { background:linear-gradient(90deg,#0B0B0C,#2A2A2E); color:#E2C26C; }
+.badge.new { background:linear-gradient(90deg,#C9A24B,#E2C26C); color:#0B0B0C; }
+.badge.offer { background:linear-gradient(90deg,#1F7A4D,#2E9B63); color:#fff; }
+.badge.soldout { background:#8A8A90; }
+.heart { background:rgba(255,255,255,.94); box-shadow:0 4px 12px rgba(12,12,13,.14); }
+.heart.on { color:#C0344E; }
+.pbody { padding:13px 14px 14px; }
+.pcat { color:#A8852E; }
+.pbody h3 { font-size:1rem; }
+.pfoot b { font-size:1rem; color:#0B0B0C; }
+.pview { color:#6B6B74; }
+.pcard:hover .pview { color:#A8852E; }
+.sizes-row { display:flex; gap:6px; flex-wrap:wrap; margin-top:9px; }
+.sz-pill { min-width:30px; text-align:center; font-size:.68rem; font-weight:800; padding:4px 5px;
+  border-radius:7px; border:1px solid var(--line); color:var(--mut); background:#fff; }
+.sz-pill.oos { opacity:.35; text-decoration:line-through; }
+.pcols { display:flex; gap:6px; margin-top:9px; align-items:center; }
+.pdot { width:14px; height:14px; border-radius:50%; border:1px solid rgba(0,0,0,.14); }
+.sel { background:#fff; border:1.5px solid var(--line); }
+.chip { background:#fff; border:1.5px solid var(--line); color:var(--mut); }
+.chip.on { background:#0B0B0C; color:#fff; }
+.sec-head h2 .bar { background:linear-gradient(180deg,#C9A24B,#E2C26C); }
+/* footer */
+.ft { background:#0B0B0C; border-top:none; color:#D6D6DC; }
+.ft-brand { color:#fff; }
+.ft-copy, .ft-col a, .ft-col span.lk, .ft-title, .ft-desc, .ft-links a { color:#9A9AA3; }
+.ft-col a:hover, .ft-col span.lk:hover, .ft-links a:hover { color:#E2C26C; }
+.ft-social a { background:rgba(255,255,255,.07); border-color:rgba(255,255,255,.12); }
+.ft-copy { border-color:#232326; }
 </style>"""
 
 BASE_JS = """<script>
@@ -1068,29 +1238,21 @@ function pickLoyal(cid,btn){
 function esc(s){ var d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
 function pmoney(v){ return (Math.round(v*100)/100); }
 /* ---------- search & filters ---------- */
-var filters={club:'all',type:'all',size:'all',fav:false,avail:false};
+var filters={club:'all',type:'all',size:'all',color:'all',cat:'all',fav:false};
+function gxStock(c){ try{ return JSON.parse(c.getAttribute('data-stock')||'{}'); }catch(e){ return {}; } }
 function applyFilters(){
-  var q=(($('sq')&&$('sq').value)||'').trim().toLowerCase();
-  var pmin=parseFloat(($('f_pmin')&&$('f_pmin').value)||'');
-  var pmax=parseFloat(($('f_pmax')&&$('f_pmax').value)||'');
+  var q=((($('sq')||{}).value)||'').trim().toLowerCase();
   var cards=document.querySelectorAll('.pcard');
   var shown=0;
   cards.forEach(function(c){
     var ok=true;
     if(filters.fav && gxGet('gx_favs',[]).indexOf(c.getAttribute('data-id'))===-1) ok=false;
     if(ok && filters.club!=='all' && c.getAttribute('data-club')!==filters.club) ok=false;
-    if(ok && filters.type!=='all' && c.getAttribute('data-kind')!==filters.type) ok=false;
     if(ok && filters.size!=='all'){
-      var st=c.getAttribute('data-stock'); var av=(st||'').split(',').indexOf(filters.size)>-1; if(!av) ok=false;
+      var st=gxStock(c); if(!(st[filters.size]>0)) ok=false;
     }
-    if(ok && (pmin||pmax)){
-      var price=parseFloat(c.getAttribute('data-price')||'0');
-      if(!isNaN(pmin)&&price<pmin) ok=false;
-      if(!isNaN(pmax)&&price>pmax) ok=false;
-    }
-    if(ok && filters.avail){
-      var st2=c.getAttribute('data-stock'); if(!st2) ok=false;
-    }
+    if(ok && filters.color!=='all' && c.getAttribute('data-col')!==filters.color) ok=false;
+    if(ok && filters.cat!=='all' && !hasB(c,filters.cat)) ok=false;
     if(ok && q){
       var hay=((c.getAttribute('data-name')||'')+' '+(c.getAttribute('data-clubn')||'')).toLowerCase();
       if(hay.indexOf(q)===-1) ok=false;
@@ -1098,31 +1260,38 @@ function applyFilters(){
     c.style.display=ok?'':'none'; if(ok) shown++;
   });
   var e=$('searchNone'); if(e){ e.style.display=shown?'none':'block'; }
-  var grids=document.querySelectorAll('.grid'); grids.forEach(function(g){ if(g.querySelector('.pcard')) g.style.display='block'; });
+}
+function setColorFilter(el){
+  var v=el.getAttribute('data-col');
+  filters.color=(filters.color===v?'all':v);
+  document.querySelectorAll('.col-dot').forEach(function(x){x.classList.toggle('on',x===el&&filters.color!=='all');});
+  applyFilters();
+}
+function moreColors(){
+  var pc=document.querySelector('.fp-colors'); if(!pc) return;
+  pc.classList.add('show');
+  var cm=$('colMore'); if(cm) cm.style.display='none';
 }
 function setFilter(k,v,el){
-  if(k==='fav'){ filters.fav=!filters.fav; }
-  else { filters[k]=filters[k]===v?'all':v; }
+  filters[k]=(filters[k]===v?'all':v);
   if(el){
-    var par=el.parentElement; par.querySelectorAll('.chip').forEach(function(x){x.classList.remove('on');});
+    var par=el.parentElement;
+    par.querySelectorAll('.club-opt,.sz-btn').forEach(function(x){x.classList.remove('on');});
     if(filters[k]!=='all') el.classList.add('on');
-    else if(k==='fav'&&filters.fav) el.classList.add('on');
   }
   applyFilters();
 }
 function clearFilters(){
-  filters={club:'all',type:'all',size:'all',fav:false,avail:false};
-  document.querySelectorAll('.chip.on').forEach(function(x){x.classList.remove('on');});
+  filters={club:'all',type:'all',size:'all',color:'all',cat:'all',fav:false};
+  document.querySelectorAll('.club-opt.on,.sz-btn.on,.col-dot.on').forEach(function(x){x.classList.remove('on');});
+  document.querySelectorAll('input[name="fpcat"]').forEach(function(r){r.checked=false;});
   var sq=$('sq'); if(sq) sq.value='';
-  var pm=$('f_pmin'); if(pm) pm.value='';
-  var px=$('f_pmax'); if(px) px.value='';
-  var fa=$('f_avail'); if(fa) fa.checked=false;
   applyFilters();
 }
 /* ---------- sorting & filters drawer ---------- */
 function hasB(c,b){ return (','+((c.getAttribute('data-badge'))||'')+',').indexOf(','+b+',')>-1; }
 function applySort(){
-  var v=(($('sortSel')&&$('sortSel').value)||'new');
+  var v=((($('sortSel')||{}).value)||'best');
   document.querySelectorAll('.grid').forEach(function(g){
     var cards=[].slice.call(g.querySelectorAll('.pcard'));
     if(!cards.length) return;
@@ -1134,10 +1303,12 @@ function applySort(){
   });
   applyFilters();
 }
-function toggleFilters(){
+function toggleFilters(force){
   var bar=$('filtersBar'); if(!bar) return;
-  var open=bar.classList.toggle('open');
-  var fb=document.querySelector('.fbtn'); if(fb){ fb.classList.toggle('on',open); }
+  var open=(force===false)?false:(bar.classList.toggle('open'));
+  if(force===false) bar.classList.remove('open');
+  else if(force===true) bar.classList.add('open');
+  var fb=document.querySelector('.fbtn'); if(fb){ fb.classList.toggle('on',bar.classList.contains('open')); }
 }
 /* ---------- favorites ---------- */
 function toggleFav(id,btn){
@@ -1160,7 +1331,6 @@ function openFavs(){
   if(onHome){
     if(!filters.fav){
       filters.fav=true;
-      document.querySelectorAll('.chip').forEach(function(x){ if(x.textContent.indexOf('❤')>-1) x.classList.add('on'); });
       applyFilters();
     }
     window.scrollTo({top:0,behavior:'smooth'});
@@ -2055,7 +2225,10 @@ def header_html(active=""):
             '<button class="hbtn hicon" onclick="openModal(\'m-settings\')">⚙️<span class="hcount" id="cbadge">0</span></button>'
             '<button class="hbtn hicon" onclick="openCart()">🛒<span class="hcount" id="cbadge2">0</span></button>'
             '<button class="hbtn" onclick="setLang(\'%s\')">%s</button>'
-            '</div></div>') % (links, fav_btn + cheer + acc_btn, other, d["lang_name"])
+            '<div class="hd-search"><div class="sbox hd-sbox">'
+            '<input id="sq" placeholder="%s" onkeydown="if(event.key===\'Enter\')applyFilters()">'
+            '<button onclick="applyFilters()">🔍</button></div></div>'
+            '</div></div>') % (links, fav_btn + cheer + acc_btn, other, d["lang_name"], d["search_ph"])
 
 
 def footer_html():
@@ -2296,42 +2469,77 @@ def modals_html():
 
 
 # ============================== PAGES ==============================
-def searchbar_html():
+def filters_panel_html():
     en = lang() == "en"
     d = cfg.L[lang()]
-    club_opts = "".join('<option value="%s">%s</option>' % (cid, c.get(en and "en" or "ar")) for cid, c in cfg.CLUBS.items())
-    type_opts = ('<option value="jersey">%s</option><option value="mug">%s</option>' % (d["type_jersey"], d["type_mug"]))
-    size_opts = "".join('<option value="%s">%s</option>' % (s, s) for s in cfg.SIZE_ORDER)
-    return ('<div class="sb">'
-            '<div class="sbox"><input id="sq" placeholder="{ph}" onkeydown="if(event.key===\'Enter\')applyFilters()"><button onclick="applyFilters()">🔍</button></div>'
-            '<button class="btn ghost sm" onclick="isOpen()">{ims}</button>'
-            '<span class="sort-lbl">{sort_label}</span>'
+    dots = ""
+    for i, (_, label, hexc) in enumerate(COLOR_FILTERS):
+        cls = " hide" if i >= 6 else ""
+        dots += ('<button class="col-dot%s" data-col="%s" title="%s" onclick="setColorFilter(this)" '
+                 'style="background:%s"></button>' % (cls, hexc, label, hexc))
+    if len(COLOR_FILTERS) > 6:
+        dots += '<button class="col-more" id="colMore" onclick="moreColors()">%s</button>' % d["fp_more"]
+    cats = "".join(
+        '<label class="cat-opt"><input type="radio" name="fpcat" value="%s" '
+        'onchange="filters.cat=this.value;applyFilters()"> %s</label>'
+        % (k, d["cat_" + k]) for k in ("best", "new", "offer"))
+    clubs = "".join(
+        '<button class="club-opt" data-v="%s" onclick="setFilter(\'club\',this.getAttribute(\'data-v\'),this)">%s %s</button>'
+        % (cid, c.get("emoji", "⚽"), c.get(en and "en" or "ar")) for cid, c in cfg.CLUBS.items())
+    sizes = "".join(
+        '<button class="sz-btn" onclick="setFilter(\'size\',\'%s\',this)">%s</button>' % (s, s)
+        for s in cfg.SIZE_ORDER[:5])
+    return ('<aside class="filters-panel" id="filtersBar">'
+            '<div class="fp-title">⚙️ {t}</div>'
+            '<div class="fp-sec"><div class="fp-lbl">🎨 {cols}</div><div class="fp-colors">{dots}</div></div>'
+            '<div class="fp-sec"><div class="fp-lbl">🔥 {cat}</div><div class="fp-cats">{cats}</div></div>'
+            '<details class="fp-acc"><summary>🛡️ {club}</summary>'
+            '<div class="fp-clubs" style="margin-top:8px">{clubs}</div></details>'
+            '<div class="fp-sec" style="margin-top:14px"><div class="fp-lbl">📏 {size}</div>'
+            '<div class="fp-sizes">{sizes}</div></div>'
+            '<button class="btn dark block fp-apply" onclick="applyFilters();toggleFilters(false)">{res}</button>'
+            '</aside>').format(t=d["fp_title"], cols=d["fp_colors"], dots=dots, cat=d["fp_cat"], cats=cats,
+                               club=d["fp_club"], clubs=clubs, size=d["fp_size"], sizes=sizes, res=d["show_results"])
+
+
+def sort_bar_html():
+    d = cfg.L[lang()]
+    return ('<div class="sort-bar">'
+            '<span class="sort-lbl">{lbl}</span>'
             '<select class="sel sort" id="sortSel" onchange="applySort()">'
-            '<option value="new">{sn}</option><option value="lo">{lo}</option>'
-            '<option value="hi">{hi}</option><option value="best">{sb}</option></select></div>'
+            '<option value="best" selected>{sb}</option><option value="new">{sn}</option>'
+            '<option value="lo">{lo}</option><option value="hi">{hi}</option></select>'
             '<button class="btn ghost sm fbtn" onclick="toggleFilters()">⚙️ {fb}</button>'
-            '<div class="filters" id="filtersBar">'
-            '<button class="chip" onclick="setFilter(\'club\',this.getAttribute(\'data-v\'),this)" data-v="club:all">{cl}:{all}</button>'
-            '<select class="sel" onchange="filters.club=this.value;applyFilters()"><option value="all">{all}</option>{clubs}</select>'
-            '<select class="sel" onchange="filters.type=this.value;applyFilters()"><option value="all">{all}</option>{types}</select>'
-            '<select class="sel" onchange="filters.size=this.value;applyFilters()"><option value="all">{all}</option>{sizes}</select>'
-            '<span class="pricefilter"><input type="number" id="f_pmin" placeholder="{mn}" min="0" step="1">'
-            '<span>–</span><input type="number" id="f_pmax" placeholder="{mx}" min="0" step="1"></span>'
-            '<button class="chip" onclick="applyFilters()">{ap}</button>'
-            '<label class="chip avl"><input type="checkbox" id="f_avail" onchange="filters.avail=this.checked;applyFilters()"> {fa}</label>'
-            '<button class="chip" onclick="setFilter(\'fav\',null,this)">❤️ {fav}</button>'
-            '<button class="chip" onclick="clearFilters()">{clear}</button></div>'
-            ).format(ph=d["search_ph"], ims=d["img_search"], cl=d["filter_club"], all=d["filter_all"],
-                     clubs=club_opts, types=type_opts, sizes=size_opts, mn=d["price_min"], mx=d["price_max"],
-                     ap=d["filter_apply"], fa=d["filter_avail"], fav=d["fav_filter"], clear=d["clear_filters"],
-                     sort_label=d["sort_label"], sn=d["sort_new"], lo=d["sort_lo"], hi=d["sort_hi"],
-                     sb=d["sort_best"], fb=d["filters_btn"])
+            '<button class="btn ghost sm" onclick="clearFilters()">{clr}</button>'
+            '</div>').format(lbl=d["sort_label"], sb=d["sort_best"], sn=d["sort_new"],
+                             lo=d["sort_lo"], hi=d["sort_hi"], fb=d["filters_btn"], clr=d["clear_filters"])
+
+
+def shop_section_html(grid, grid_id):
+    d = cfg.L[lang()]
+    return ('<div class="shop-wrap">'
+            + filters_panel_html()
+            + '<div class="shop-main">'
+            + sort_bar_html()
+            + '<div class="grid" id="{gid}">{grid}</div>'
+            + '<div class="search-none" id="searchNone" style="display:none"><div class="sn-ic">🔍</div>'
+            '<p class="mnote">{sn}</p><button class="btn pri" onclick="clearFilters()">{show}</button></div>'
+            + '</div></div>').format(gid=grid_id, grid=grid, sn=d["search_none"], show=d["show_all"])
+
+
+def features_html():
+    d = cfg.L[lang()]
+    rows = ""
+    for i in range(1, 5):
+        rows += ('<div class="feat"><span class="fic">{ic}</span>'
+                 '<div><b>{t}</b><span>{x}</span></div></div>').format(
+            ic=("🚚", "💳", "🏆", "🔄")[i - 1], t=d["feat_%d_t" % i], x=d["feat_%d_d" % i])
+    return '<div class="feat-bar">{rows}</div>'.format(rows=rows)
 
 
 def home_body():
     en = lang() == "en"
     d = cfg.L[lang()]
-    searchbar = searchbar_html()
 
     prods = [p for p in cfg.PRODUCTS if not p.get("hidden")]
     jgrid = "".join(product_card(p) for p in prods if p["kind"] == "jersey")
@@ -2483,26 +2691,24 @@ def home_body():
     return (atmos_html("full")
             + '<div class="wrap">'
             + hero
-            + searchbar
-            + '<div class="search-none" id="searchNone" style="display:none"><div class="sn-ic">🔍</div>'
-            '<p class="mnote">{sn}</p><button class="btn pri" onclick="clearFilters()">{show}</button></div>'
-            + clubs_sec
+            + features_html()
+            + '<div class="sec rv" id="jerseys"><div class="sec-head"><h2><span class="bar"></span>{sj}</h2><span class="sec-sub">{sj_sub}</span></div>'
+            + shop_section_html(jgrid, "gridJ")
             + best_sec
             + new_sec
+            + clubs_sec
             + loyal_sec
-            + size_sec
-            + steps_sec
-            + '<div class="sec rv" id="jerseys"><div class="sec-head"><h2><span class="bar"></span>{sj}</h2><span class="sec-sub">{sj_sub}</span></div>'
-            + '<div class="grid" id="gridJ">{jgrid}</div></div>'
             + '<div class="sec rv" id="mugs"><div class="sec-head"><h2><span class="bar"></span>{sm}</h2><span class="sec-sub">{sm_sub}</span></div>'
             + '<div class="grid" id="gridM">{mgrid}</div></div>'
+            + size_sec
+            + steps_sec
             + pitch_sec
             + match_html
             + poll_html
             + '<div class="sec rv" id="info"><div class="sec-head"><h2><span class="bar"></span>{qt}</h2></div>'
             + '<div class="quick">{quick}</div></div>'
             + '</div>'
-            ).format(sn=d["search_none"], show=d["show_all"], sj=d["sec_jerseys"], sj_sub=d["sec_jerseys_sub"],
+            ).format(sj=d["sec_jerseys"], sj_sub=d["sec_jerseys_sub"],
                      sm=d["sec_mugs"], sm_sub=d["sec_mugs_sub"], qt=d["quick_title"],
                      jgrid=jgrid, mgrid=mgrid, quick=quick)
 
@@ -2519,13 +2725,10 @@ def listing_page(kind):
     body = (atmos_html("light")
             + '<div class="wrap">'
             '<div class="page-head"><h1>{t}</h1><p>{s}</p></div>'
-            + searchbar_html()
-            + '<div class="search-none" id="searchNone" style="display:none"><div class="sn-ic">🔍</div>'
-            '<p class="mnote">{sn}</p><button class="btn pri" onclick="clearFilters()">{show}</button></div>'
-            + '<div class="grid">{grid}</div>'
-            '<div style="text-align:center;margin-top:26px"><a class="back" href="/home">← {b}</a></div>'
+            + shop_section_html(grid, "gridL")
+            + '<div style="text-align:center;margin-top:26px"><a class="back" href="/home">← {b}</a></div>'
             '</div>'
-            ).format(t=title, s=sub, sn=d["search_none"], show=d["show_all"], grid=grid, b=d["back"])
+            ).format(t=title, s=sub, grid=grid, b=d["back"])
     return base_page(body, active=("mugs" if kind == "mug" else "products"))
 
 
@@ -2651,8 +2854,17 @@ def product_card(p):
     first = p["imgs"][0]
     order = next((i for i, x in enumerate(cfg.PRODUCTS) if x["id"] == p["id"]), 0)
     b_csv = ",".join(p.get("badges", []))
+    ncol = nearest_color(p["colors"][0])
+    if p["kind"] == "mug":
+        sizes_row = ""
+    else:
+        pills = "".join(
+            ('<span class="sz-pill%s">%s</span>' % (" oos" if stock.get(sz, 0) <= 0 else "", sz))
+            for sz in cfg.SIZE_ORDER[:5])
+        sizes_row = '<div class="sizes-row">{pills}</div>'.format(pills=pills)
+    pdots = "".join('<span class="pdot" style="background:%s"></span>' % c for c in p["colors"])
     return (
-        '<div class="pcard" data-id="{id}" data-kind="{kind}" data-club="{cid}" data-clubn="{cn}" data-stock="{csv}" data-price="{price}" data-name="{name}" data-order="{order}" data-badge="{bcsv}" style="--pc:{pc};--pc2:{pc2}">'
+        '<div class="pcard" data-id="{id}" data-kind="{kind}" data-club="{cid}" data-clubn="{cn}" data-stock="{csv}" data-price="{price}" data-name="{name}" data-order="{order}" data-badge="{bcsv}" data-col="{ncol}" style="--pc:{pc};--pc2:{pc2}">'
         '<div class="badges">{badges}</div>'
         '<button class="heart {on}" onclick="toggleFav(\'{id}\',this)">{h}</button>'
         '<a href="/product/{id}"><div class="pimg" style="background:linear-gradient(135deg,{c1},{c2})">'
@@ -2660,11 +2872,13 @@ def product_card(p):
         '<div class="pover"><a class="pover-btn" href="/product/{id}">{view} ←</a></div>'
         '<div class="pbody"><span class="pcat">{cat}</span><h3>{name}</h3>'
         '{low}'
+        '{sizes_row}'
+        '<div class="pcols">{pdots}</div>'
         '<div class="pfoot"><b>{pr}</b><a class="pview" href="/product/{id}">{view} ←</a></div></div></div>'
     ).format(id=p["id"], kind=p["kind"], cid=club_id, cn=clubn.replace('"', "&quot;"), csv=stock_csv,
              price=eff_price(p), name=name.replace('"', "&quot;"), badges=badges_html, on="on" if fav else "", h="❤" if fav else "🤍",
              c1=p["colors"][0], c2=p["colors"][1], first=first, cat=cat, pr=pr, view=d["view"], low=low,
-             order=order, bcsv=b_csv,
+             order=order, bcsv=b_csv, ncol=ncol, sizes_row=sizes_row, pdots=pdots,
              pc=pc, pc2=pc2)
 
 

@@ -328,6 +328,16 @@ def settings_set(key, value):
     conn.close()
 
 
+# ---- club themes (dynamic per-club site theme) ----
+def club_theme_get(cid):
+    v = settings_get("club_theme_" + cid)
+    return v if isinstance(v, dict) else None
+
+
+def club_theme_set(cid, theme):
+    settings_set("club_theme_" + cid, theme)
+
+
 # ---- price overrides & price-drop alerts ----
 def set_price(pid, price):
     conn = _conn()

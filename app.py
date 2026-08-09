@@ -251,22 +251,20 @@ CSS = """<style>
   --fs:16px; }
 html[data-theme="dark"] { --bg:#0B0F19; --card:#141B2B; --card2:#1B2437; --line:#263049; --txt:#F8FAFC;
   --mut:#9AA7BD; --sh:0 8px 28px rgba(0,0,0,.4); --sh2:0 18px 44px rgba(0,0,0,.55); }
-html[data-club="real"] { --ac:#C9A24B; --ac2:#1F3864; }
-html[data-club="barca"] { --ac:#A50044; --ac2:#004D98; }
-html[data-club="liver"] { --ac:#C8102E; --ac2:#7A0C20; }
-html[data-club="city"] { --ac:#1C2C5B; --ac2:#6CABDD; }
-html[data-club="hilal"] { --ac:#1E4FA3; --ac2:#0C2D6E; }
-html[data-club="nassr"] { --ac:#F7D033; --ac2:#1B1B1B; }
 html[data-font="a"] { --fs:14px; }
 html[data-font="c"] { --fs:18px; }
 html { font-size: var(--fs); }
 body { font-family:'FONT','Segoe UI',Tahoma,sans-serif; background:var(--bg); color:var(--txt);
-  min-height:100vh; transition:background .25s ease, color .25s ease; }
+  min-height:100vh; transition:background .45s ease, color .45s ease; }
 a { text-decoration:none; color:inherit; } img { display:block; }
 button { font-family:inherit; cursor:pointer; }
+html[data-club] .hd { border-bottom:1px solid var(--line); }
+html[data-club] .hd::after { content:''; display:block; height:3px;
+  background:linear-gradient(90deg, var(--ac), var(--ac2)); }
 .wrap { max-width:1120px; margin:0 auto; padding:22px 18px 80px; }
 .hd { position:sticky; top:0; z-index:95; background:var(--card); border-bottom:1px solid var(--line);
-  box-shadow:0 2px 14px rgba(15,23,42,.05); }
+  box-shadow:0 2px 14px rgba(15,23,42,.05);
+  transition:background .45s ease, border-color .45s ease, box-shadow .45s ease; }
 .hd-in { max-width:1120px; margin:0 auto; padding:10px 16px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
 .logo { font-size:1.4rem; font-weight:900; display:flex; align-items:center; gap:6px; color:var(--txt); }
 .logo .ball { font-size:1.3rem; }
@@ -283,15 +281,19 @@ button { font-family:inherit; cursor:pointer; }
 /* hero */
 .hero { position:relative; overflow:hidden; border:1px solid var(--line); border-radius:26px;
   background:linear-gradient(120deg, var(--card) 0%, #F8FAFF 55%), repeating-linear-gradient(0deg, transparent 0 30px, rgba(15,23,42,.02) 30px 32px);
-  padding:46px 34px; margin-bottom:26px; }
+  padding:46px 34px; margin-bottom:26px; transition:background .45s ease; }
+html[data-club] .hero { background:linear-gradient(120deg, var(--tint, rgba(225,29,72,.06)) 0%, transparent 68%), linear-gradient(120deg, var(--card) 0%, #F8FAFF 55%); }
 html[data-theme="dark"] .hero { background:linear-gradient(120deg, var(--card) 0%, #101828 55%); }
+html[data-theme="dark"][data-club] .hero { background:linear-gradient(120deg, var(--tint, rgba(225,29,72,.06)) 0%, transparent 68%), linear-gradient(120deg, var(--card) 0%, #101828 55%); }
 .hero h1 { font-size:2.4rem; line-height:1.15; font-weight:900; }
 .hero h1 .g { background:linear-gradient(90deg, var(--ac), var(--ac2)); -webkit-background-clip:text; background-clip:text; color:transparent; }
 .hero p { margin-top:12px; color:var(--mut); font-size:1rem; line-height:1.9; max-width:640px; }
 .hero-btns { margin-top:22px; display:flex; gap:12px; flex-wrap:wrap; }
 .btn { display:inline-flex; align-items:center; gap:8px; font-weight:800; font-size:.95rem; padding:12px 24px;
   border-radius:999px; border:none; }
-.btn.pri { background:linear-gradient(90deg, var(--ac), var(--ac2)); color:#fff; box-shadow:0 12px 30px rgba(225,29,72,.28); }
+.btn.pri { background:linear-gradient(90deg, var(--ac), var(--ac2)); color:#fff;
+  box-shadow:0 12px 30px var(--glow, rgba(225,29,72,.28));
+  transition:transform .16s ease, box-shadow .45s ease; }
 .btn.pri:hover { transform:translateY(-2px); }
 .btn.ghost { background:var(--card); border:1.5px solid var(--line); color:var(--txt); }
 .btn.ghost:hover { border-color:var(--ac); color:var(--ac); }
@@ -303,7 +305,7 @@ html[data-theme="dark"] .hero { background:linear-gradient(120deg, var(--card) 0
 .sec { margin-bottom:34px; }
 .sec-head { display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
 .sec-head h2 { font-size:1.4rem; font-weight:900; display:flex; align-items:center; gap:10px; }
-.sec-head h2 .bar { width:6px; height:1.4rem; border-radius:4px; background:linear-gradient(180deg, var(--ac), var(--ac2)); }
+.sec-head h2 .bar { width:6px; height:1.4rem; border-radius:4px; background:linear-gradient(180deg, var(--ac), var(--ac2)); transition:background .45s ease; }
 .sec-sub { color:var(--mut); font-size:.86rem; }
 .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(238px,1fr)); gap:20px; }
 .pcard { position:relative; background:var(--card); border:1px solid var(--line); border-radius:20px; overflow:hidden;
@@ -860,7 +862,20 @@ function toggleFav(id,btn){
   if(i>-1){ f.splice(i,1); } else { f.push(id); }
   gxSet('gx_favs',f);
   if(btn) btn.classList.toggle('on', i===-1);
+  renderFavs();
   if(filters.fav) applyFilters();
+}
+function renderFavs(){ var n=gxGet('gx_favs',[]).length; var b=$('favcount'); if(b){ b.textContent=n; b.style.display=n?'flex':'none'; } }
+function openFavs(){
+  var onHome=!!document.querySelector('.grid');
+  if(onHome){
+    if(!filters.fav){
+      filters.fav=true;
+      document.querySelectorAll('.chip').forEach(function(x){ if(x.textContent.indexOf('❤')>-1) x.classList.add('on'); });
+      applyFilters();
+    }
+    window.scrollTo({top:0,behavior:'smooth'});
+  } else { location.href='/home?fav=1'; }
 }
 /* ---------- gallery ---------- */
 var gi=0,gN=0;
@@ -1425,13 +1440,51 @@ function loadDNA(){
 function findProd(id){ var r=null; GX.products.forEach(function(p){ if(p.id===id) r=p; }); return r; }
 /* ---------- init ---------- */
 document.addEventListener('DOMContentLoaded',function(){
-  applyPrefs(); syncPrefs(); gxDev();
+  applyPrefs(); syncPrefs(); gxDev(); renderFavs();
   if($('sq')){ $('sq').addEventListener('input',applyFilters); }
   if($('prod_id')){ trackView($('prod_id').value); }
   applyFilters(); renderCart(); tickCountdown(); setInterval(tickCountdown,1000);
   if($('dnaBox')) loadDNA();
+  if(location.search.indexOf('fav=1')>-1){
+    filters.fav=true;
+    document.querySelectorAll('.chip').forEach(function(x){ if(x.textContent.indexOf('❤')>-1) x.classList.add('on'); });
+    applyFilters();
+    window.scrollTo({top:0});
+  }
 });
 </script>"""
+
+
+def hex_rgba(h, a):
+    h = (h or "#E11D48").lstrip("#")
+    if len(h) == 3:
+        h = "".join(c * 2 for c in h)
+    try:
+        r, g, b = (int(h[i:i + 2], 16) for i in (0, 2, 4))
+    except Exception:
+        r, g, b = 225, 29, 72
+    return "rgba(%d,%d,%d,%s)" % (r, g, b, a)
+
+
+def club_themes():
+    """merged per-club themes: cfg defaults overridden by DB settings."""
+    out = {}
+    for cid, t in cfg.CLUB_THEMES.items():
+        merged = dict(t)
+        db_t = db.club_theme_get(cid)
+        if db_t and isinstance(db_t, dict):
+            merged.update({k: v for k, v in db_t.items() if v})
+        out[cid] = merged
+    return out
+
+
+def club_theme_css():
+    rules = ""
+    for cid, t in club_themes().items():
+        rules += ('html[data-club="%s"] { --ac:%s; --ac2:%s; --glow:%s; --tint:%s; }\n'
+                  % (cid, t.get("ac", "#E11D48"), t.get("ac2", "#F97316"),
+                     hex_rgba(t.get("glow"), 0.32), hex_rgba(t.get("tint"), 0.08)))
+    return rules
 
 
 def base_page(body, active="", page_js="", extra_club=None):
@@ -1442,9 +1495,9 @@ def base_page(body, active="", page_js="", extra_club=None):
         gx["club_page"] = extra_club
     gx_json = json_d(gx)
     js = BASE_JS.replace("__GX__", gx_json)
-    head_extra = ""
+    head_extra = "<style>" + club_theme_css() + "</style>"
     if extra_club:
-        head_extra = '<script>document.documentElement.setAttribute("data-club","%s");</script>' % extra_club
+        head_extra += '<script>document.documentElement.setAttribute("data-club","%s");</script>' % extra_club
     match = gx.get("match")
     drop = gx.get("drop")
     pre = ""
@@ -1522,14 +1575,12 @@ JS
 def header_html(active=""):
     en = lang() == "en"
     d = cfg.L[lang()]
-    def nv(id_, key, onclick=""):
+    def nv(id_, key, onclick):
         cls = " on" if id_ == active else ""
-        if onclick:
-            return "<button class='nv%s' onclick='%s'>%s</button>" % (cls, onclick, d[key])
-        return "<button class='nv%s' onclick='scrollTop()'>%s</button>" % (cls, d[key])
-    links = (nv("home", "nav_home", "scrollTop()")
-             + nv("jerseys", "nav_jerseys", "goSec('jerseys')")
-             + nv("mugs", "nav_mugs", "goSec('mugs')")
+        return '<button class="nv%s" onclick="%s">%s</button>' % (cls, onclick, d[key])
+    links = (nv("home", "nav_home", "location.href='/home'")
+             + nv("jerseys", "nav_jerseys", "location.href='/home#jerseys'")
+             + nv("mugs", "nav_mugs", "location.href='/home#mugs'")
              + nv("sizes", "nav_sizes", "openModal('m-sizes')")
              + nv("order", "nav_order", "openModal('m-how')")
              + nv("contact", "nav_contact", "openModal('m-contact')"))
@@ -1538,6 +1589,7 @@ def header_html(active=""):
     acc_btn = ('<a href="/account" class="hbtn">👤 ' + d["ac_account"] + '</a>') if me else \
         ('<button class="hbtn" onclick="openLogin()">👤 ' + d["ac_login"] + '</button>')
     cheer = ('<button class="hbtn" id="cheerBtn" onclick="cheerNow()" title="' + d["ch_title"] + '">⚽ ' + d["ch_btn"] + '</button>') if match_info() else ""
+    fav_btn = '<button class="hbtn hicon" onclick="openFavs()" title="' + d["fav_filter"] + '">❤️<span class="hcount" id="favcount">0</span></button>'
     return ('<div class="hd"><div class="hd-in">'
             '<a href="/home" class="logo"><span class="ball">⚽</span>golazox</a>'
             '<nav class="nav">%s</nav>'
@@ -1545,7 +1597,7 @@ def header_html(active=""):
             '<button class="hbtn hicon" onclick="openModal(\'m-settings\')">⚙️<span class="hcount" id="cbadge">0</span></button>'
             '<button class="hbtn hicon" onclick="openCart()">🛒<span class="hcount" id="cbadge2">0</span></button>'
             '<button class="hbtn" onclick="setLang(\'%s\')">%s</button>'
-            '</div></div>') % (links, cheer + acc_btn, other, d["lang_name"])
+            '</div></div>') % (links, fav_btn + cheer + acc_btn, other, d["lang_name"])
 
 
 def footer_html():
@@ -3015,6 +3067,19 @@ def admin():
         if act == "drop_clear":
             db.settings_set("drop", None)
             return admin_page("<div class='msg'>تم المسح</div>")
+        if act == "club_theme":
+            for cid in cfg.CLUBS:
+                if request.form.get("reset_" + cid):
+                    db.club_theme_set(cid, {})
+                    continue
+                ac = request.form.get("ac_" + cid, "").strip()
+                ac2 = request.form.get("ac2_" + cid, "").strip()
+                glow = request.form.get("glow_" + cid, "").strip()
+                tint = request.form.get("tint_" + cid, "").strip()
+                t = {k: v for k, v in (("ac", ac), ("ac2", ac2), ("glow", glow), ("tint", tint)) if v}
+                if t:
+                    db.club_theme_set(cid, t)
+            return admin_page("<div class='msg'>تم حفظ الثيمات</div>")
         if act == "price":
             pid = request.form.get("pid", "")
             v = request.form.get("price", "")
@@ -3229,6 +3294,29 @@ def admin_page(msg=""):
     pp_card = ('<div class="adm-card"><h3>🎫 مكافآت جواز كرة القدم</h3>'
                '<form method="post" style="display:grid;gap:8px;max-width:560px"><input type="hidden" name="act" value="pp_rewards">'
                + pp_form + '<button class="hbtn">حفظ المكافآت</button></form></div>')
+
+    theme_rows = ""
+    for cid, c in cfg.CLUBS.items():
+        t = club_themes().get(cid, {})
+        theme_rows += ('<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px">'
+                       '<b style="min-width:150px">%s %s</b>'
+                       '<label>أساسي<input class="mini" type="color" name="ac_%s" value="%s"></label>'
+                       '<label>ثانوي<input class="mini" type="color" name="ac2_%s" value="%s"></label>'
+                       '<label>توهج<input class="mini" type="color" name="glow_%s" value="%s"></label>'
+                       '<label>لون الصفحة<input class="mini" type="color" name="tint_%s" value="%s"></label>'
+                       '<label style="font-size:.78rem;color:#64748b">استعادة الافتراضي<input type="checkbox" name="reset_%s"></label>'
+                       '</div>') % (c.get("emoji", ""), c.get("ar", cid),
+                                    cid, t.get("ac", "#E11D48"),
+                                    cid, t.get("ac2", "#F97316"),
+                                    cid, t.get("glow", "#E11D48"),
+                                    cid, t.get("tint", "#E11D48"),
+                                    cid)
+    theme_card = ('<div class="adm-card"><h3>🎨 ثيمات الأندية (الثيم الديناميكي)</h3>'
+                  '<form method="post" style="max-width:820px"><input type="hidden" name="act" value="club_theme">'
+                  + theme_rows +
+                  '<button class="hbtn">حفظ الثيمات</button>'
+                  '<p style="font-size:.78rem;color:#64748b;margin-top:6px">كل نادي يغيّر ألوان الموقع بالكامل عند دخول صفحة المنتج أو عند اختياره من إعدادات المستخدم.</p>'
+                  '</form></div>')
     adm_card = ""
     if super_role:
         adm_card = ('<div class="adm-card"><h3>👥 إدارة المديرين</h3>'
@@ -3262,7 +3350,7 @@ def admin_page(msg=""):
             '<select name="pid">' + "".join('<option value="%s">%s</option>' % (p["id"], p.get("name_ar", "")) for p in cfg.PRODUCTS) + '</select>'
             '<button class="hbtn">إرسال</button></form></div>'
             '<div class="adm-card"><h3>👥 العملاء</h3><table><tr><th>الاسم</th><th>الهاتف</th><th>الدور</th><th>النشاط</th><th>الحالة</th></tr>{cust_rows}</table></div>'
-            + adm_card + pp_card +
+            + adm_card + pp_card + theme_card +
             '<div class="adm-card"><h3>📝 طلبات المنتجات الخاصة</h3><table><tr><th>#</th><th>النادي</th><th>النوع</th><th>مقاس × كمية</th><th>ملاحظات</th><th>الحالة</th></tr>{req_rows}</table></div>'
             '<div class="adm-card"><h3>🔔 طلبات الإشعار عند التوفر</h3><table><tr><th>المنتج</th><th>الهاتف</th><th>التاريخ</th><th>الحالة</th><th></th></tr>{notif_rows}</table></div>'
             '<div class="adm-card"><h3>🗳️ التصويتات</h3><table><tr><th>السؤال</th><th>الحالة</th><th>إخفاء النتائج</th><th>الفائز</th><th></th></tr>{poll_rows}</table>'

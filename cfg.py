@@ -35,6 +35,19 @@ CLUBS = {
     "nassr":  {"ar": "النصر",          "en": "Al-Nassr",        "accent": "#F7D033", "accent2": "#1B1B1B", "emoji": "🟡"},
 }
 
+# ============================== CLUB THEMES (dynamic, admin-editable) ==============================
+# Each club maps to site accent colors: ac (primary), ac2 (secondary gradient),
+# glow (hex used for the button shadow), tint (hex used for the subtle background wash).
+# Admins can override these in the dashboard; overrides persist in the DB.
+CLUB_THEMES = {
+    "real":   {"ac": "#C9A24B", "ac2": "#1F3864", "glow": "#C9A24B", "tint": "#C9A24B"},
+    "barca":  {"ac": "#A50044", "ac2": "#004D98", "glow": "#A50044", "tint": "#004D98"},
+    "liver":  {"ac": "#C8102E", "ac2": "#7A0C20", "glow": "#C8102E", "tint": "#C8102E"},
+    "city":   {"ac": "#1C2C5B", "ac2": "#6CABDD", "glow": "#1C2C5B", "tint": "#6CABDD"},
+    "hilal":  {"ac": "#1E4FA3", "ac2": "#0C2D6E", "glow": "#1E4FA3", "tint": "#1E4FA3"},
+    "nassr":  {"ac": "#F7D033", "ac2": "#1B1B1B", "glow": "#F7D033", "tint": "#F7D033"},
+}
+
 # ============================== PRODUCTS ==============================
 # stock: jersey -> {size: qty}; mug -> {OS: qty}. Admin panel overrides via DB.
 # badges: "new" | "best" | "offer" | "soldout" (soldout computed from stock too)

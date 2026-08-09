@@ -1839,9 +1839,17 @@ function authSendCode(){
   fetch('/api/auth/otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:ph})})
   .then(function(r){return r.json();}).then(function(d){
     $('au_demo').style.display= d.demo?'block':'none';
-    if(d.demo) $('au_democode').textContent=d.otp;
+    if(d.demo){
+      $('au_democode').textContent=d.otp;
+      if($('au_code')) $('au_code').value=d.otp;
+      var dl=$('au_demo_note'); if(dl) dl.style.display='block';
+    }
     $('au_newbox').style.display= d.registered?'none':'block';
     $('au_pwbox').style.display= d.registered?'none':'block';
+  }).catch(function(){
+    var s2=$('au_step2'); if(s2){ s2.style.display='none'; }
+    var s1=$('au_step1'); if(s1){ s1.style.display='block'; }
+    toast(gxT('auth_otp_fail'));
   });
 }
 function authVerify(){
@@ -2317,7 +2325,8 @@ def auth_box_html():
             '<div class="fld" id="au_newbox"><label>{nm}</label><input id="au_name"></div>'
             '<div class="fld" id="au_pwbox"><label>{ps}</label><input id="au_pw" type="password"></div>'
             '<div class="auth-new" id="au_new">{new}</div>'
-            '<div class="auth-demo" id="au_demo">{demo} <b id="au_democode"></b></div>'
+            '<div class="auth-demo" id="au_demo">{demo} <b id="au_democode"></b>'
+            '<div id="au_demo_note" style="display:none;margin-top:6px;font-weight:800">✅ {fill}</div></div>'
             '<button class="btn pri big" onclick="authVerify()">{v}</button></div>'
             '<div class="auth-step1" id="au_step1">'
             '<button class="btn pri big" onclick="authSendCode()">{s}</button></div></div>'
@@ -2329,7 +2338,7 @@ def auth_box_html():
             ).format(sub=d["auth_sub"], ph=d["auth_phone"], otp=d["auth_otp_ph"],
                      nm=d["auth_name_ph"], ps=d["auth_pw_set"], new=d["auth_new"], demo=d["auth_demo_note"],
                      v=d["auth_verify"], s=d["auth_otp_btn"], t1=d["auth_tab_otp"], t2=d["auth_tab_pw"],
-                     pw=d["auth_pw_ph"], pb=d["auth_pw_btn"])
+                     pw=d["auth_pw_ph"], pb=d["auth_pw_btn"], fill=d["auth_demo_fill"])
 
 
 def modals_html():

@@ -72,7 +72,7 @@ def total_avail(p):
 
 
 def cur():
-    return "BHD" if lang() == "en" else "د.ب"
+    return cfg.CURRENCY_EN if lang() == "en" else cfg.CURRENCY_AR
 
 
 def fmt_cur(v):
@@ -103,9 +103,10 @@ def gx_data():
     u = current_user()
     user = {"id": u["id"], "role": u["role"]} if u else None
     return {
-        "lang": lang(), "cur": cur(), "wa": cfg.WHATSAPP, "delivery": cfg.DELIVERY_FEE,
+        "lang": lang(), "cur": cur(), "wa": cfg.WHATSAPP, "tg": cfg.TG_LINK, "tg_user": cfg.TG_USER,
+        "delivery": cfg.DELIVERY_FEE,
         "sizes": cfg.SIZE_ORDER, "chart": cfg.SIZE_CHART, "rewards": cfg.REWARDS,
-        "products": products, "clubs": clubs, "points_per": cfg.POINTS_PER_BHD,
+        "products": products, "clubs": clubs, "points_per": cfg.POINTS_PER_SAR,
         "match": m, "drop": d, "poll": poll, "now": datetime.datetime.now().isoformat(),
         "user": user,
         "T": cfg.L[lang()],
@@ -314,6 +315,8 @@ html[data-theme="dark"][data-club] .hero { background:linear-gradient(120deg, va
 .btn.ghost:hover { border-color:var(--ac); color:var(--ac); }
 .btn.wa { background:var(--green); color:#073a1f; box-shadow:0 12px 30px rgba(37,211,102,.3); }
 .btn.wa:hover { transform:translateY(-2px); }
+.btn.tg { background:#229ED9; color:#fff; box-shadow:0 12px 30px rgba(34,158,217,.3); }
+.btn.tg:hover { transform:translateY(-2px); background:#1e8fc4; }
 .btn.big { width:100%; justify-content:center; padding:14px; font-size:1rem; }
 .btn.sm { padding:8px 16px; font-size:.85rem; }
 .btn.block { width:100%; justify-content:center; }
@@ -353,6 +356,12 @@ html[data-theme="dark"][data-club] .hero { background:linear-gradient(120deg, va
 .sbox input { flex:1; border:none; outline:none; background:none; color:var(--txt); font-family:inherit; font-size:.95rem; padding:12px 4px; }
 .sbox button { background:var(--ac); color:#fff; border:none; border-radius:10px; padding:9px 14px; font-weight:800; font-size:.85rem; }
 .filters { display:flex; gap:8px; flex-wrap:wrap; }
+.fbtn { margin-bottom:10px; }
+.sort-lbl { font-size:.82rem; font-weight:800; color:var(--mut); margin-inline-start:4px; }
+select.sort { font-weight:800; }
+.search-none { text-align:center; padding:34px 16px; border:1.5px dashed var(--line); border-radius:18px; margin-bottom:18px; }
+.search-none .sn-ic { font-size:40px; margin-bottom:10px; }
+.search-none .mnote { margin-bottom:14px; font-weight:800; }
 .chip { background:var(--card); border:1.5px solid var(--line); color:var(--mut); border-radius:999px; padding:7px 14px;
   font-size:.8rem; font-weight:700; }
 .chip:hover { border-color:var(--ac); }
@@ -801,6 +810,11 @@ html[data-theme="dark"] .mwarning { background:#3B1D0B; border-color:#7C2D12; co
   .links3 { grid-template-columns:1fr; }
   .gmain img { height:300px; }
   .tk-btns { grid-template-columns:1fr; }
+  #filtersBar { position:fixed; left:0; right:0; bottom:0; z-index:80; flex-direction:column; align-items:stretch;
+    background:var(--card,#fff); border-top:1.5px solid var(--line,#e5e7eb); padding:18px 16px calc(18px + env(safe-area-inset-bottom));
+    border-radius:20px 20px 0 0; box-shadow:0 -14px 40px rgba(2,6,23,.18);
+    transform:translateY(110%); transition:transform .28s ease; }
+  #filtersBar.open { transform:translateY(0); }
 }
 /* ============================== FOOTBALL STADIUM ATMOSPHERE ============================== */
 body { overflow-x:hidden; }
@@ -1105,6 +1119,26 @@ function clearFilters(){
   var fa=$('f_avail'); if(fa) fa.checked=false;
   applyFilters();
 }
+/* ---------- sorting & filters drawer ---------- */
+function hasB(c,b){ return (','+((c.getAttribute('data-badge'))||'')+',').indexOf(','+b+',')>-1; }
+function applySort(){
+  var v=(($('sortSel')&&$('sortSel').value)||'new');
+  document.querySelectorAll('.grid').forEach(function(g){
+    var cards=[].slice.call(g.querySelectorAll('.pcard'));
+    if(!cards.length) return;
+    if(v==='lo') cards.sort(function(a,b){return (parseFloat(a.getAttribute('data-price'))||0)-(parseFloat(b.getAttribute('data-price'))||0);});
+    else if(v==='hi') cards.sort(function(a,b){return (parseFloat(b.getAttribute('data-price'))||0)-(parseFloat(a.getAttribute('data-price'))||0);});
+    else if(v==='best') cards.sort(function(a,b){return (hasB(a,'best')?0:1)-(hasB(b,'best')?0:1);});
+    else if(v==='new') cards.sort(function(a,b){return (parseInt(b.getAttribute('data-order'))||0)-(parseInt(a.getAttribute('data-order'))||0);});
+    cards.forEach(function(c){ g.appendChild(c); });
+  });
+  applyFilters();
+}
+function toggleFilters(){
+  var bar=$('filtersBar'); if(!bar) return;
+  var open=bar.classList.toggle('open');
+  var fb=document.querySelector('.fbtn'); if(fb){ fb.classList.toggle('on',open); }
+}
 /* ---------- favorites ---------- */
 function toggleFav(id,btn){
   var f=gxGet('gx_favs',[]); var i=f.indexOf(id);
@@ -1242,6 +1276,7 @@ function renderCartPage(){
     +'<div class="row-t total"><span>'+gxT('cart_total')+'</span><b>'+pmoney(tot.total)+' '+GX.cur+'</b></div>'
     +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">'
     +'<button class="btn wa" style="flex:1" onclick="openCheckout()">'+gxT('cart_checkout')+'</button>'
+    +'<button class="btn tg" style="flex:1" onclick="orderCartTG()">✈️ '+gxT('order_tg')+'</button>'
     +'<button class="btn ghost" onclick="clearCart()">🗑 '+gxT('cart_clear')+'</button></div>';
   box.innerHTML=html;
 }
@@ -1264,6 +1299,7 @@ function fillFoot(){
     }
   }
   html+='<button class="btn wa block" '+(cart.length?'':'disabled style="opacity:.5"')+' onclick="openCheckout()">'+gxT('cart_checkout')+'</button>'
+    +'<button class="btn tg block" '+(cart.length?'':'disabled style="opacity:.5"')+' onclick="orderCartTG()" style="margin-top:8px">✈️ '+gxT('order_tg')+'</button>'
     +'<div style="text-align:center;margin-top:8px"><button class="hbtn" onclick="clearCart()">🗑 '+gxT('cart_clear')+'</button></div>';
   ft.innerHTML=html;
 }
@@ -1312,6 +1348,56 @@ function waOrderMsg(code,items,name,phone,area,addr,del,disc,total){
   l.push('📍 '+gxT('co_area').replace(/[^\u0600-\u06FF\w\s]/g,'')+': '+area);
   l.push('🏠 '+gxT('co_address').replace(/[^\u0600-\u06FF\w\s]/g,'')+': '+addr);
   return l.join('\\n');
+}
+/* ---------- order via Telegram ---------- */
+function tgOrderMsg(code,items,del,disc,total){
+  var l=[]; l.push(gxT('hello').trim()+' 👋'); l.push('');
+  l.push(gxT('code_w')+code);
+  items.forEach(function(it){
+    l.push(''); l.push('• '+it.emoji+' '+it.name);
+    if(it.kind!=='mug') l.push('  '+gxT('size_w')+it.size);
+    l.push('  '+gxT('qty_w')+it.qty+' · '+pmoney(it.price*it.qty)+' '+GX.cur);
+  });
+  l.push(''); l.push('🚚 '+gxT('cart_delivery')+': '+pmoney(del)+' '+GX.cur);
+  if(disc>0) l.push(gxT('pts_discount')+': −'+pmoney(disc)+' '+GX.cur);
+  l.push('💰 '+gxT('cart_total')+': '+pmoney(total)+' '+GX.cur);
+  return l.join('\\n');
+}
+function orderCartTG(){
+  var cart=gxGet('gx_cart',[]); if(!cart.length) return;
+  var tot=cartTotals(); var disc=rewardSel?rewardSel.discount:0;
+  var fin=Math.max(0,tot.total-disc);
+  var items=cart.map(function(x){ var p=GX.products.find(function(y){return y.id===x.id;});
+    return {id:x.id,size:x.size,qty:x.qty,name:p?pname(p,x.size):x.id,price:p?p.price:0,emoji:p?p.emoji:'⚽',kind:p?p.kind:'jersey'}; });
+  fetch('/api/order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+    items:items,name:'',phone:'',area:'',address:'',notes:'',delivery:tot.delivery,discount:disc,total:fin,reward:rewardSel?rewardSel.points:0,fast:1,device:gxDev()})})
+  .then(function(r){return r.json();}).then(function(d){
+    if(d.code){
+      var msg=tgOrderMsg(d.code,items,tot.delivery,disc,fin);
+      window.open(GX.tg+'?text='+encodeURIComponent(msg),'_blank');
+      location.href='/order/success?code='+d.code;
+    } else { toast('Error'); }
+  });
+}
+function orderTG(pid){
+  var p=GX.products.find(function(x){return x.id===pid;});
+  if(!p) return;
+  var q=parseInt(document.getElementById('qty').textContent,10);
+  var chip=document.querySelector('.size-chip.on'); var sz=chip?chip.getAttribute('data-sz'):null;
+  if(p.kind!=='mug' && !sz){ toast(gxT('size_required')); return; }
+  var items=[{id:pid,size:sz||'OS',qty:q,name:p[GX.lang==='ar'?'name_ar':'name_en'],price:p.price,emoji:p.emoji,kind:p.kind}];
+  var tot=(p.price*q)+GX.delivery;
+  fetch('/api/order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+    items:items,name:'',phone:'',area:'',address:'',notes:'',delivery:GX.delivery,discount:0,total:tot,reward:0,fast:1,device:gxDev()})})
+  .then(function(r){return r.json();}).then(function(d){
+    if(d.code){
+      var msg=gxT('hello').trim()+':\n'+items[0].emoji+' '+items[0].name;
+      if(sz) msg+='\n'+gxT('size_w')+sz;
+      msg+='\n'+gxT('qty_w')+q+' · '+pmoney(p.price*q)+' '+GX.cur+'\n\n'+gxT('code_w')+d.code;
+      window.open(GX.tg+'?text='+encodeURIComponent(msg),'_blank');
+      location.href='/order/success?code='+d.code;
+    }
+  });
 }
 /* ---------- points ---------- */
 function addPoints(n,label){
@@ -1992,15 +2078,18 @@ def footer_html():
             '<p class="ft-desc">{badge}</p>'
             '<div class="ft-social">'
             '<a target="_blank" rel="noopener" href="https://wa.me/{wa}" title="{wa_title}">💬</a>'
+            '<a target="_blank" rel="noopener" href="{tg}" title="{tg_title}">✈️</a>'
             '<a onclick="setLang(\'{other}\')" title="{lang}">{langname}</a>'
             '</div></div>'
             '<div class="ft-col"><h4>{t1}</h4>{col_links}</div>'
             '<div class="ft-col"><h4>{t2}</h4>{club_links}</div>'
-            '<div class="ft-col"><h4>{t3}</h4>{col_help}</div>'
-            '</div>'
+            '<div class="ft-col"><h4>{t3}</h4>{col_help}'
+            '<a target="_blank" rel="noopener" href="{tg}" style="margin-top:10px;font-weight:800">{tg_txt} ✈️</a>'
+            '</div></div>'
             '<p class="ft-copy">{copy}</p>'
             '</div></footer>').format(
-        badge=d["badge"], wa=cfg.WHATSAPP, wa_title=d["ft_wa"], other="ar" if en else "en",
+        badge=d["badge"], wa=cfg.WHATSAPP, wa_title=d["ft_wa"], tg=cfg.TG_LINK,
+        tg_title=d["ft_tg"], tg_txt=d["order_tg"], other="ar" if en else "en",
         lang=d["lang_name"], langname=d["lang_name"],
         t1=d["ft_links"], col_links=col_links, t2=d["ft_clubs"], club_links=club_links,
         t3=d["ft_help"], col_help=col_help, copy=d["footer_copy"])
@@ -2214,22 +2303,29 @@ def searchbar_html():
     type_opts = ('<option value="jersey">%s</option><option value="mug">%s</option>' % (d["type_jersey"], d["type_mug"]))
     size_opts = "".join('<option value="%s">%s</option>' % (s, s) for s in cfg.SIZE_ORDER)
     return ('<div class="sb">'
-            '<div class="sbox"><input id="sq" placeholder="{ph}"><button onclick="applyFilters()">🔍</button></div>'
-            '<button class="btn ghost sm" onclick="isOpen()">{ims}</button></div>'
-            '<div class="filters">'
+            '<div class="sbox"><input id="sq" placeholder="{ph}" onkeydown="if(event.key===\'Enter\')applyFilters()"><button onclick="applyFilters()">🔍</button></div>'
+            '<button class="btn ghost sm" onclick="isOpen()">{ims}</button>'
+            '<span class="sort-lbl">{sort_label}</span>'
+            '<select class="sel sort" id="sortSel" onchange="applySort()">'
+            '<option value="new">{sn}</option><option value="lo">{lo}</option>'
+            '<option value="hi">{hi}</option><option value="best">{sb}</option></select></div>'
+            '<button class="btn ghost sm fbtn" onclick="toggleFilters()">⚙️ {fb}</button>'
+            '<div class="filters" id="filtersBar">'
             '<button class="chip" onclick="setFilter(\'club\',this.getAttribute(\'data-v\'),this)" data-v="club:all">{cl}:{all}</button>'
             '<select class="sel" onchange="filters.club=this.value;applyFilters()"><option value="all">{all}</option>{clubs}</select>'
             '<select class="sel" onchange="filters.type=this.value;applyFilters()"><option value="all">{all}</option>{types}</select>'
             '<select class="sel" onchange="filters.size=this.value;applyFilters()"><option value="all">{all}</option>{sizes}</select>'
-            '<span class="pricefilter"><input type="number" id="f_pmin" placeholder="{mn}" min="0" step="0.5">'
-            '<span>–</span><input type="number" id="f_pmax" placeholder="{mx}" min="0" step="0.5"></span>'
+            '<span class="pricefilter"><input type="number" id="f_pmin" placeholder="{mn}" min="0" step="1">'
+            '<span>–</span><input type="number" id="f_pmax" placeholder="{mx}" min="0" step="1"></span>'
             '<button class="chip" onclick="applyFilters()">{ap}</button>'
             '<label class="chip avl"><input type="checkbox" id="f_avail" onchange="filters.avail=this.checked;applyFilters()"> {fa}</label>'
             '<button class="chip" onclick="setFilter(\'fav\',null,this)">❤️ {fav}</button>'
             '<button class="chip" onclick="clearFilters()">{clear}</button></div>'
             ).format(ph=d["search_ph"], ims=d["img_search"], cl=d["filter_club"], all=d["filter_all"],
                      clubs=club_opts, types=type_opts, sizes=size_opts, mn=d["price_min"], mx=d["price_max"],
-                     ap=d["filter_apply"], fa=d["filter_avail"], fav=d["fav_filter"], clear=d["clear_filters"])
+                     ap=d["filter_apply"], fa=d["filter_avail"], fav=d["fav_filter"], clear=d["clear_filters"],
+                     sort_label=d["sort_label"], sn=d["sort_new"], lo=d["sort_lo"], hi=d["sort_hi"],
+                     sb=d["sort_best"], fb=d["filters_btn"])
 
 
 def home_body():
@@ -2388,7 +2484,8 @@ def home_body():
             + '<div class="wrap">'
             + hero
             + searchbar
-            + '<p class="mnote" id="searchNone" style="display:none;text-align:center;font-weight:800">{sn}</p>'
+            + '<div class="search-none" id="searchNone" style="display:none"><div class="sn-ic">🔍</div>'
+            '<p class="mnote">{sn}</p><button class="btn pri" onclick="clearFilters()">{show}</button></div>'
             + clubs_sec
             + best_sec
             + new_sec
@@ -2405,7 +2502,7 @@ def home_body():
             + '<div class="sec rv" id="info"><div class="sec-head"><h2><span class="bar"></span>{qt}</h2></div>'
             + '<div class="quick">{quick}</div></div>'
             + '</div>'
-            ).format(sn=d["search_none"], sj=d["sec_jerseys"], sj_sub=d["sec_jerseys_sub"],
+            ).format(sn=d["search_none"], show=d["show_all"], sj=d["sec_jerseys"], sj_sub=d["sec_jerseys_sub"],
                      sm=d["sec_mugs"], sm_sub=d["sec_mugs_sub"], qt=d["quick_title"],
                      jgrid=jgrid, mgrid=mgrid, quick=quick)
 
@@ -2423,11 +2520,12 @@ def listing_page(kind):
             + '<div class="wrap">'
             '<div class="page-head"><h1>{t}</h1><p>{s}</p></div>'
             + searchbar_html()
-            + '<p class="mnote" id="searchNone" style="display:none;text-align:center;font-weight:800">{sn}</p>'
+            + '<div class="search-none" id="searchNone" style="display:none"><div class="sn-ic">🔍</div>'
+            '<p class="mnote">{sn}</p><button class="btn pri" onclick="clearFilters()">{show}</button></div>'
             + '<div class="grid">{grid}</div>'
             '<div style="text-align:center;margin-top:26px"><a class="back" href="/home">← {b}</a></div>'
             '</div>'
-            ).format(t=title, s=sub, sn=d["search_none"], grid=grid, b=d["back"])
+            ).format(t=title, s=sub, sn=d["search_none"], show=d["show_all"], grid=grid, b=d["back"])
     return base_page(body, active=("mugs" if kind == "mug" else "products"))
 
 
@@ -2551,8 +2649,10 @@ def product_card(p):
     th = club_themes().get(club_id, {}) if club_id else {}
     pc = th.get("ac", "#E11D48"); pc2 = th.get("ac2", "#F97316")
     first = p["imgs"][0]
+    order = next((i for i, x in enumerate(cfg.PRODUCTS) if x["id"] == p["id"]), 0)
+    b_csv = ",".join(p.get("badges", []))
     return (
-        '<div class="pcard" data-id="{id}" data-kind="{kind}" data-club="{cid}" data-clubn="{cn}" data-stock="{csv}" data-price="{price}" data-name="{name}" style="--pc:{pc};--pc2:{pc2}">'
+        '<div class="pcard" data-id="{id}" data-kind="{kind}" data-club="{cid}" data-clubn="{cn}" data-stock="{csv}" data-price="{price}" data-name="{name}" data-order="{order}" data-badge="{bcsv}" style="--pc:{pc};--pc2:{pc2}">'
         '<div class="badges">{badges}</div>'
         '<button class="heart {on}" onclick="toggleFav(\'{id}\',this)">{h}</button>'
         '<a href="/product/{id}"><div class="pimg" style="background:linear-gradient(135deg,{c1},{c2})">'
@@ -2564,6 +2664,7 @@ def product_card(p):
     ).format(id=p["id"], kind=p["kind"], cid=club_id, cn=clubn.replace('"', "&quot;"), csv=stock_csv,
              price=eff_price(p), name=name.replace('"', "&quot;"), badges=badges_html, on="on" if fav else "", h="❤" if fav else "🤍",
              c1=p["colors"][0], c2=p["colors"][1], first=first, cat=cat, pr=pr, view=d["view"], low=low,
+             order=order, bcsv=b_csv,
              pc=pc, pc2=pc2)
 
 
@@ -2699,6 +2800,14 @@ def product_body(pid):
     if not is_mug:
         trybtn = '<button class="btn ghost orderbtn" style="margin-top:10px" onclick="tryOpen(\'{id}\')">📸 {tr}</button>'.format(id=p["id"], tr=d["try_title"])
 
+    one = len(p["imgs"]) <= 1
+    gal_nav = "" if one else (
+        '<span class="gcount" id="gcount">1 {of} {n}</span>'
+        '<button class="gar r" id="garr" onclick="event.stopPropagation();movGal(1)">‹</button>'
+        '<button class="gar l" id="garr2" onclick="event.stopPropagation();movGal(-1)">›</button>'
+    ).format(of=d["img_of"], n=len(p["imgs"]))
+    thumbs_block = "" if one else '<div class="gthumb" id="gthumbs">{gthumbs}</div>'
+
     body = (
         atmos_html("light")
         + '<div class="wrap">'
@@ -2707,10 +2816,8 @@ def product_body(pid):
         '<div class="pg">'
         '<div class="gal"><div class="gmain" onclick="openLB(document.getElementById(\'gmain\').src)">'
         '<img id="gmain" src="/img/{first}" alt="{name}">'
-        '<span class="gcount" id="gcount">1 {of} {n}</span>'
-        '<button class="gar r" id="garr" onclick="event.stopPropagation();movGal(1)">‹</button>'
-        '<button class="gar l" id="garr2" onclick="event.stopPropagation();movGal(-1)">›</button></div>'
-        '<div class="gthumb" id="gthumbs">{gthumbs}</div>'
+        '{gal_nav}</div>'
+        '{thumbs_block}'
         '<p class="zoom-hint">🔍 {zh}</p></div>'
         '<div class="pinfo"><h1>{name}</h1><p class="pcatline">{cat}</p>'
         '<div class="pprice">{pr}</div>{trust}{trust_info}'
@@ -2719,6 +2826,7 @@ def product_body(pid):
         '<div class="qty"><button onclick="chgQ(-1)">−</button><span class="qn" id="qty">1</span><button onclick="chgQ(1)">+</button></div></div>'
         '<button class="btn pri orderbtn" onclick="var q=parseInt(document.getElementById(\'qty\').textContent,10);addCart(\'{id}\',selSize||\'\',q)">🛒 {add}</button>'
         '<button class="btn wa orderbtn" style="margin-top:10px" onclick="orderDirect(\'{id}\')">💬 {ow}</button>'
+        '<button class="btn tg orderbtn" style="margin-top:10px" onclick="orderTG(\'{id}\')">✈️ {ot}</button>'
         '{trybtn}'
         '<button class="btn ghost orderbtn" style="margin-top:10px" onclick="openPriceDrop(\'{id}\')">🔔 {pd}</button>'
         '{notify}'
@@ -2729,9 +2837,9 @@ def product_body(pid):
         '</div></div>'
         '{ratings}{yml}'
         '</div>'
-    ).format(back=d["back"], first=p["imgs"][0], name=name, of=d["img_of"], n=len(p["imgs"]),
+    ).format(back=d["back"], first=p["imgs"][0], name=name, gal_nav=gal_nav, thumbs_block=thumbs_block,
              gthumbs=gthumbs, zh=d["zoom_hint"], cat=cat, pr=pr, trust=trust, trust_info=trust_info,
-             sizes=sizes, ql=d["qty_label"], id=p["id"], add=d["add"], ow=d["order_wa"],
+             sizes=sizes, ql=d["qty_label"], id=p["id"], add=d["add"], ow=d["order_wa"], ot=d["order_tg"],
              trybtn=trybtn, pd=d["pd_title"],
              notify=notify, a=d["prod_links_sz"], b=d["prod_links_wash"], c=d["prod_links_ret"],
              ratings=ratings, yml=yml)

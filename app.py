@@ -802,6 +802,201 @@ html[data-theme="dark"] .mwarning { background:#3B1D0B; border-color:#7C2D12; co
   .gmain img { height:300px; }
   .tk-btns { grid-template-columns:1fr; }
 }
+/* ============================== FOOTBALL STADIUM ATMOSPHERE ============================== */
+body { overflow-x:hidden; }
+.wrap { position:relative; z-index:1; }
+.stadium-bg { position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
+.stadium-bg .atm-lines { position:absolute; inset:0; opacity:.55;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 68px, rgba(15,23,42,.03) 68px 69px),
+    repeating-linear-gradient(90deg, transparent 0 68px, rgba(15,23,42,.03) 68px 69px); }
+.stadium-bg .atm-circle { position:absolute; left:50%; top:56%; width:560px; height:560px; margin:-280px 0 0 -280px;
+  border:3px dashed rgba(15,23,42,.06); border-radius:50%; }
+.stadium-bg .atm-glow { position:absolute; border-radius:50%; filter:blur(80px); animation:atmGlow 16s ease-in-out infinite; }
+.stadium-bg .atm-glow.g1 { width:430px; height:430px; left:-130px; top:-130px;
+  background:radial-gradient(circle, var(--glow2, rgba(225,29,72,.16)), transparent 70%); }
+.stadium-bg .atm-glow.g2 { width:390px; height:390px; right:-110px; top:26%;
+  background:radial-gradient(circle, var(--glow3, rgba(56,130,246,.13)), transparent 70%); animation-delay:-5s; }
+.stadium-bg .atm-glow.g3 { width:480px; height:480px; left:32%; bottom:-230px;
+  background:radial-gradient(circle, rgba(37,211,102,.09), transparent 70%); animation-delay:-9s; }
+@keyframes atmGlow { 0%,100% { transform:translate(0,0) scale(1); } 50% { transform:translate(46px,-34px) scale(1.1); } }
+.stadium-bg .atm-ball { position:absolute; opacity:.15; filter:blur(.4px); animation:atmFloat linear infinite; }
+@keyframes atmFloat {
+  0% { transform:translate(0,0) rotate(0deg); }
+  25% { transform:translate(28px,-42px) rotate(16deg); }
+  50% { transform:translate(-18px,-84px) rotate(30deg); }
+  75% { transform:translate(-34px,-42px) rotate(16deg); }
+  100% { transform:translate(0,0) rotate(0deg); }
+}
+.stadium-bg .atm-dot { position:absolute; width:6px; height:6px; border-radius:50%; background:var(--ac,#E11D48);
+  opacity:.16; animation:atmDot linear infinite; }
+@keyframes atmDot { 0% { transform:translateY(0) scale(1); opacity:.14; } 50% { transform:translateY(-76px) scale(1.5); opacity:.32; } 100% { transform:translateY(0) scale(1); opacity:.14; } }
+html[data-club] .stadium-bg .atm-dot { background:var(--ac); }
+html[data-club] .stadium-bg .atm-circle { border-color:color-mix(in srgb, var(--ac) 22%, transparent); }
+html[data-club] .stadium-bg .atm-glow.g1 { background:radial-gradient(circle, var(--glow, rgba(225,29,72,.2)), transparent 70%); }
+html[data-club] .stadium-bg .atm-glow.g2 { background:radial-gradient(circle, color-mix(in srgb, var(--ac2) 26%, transparent), transparent 70%); }
+@media (prefers-reduced-motion: reduce) {
+  .stadium-bg .atm-ball, .stadium-bg .atm-dot, .stadium-bg .atm-glow, .stadium-bg .atm-circle, .stadium-bg .atm-lines { animation:none !important; }
+  *, *::before, *::after { transition-duration:.01ms !important; animation-duration:.01ms !important; animation-iteration-count:1 !important; }
+}
+/* ============================== STICKY GLASS NAVBAR ============================== */
+.hd { transition:background .3s ease, box-shadow .3s ease, border-color .3s ease; }
+.hd.scrolled { background:rgba(255,255,255,.82); backdrop-filter:blur(16px) saturate(1.5);
+  -webkit-backdrop-filter:blur(16px) saturate(1.5); box-shadow:0 6px 28px rgba(15,23,42,.08); border-bottom-color:transparent; }
+html[data-theme="dark"] .hd.scrolled { background:rgba(11,15,25,.82); }
+/* ============================== HERO ============================== */
+.hero { background:
+  radial-gradient(130% 110% at 12% 0%, color-mix(in srgb, var(--ac) 15%, transparent), transparent 58%),
+  radial-gradient(110% 100% at 92% 100%, rgba(37,211,102,.07), transparent 60%),
+  linear-gradient(120deg, var(--card) 0%, #F8FAFF 60%),
+  repeating-linear-gradient(0deg, transparent 0 32px, rgba(15,23,42,.022) 32px 33px); }
+.hero-tag { display:inline-flex; align-items:center; gap:9px; background:var(--card); border:1px solid var(--line);
+  color:var(--ac); font-size:.72rem; font-weight:900; letter-spacing:2px; padding:7px 15px; border-radius:999px;
+  margin-bottom:18px; box-shadow:var(--sh); }
+.hero-tag .pulse { width:8px; height:8px; border-radius:50%; background:var(--ok); animation:pulse 2s infinite; }
+.hero-ball { position:absolute; inset-inline-end:7%; top:50%; transform:translateY(-50%); width:150px; height:150px;
+  font-size:150px; line-height:150px; text-align:center; filter:drop-shadow(0 24px 36px rgba(15,23,42,.3));
+  animation:heroBall 9s ease-in-out infinite; pointer-events:none; }
+.hero-ball .ring { position:absolute; inset:-20px; border-radius:50%; border:2px dashed color-mix(in srgb, var(--ac) 45%, transparent); animation:spin 26s linear infinite; }
+@keyframes heroBall { 0%,100% { transform:translateY(-50%) translateX(0) rotate(-6deg); } 50% { transform:translateY(-60%) translateX(-16px) rotate(7deg); } }
+@keyframes spin { to { transform:rotate(360deg); } }
+html[data-club] .hero-ball { filter:drop-shadow(0 24px 36px var(--glow, rgba(225,29,72,.3))); }
+/* ============================== CLUB PICKER ============================== */
+#clubs { scroll-margin-top:92px; }
+.clubs { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:16px; }
+.clubcard { position:relative; display:flex; flex-direction:column; align-items:center; gap:9px; text-align:center;
+  background:var(--card); border:1px solid var(--line); border-radius:22px; padding:22px 12px 18px; cursor:pointer;
+  text-decoration:none; overflow:hidden; transition:transform .2s ease, box-shadow .28s ease, border-color .28s ease; }
+.clubcard::before { content:''; position:absolute; inset:0;
+  background:radial-gradient(130% 130% at 50% 0%, color-mix(in srgb, var(--cc,#E11D48) 18%, transparent), transparent 62%);
+  opacity:0; transition:opacity .3s ease; }
+.clubcard:hover { transform:translateY(-6px);
+  border-color:color-mix(in srgb, var(--cc,#E11D48) 55%, var(--line));
+  box-shadow:0 20px 44px color-mix(in srgb, var(--cc,#E11D48) 30%, transparent); }
+.clubcard:hover::before { opacity:1; }
+.cc-logo { width:66px; height:66px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:30px;
+  background:linear-gradient(135deg, var(--cc,#E11D48), var(--cc2,#F97316)); box-shadow:0 12px 26px color-mix(in srgb, var(--cc,#E11D48) 38%, transparent);
+  position:relative; z-index:1; }
+.cc-logo .em { filter:drop-shadow(0 4px 8px rgba(15,23,42,.28)); line-height:1; }
+.clubcard b { font-size:.95rem; font-weight:800; color:var(--txt); position:relative; z-index:1; }
+.cc-count { font-size:.72rem; font-weight:700; color:var(--mut); position:relative; z-index:1; }
+.cc-go { position:relative; z-index:1; font-size:.76rem; font-weight:900; color:var(--cc,#E11D48);
+  opacity:0; transform:translateY(6px); transition:opacity .25s ease, transform .25s ease; }
+.clubcard:hover .cc-go { opacity:1; transform:none; }
+/* ============================== CLUB PAGE ============================== */
+.club-banner { border-radius:26px; padding:40px 26px; color:#fff; text-align:center; position:relative; overflow:hidden;
+  box-shadow:0 22px 50px var(--glow, rgba(225,29,72,.25)); }
+.club-banner::after { content:''; position:absolute; inset:0;
+  background:radial-gradient(120% 130% at 50% 0%, rgba(255,255,255,.14), transparent 55%); }
+.club-banner .cb-emoji { font-size:64px; position:relative; z-index:1; display:block; filter:drop-shadow(0 10px 18px rgba(0,0,0,.28)); }
+.club-banner h1 { font-size:2rem; font-weight:900; position:relative; z-index:1; margin-top:8px; }
+.club-banner p { opacity:.92; position:relative; z-index:1; margin-top:6px; }
+.club-banner .lightbtn { position:relative; z-index:1; margin-top:18px; background:#fff; color:#0F172A; }
+.club-in { animation:clubIn .7s ease .55s both; }
+@keyframes clubIn { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
+.bs-wrap { position:fixed; inset:0; pointer-events:none; z-index:400; overflow:hidden; }
+.bs-wrap .bs-ball { position:absolute; top:44%; left:-70px; font-size:46px; animation:bsAcross 1s cubic-bezier(.25,.7,.25,1) .05s both;
+  filter:drop-shadow(0 8px 16px rgba(0,0,0,.32)); }
+@keyframes bsAcross { 0% { left:-70px; transform:translateY(0) rotate(0); opacity:1; } 70% { opacity:1; } 100% { left:calc(100% + 50px); transform:translateY(-30px) rotate(360deg); opacity:.2; } }
+/* ============================== PRODUCT CARDS ============================== */
+.scroll-row { display:flex; gap:18px; overflow-x:auto; padding-bottom:12px; scroll-snap-type:x proximity; scrollbar-width:thin; }
+.scroll-row .pcard { flex:0 0 260px; scroll-snap-align:start; }
+.pcard { transition:transform .18s ease, box-shadow .24s ease, border-color .24s ease; }
+.pcard:hover { transform:translateY(-6px);
+  box-shadow:0 22px 48px color-mix(in srgb, var(--pc, var(--ac)) 32%, transparent);
+  border-color:color-mix(in srgb, var(--pc, var(--ac)) 55%, var(--line)); }
+.pover { position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  background:rgba(2,6,23,.34); opacity:0; transition:opacity .22s ease; z-index:2; }
+.pover .pover-btn { background:#fff; color:#0F172A; font-weight:900; font-size:.86rem; padding:11px 22px; border-radius:999px;
+  box-shadow:0 12px 28px rgba(0,0,0,.32); transform:translateY(8px); transition:transform .22s ease; }
+.pcard:hover .pover { opacity:1; }
+.pcard:hover .pover .pover-btn { transform:none; }
+/* ============================== PRODUCT PAGE ENTRANCE ============================== */
+.pg .gmain { box-shadow:0 26px 60px var(--glow, rgba(225,29,72,.2)); animation:prodIn .6s ease .15s both; }
+@keyframes prodIn { from { opacity:0; transform:scale(.96) translateY(12px); } to { opacity:1; transform:none; } }
+/* ============================== LOYALTY TEST ============================== */
+.loyal { background:linear-gradient(135deg, var(--card), var(--card2)); border:1px solid var(--line);
+  border-radius:26px; padding:32px 20px; text-align:center; position:relative; overflow:hidden; }
+.loyal .loyal-q { font-size:1.3rem; font-weight:900; margin:10px auto 4px; max-width:640px; }
+.loyal .loyal-sub { color:var(--mut); font-size:.88rem; }
+.loyal-pick { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:20px; }
+.loy-btn { display:flex; flex-direction:column; align-items:center; gap:6px; width:88px; padding:12px 6px;
+  background:var(--card); border:1.5px solid var(--line); border-radius:16px; cursor:pointer; color:var(--txt);
+  transition:transform .16s ease, border-color .2s ease, box-shadow .22s ease; }
+.loy-btn .lb-em { font-size:26px; line-height:1; }
+.loy-btn .lb-t { font-size:.68rem; font-weight:800; }
+.loy-btn:hover { transform:translateY(-3px); border-color:color-mix(in srgb, var(--cc,#E11D48) 55%, var(--line)); }
+.loy-btn.on { transform:translateY(-3px) scale(1.04); border-color:var(--cc,#E11D48);
+  box-shadow:0 16px 32px color-mix(in srgb, var(--cc,#E11D48) 32%, transparent); }
+.loyal-out { display:none; margin-top:18px; }
+.loyal-out .great { font-size:1.2rem; font-weight:900; color:var(--ac); }
+.loyal-out .loyal-go { margin-top:14px; }
+/* ============================== SIZE BANNER ============================== */
+.szsec-banner { display:flex; align-items:center; gap:18px; background:linear-gradient(120deg, var(--ac), var(--ac2));
+  border-radius:24px; padding:26px 26px; color:#fff; box-shadow:0 20px 44px var(--glow, rgba(225,29,72,.32));
+  position:relative; overflow:hidden; }
+.szsec-banner::after { content:'👕'; position:absolute; font-size:7rem; opacity:.12; inset-inline-end:6%; top:-18px; }
+.szsec-banner .big-ic { font-size:46px; }
+.szsec-banner h2 { font-size:1.35rem; font-weight:900; }
+.szsec-banner p { opacity:.94; font-size:.88rem; margin-top:4px; }
+.szsec-banner .btn-light { margin-inline-start:auto; background:#fff; color:var(--ac); border:none; }
+/* ============================== HOW TO ORDER STEPS ============================== */
+.steps-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:16px; }
+.step-card { position:relative; background:var(--card); border:1px solid var(--line); border-radius:20px;
+  padding:24px 18px 20px; overflow:hidden; transition:transform .18s ease, box-shadow .22s ease, border-color .22s ease; }
+.step-card:hover { transform:translateY(-4px); border-color:color-mix(in srgb, var(--ac) 45%, var(--line)); box-shadow:var(--sh2); }
+.step-card .step-num { position:absolute; top:-16px; inset-inline-end:-6px; font-size:5rem; font-weight:900;
+  color:var(--ac); opacity:.08; line-height:1; }
+.step-card .step-ic { width:50px; height:50px; border-radius:15px; display:flex; align-items:center; justify-content:center;
+  font-size:25px; background:linear-gradient(135deg, var(--ac), var(--ac2)); box-shadow:0 12px 24px var(--glow, rgba(225,29,72,.28)); }
+.step-card h3 { font-size:1rem; font-weight:900; margin-top:13px; }
+.step-card p { color:var(--mut); font-size:.82rem; line-height:1.7; margin-top:6px; }
+/* ============================== DARK PITCH CTA ============================== */
+.pitch-sec { position:relative; border-radius:28px; overflow:hidden; color:#fff; padding:60px 24px; text-align:center;
+  background:radial-gradient(130% 150% at 50% 0%, #16340f 0%, #0b2410 55%, #07170d 100%); }
+.pitch-sec .pitch-lines { position:absolute; inset:0;
+  background:repeating-linear-gradient(0deg, transparent 0 52px, rgba(255,255,255,.05) 52px 53px),
+  repeating-linear-gradient(90deg, transparent 0 52px, rgba(255,255,255,.05) 52px 53px); }
+.pitch-sec .pitch-mid { position:absolute; left:50%; top:50%; width:400px; height:400px; transform:translate(-50%,-50%);
+  border:2px solid rgba(255,255,255,.1); border-radius:50%; }
+.pitch-sec .pitch-half { position:absolute; left:50%; top:0; bottom:0; width:400px; transform:translateX(-50%);
+  border-left:2px solid rgba(255,255,255,.08); border-right:2px solid rgba(255,255,255,.08); }
+.pitch-sec .pitch-ball { position:absolute; bottom:16px; inset-inline-end:24px; font-size:54px; opacity:.3; animation:atmFloat 12s linear infinite; }
+.pitch-sec h2 { font-size:1.95rem; font-weight:900; position:relative; z-index:1; line-height:1.35; }
+.pitch-sec .btn { position:relative; z-index:1; margin-top:22px; }
+html[data-theme="dark"] .pitch-sec { background:radial-gradient(130% 150% at 50% 0%, #12310f 0%, #0a2010 55%, #05100a 100%); }
+/* ============================== FOOTER ============================== */
+.ft-in { text-align:right; }
+.ft-grid { display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:26px; text-align:right; }
+.ft-col h4 { font-size:.95rem; font-weight:900; margin-bottom:14px; color:var(--txt); }
+.ft-col a, .ft-col span.lk { display:block; color:var(--mut); font-size:.84rem; font-weight:700; margin-bottom:9px; cursor:pointer; }
+.ft-col a:hover, .ft-col span.lk:hover { color:var(--ac); }
+.ft-brand { font-size:1.5rem; font-weight:900; }
+.ft-desc { color:var(--mut); font-size:.84rem; line-height:1.8; margin-top:10px; max-width:280px; }
+.ft-social { display:flex; gap:10px; margin-top:14px; }
+.ft-social a { width:38px; height:38px; border-radius:50%; background:var(--card2); border:1px solid var(--line);
+  display:flex; align-items:center; justify-content:center; font-size:16px; }
+.ft-copy { border-top:1px solid var(--line); margin-top:26px; padding-top:18px; text-align:center; }
+html[dir="ltr"] .ft-in, html[dir="ltr"] .ft-grid, html[dir="ltr"] .ft-col { text-align:left; }
+/* ============================== REVEAL + RESPONSIVE ============================== */
+.rv { opacity:0; transform:translateY(22px); transition:opacity .6s ease, transform .6s ease; }
+.rv.in { opacity:1; transform:none; }
+@media (max-width:900px) {
+  .ft-grid { grid-template-columns:1fr 1fr; }
+}
+@media (max-width:640px) {
+  .hero-ball { width:96px; height:96px; font-size:96px; line-height:96px; opacity:.55; inset-inline-end:2%; }
+  .hero-tag { font-size:.62rem; }
+  .clubs { grid-template-columns:repeat(auto-fill,minmax(108px,1fr)); gap:10px; }
+  .clubcard { padding:16px 8px 14px; }
+  .cc-logo { width:56px; height:56px; font-size:26px; }
+  .club-banner { padding:30px 16px; }
+  .szsec-banner { flex-direction:column; align-items:flex-start; gap:12px; }
+  .szsec-banner .btn-light { margin-inline-start:0; }
+  .pitch-sec h2 { font-size:1.4rem; }
+  .ft-grid { grid-template-columns:1fr; gap:22px; }
+  .ft-desc { max-width:100%; }
+}
 </style>"""
 
 BASE_JS = """<script>
@@ -836,6 +1031,26 @@ function openModal(id){ var m=$(id); if(m) m.classList.add('open'); }
 function closeModal(id){ var m=$(id); if(m) m.classList.remove('open'); }
 function toggleMenu(){ var n=$('topnav'); if(n) n.classList.toggle('open'); }
 function closeMenu(){ var n=$('topnav'); if(n) n.classList.remove('open'); }
+/* ---------- stadium atmosphere: glass navbar + scroll reveal ---------- */
+function onScrollHeader(){ var hd=document.querySelector('.hd'); if(hd) hd.classList.toggle('scrolled', window.scrollY>10); }
+window.addEventListener('scroll', onScrollHeader, {passive:true});
+onScrollHeader();
+function initReveal(){
+  var els=document.querySelectorAll('.rv');
+  if(!('IntersectionObserver' in window)){ els.forEach(function(el){ el.classList.add('in'); }); return; }
+  var io=new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } }); }, {threshold:.08});
+  els.forEach(function(el){ io.observe(el); });
+}
+document.addEventListener('DOMContentLoaded', initReveal);
+/* ---------- loyalty test ---------- */
+function pickLoyal(cid,btn){
+  document.querySelectorAll('.loy-btn').forEach(function(b){ b.classList.remove('on'); });
+  if(btn) btn.classList.add('on');
+  var go=$('loyGo'), out=$('loyOut'), msg=$('loyMsg');
+  if(msg && GX.clubs && GX.clubs[cid]) msg.textContent=GX.clubs[cid][GX.lang==='ar'?'ar':'en'];
+  if(go) go.href='/club/'+cid;
+  if(out) out.style.display='block';
+}
 function esc(s){ var d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
 function pmoney(v){ return (Math.round(v*100)/100); }
 /* ---------- search & filters ---------- */
@@ -1607,6 +1822,36 @@ def club_theme_css():
     return rules
 
 
+def atmos_html(mode="full"):
+    """Football stadium atmosphere: decorative floating balls, particles and soft
+    glows behind all content. pointer-events:none, honours prefers-reduced-motion."""
+    balls = ""
+    spec = [
+        ("8%", "16%", "34px", "24s", "0s"), ("88%", "10%", "26px", "30s", "-7s"),
+        ("93%", "60%", "40px", "26s", "-13s"), ("5%", "66%", "22px", "32s", "-19s"),
+        ("50%", "4%", "20px", "28s", "-4s"), ("70%", "40%", "18px", "34s", "-16s"),
+    ]
+    if mode == "light":
+        spec = spec[:3]
+    for x, y, sz, dur, delay in spec:
+        balls += ('<span class="atm-ball" style="left:%s;top:%s;font-size:%s;'
+                  'animation-duration:%s;animation-delay:%s">⚽</span>' % (x, y, sz, dur, delay))
+    dots_spec = [
+        ("12%", "30%", "11s", "0s"), ("80%", "24%", "13s", "-4s"), ("64%", "74%", "10s", "-8s"),
+        ("30%", "82%", "12s", "-2s"), ("20%", "54%", "9s", "-6s"), ("70%", "14%", "10s", "-9s"),
+        ("45%", "38%", "8s", "-5s"), ("90%", "44%", "11s", "-11s"), ("10%", "86%", "10s", "-7s"),
+        ("55%", "92%", "9s", "-3s"),
+    ]
+    if mode == "light":
+        dots_spec = dots_spec[:6]
+    dots = "".join('<span class="atm-dot" style="left:%s;top:%s;animation-duration:%s;animation-delay:%s"></span>'
+                   % (x, y, dur, delay) for x, y, dur, delay in dots_spec)
+    return ('<div class="stadium-bg" aria-hidden="true">'
+            '<span class="atm-lines"></span><span class="atm-circle"></span>'
+            '<span class="atm-glow g1"></span><span class="atm-glow g2"></span><span class="atm-glow g3"></span>'
+            + balls + dots + '</div>')
+
+
 def base_page(body, active="", page_js="", extra_club=None):
     en = lang() == "en"
     d = cfg.L[lang()]
@@ -1728,17 +1973,37 @@ def header_html(active=""):
 
 
 def footer_html():
+    en = lang() == "en"
     d = cfg.L[lang()]
-    links = ("<a href='/products'>{0}</a><a href='/size-guide'>{1}</a>"
-             "<a href='/care'>{2}</a><a href='/return-policy'>{3}</a>"
-             "<a href='/how-to-order'>{4}</a><a onclick='openModal(\"m-contact\")'>{5}</a>").format(
-        d["nav_jerseys"], d["nav_sizes"], d["wash_title"], d["ret_title"], d["how_title"], d["nav_contact"])
+    club_links = "".join('<a href="/club/{cid}">{em} {nm}</a>'.format(
+        cid=cid, em=c.get("emoji", ""), nm=c.get(en and "en" or "ar", ""))
+        for cid, c in cfg.CLUBS.items())
+    col_links = ("<a href='/home'>{h}</a><a href='/products'>{j}</a><a href='/mugs'>{m}</a>"
+                 "<a href='/size-guide'>{s}</a><a href='/how-to-order'>{o}</a>").format(
+        h=d["nav_home"], j=d["nav_jerseys"], m=d["nav_mugs"], s=d["nav_sizes"], o=d["nav_order"])
+    col_help = ("<a href='/care'>{a}</a><a href='/return-policy'>{b}</a>"
+                "<a onclick='openModal(\"m-contact\")'>{c}</a>"
+                "<a href='/favorites'>❤️ {f}</a><a href='/cart'>🛒 {cart}</a>").format(
+        a=d["wash_title"], b=d["ret_title"], c=d["nav_contact"], f=d["fav_filter"],
+        cart=d["cart_title"])
     return ('<footer class="ft"><div class="ft-in">'
-            '<div class="ft-brand">⚽ golazox</div>'
-            '<div class="ft-title">{t}</div>'
-            '<div class="ft-links">{links}</div>'
+            '<div class="ft-grid">'
+            '<div class="ft-col"><div class="ft-brand">⚽ golazox</div>'
+            '<p class="ft-desc">{badge}</p>'
+            '<div class="ft-social">'
+            '<a target="_blank" rel="noopener" href="https://wa.me/{wa}" title="{wa_title}">💬</a>'
+            '<a onclick="setLang(\'{other}\')" title="{lang}">{langname}</a>'
+            '</div></div>'
+            '<div class="ft-col"><h4>{t1}</h4>{col_links}</div>'
+            '<div class="ft-col"><h4>{t2}</h4>{club_links}</div>'
+            '<div class="ft-col"><h4>{t3}</h4>{col_help}</div>'
+            '</div>'
             '<p class="ft-copy">{copy}</p>'
-            '</div></footer>').format(t=d["footer_title"], links=links, copy=d["footer_copy"])
+            '</div></footer>').format(
+        badge=d["badge"], wa=cfg.WHATSAPP, wa_title=d["ft_wa"], other="ar" if en else "en",
+        lang=d["lang_name"], langname=d["lang_name"],
+        t1=d["ft_links"], col_links=col_links, t2=d["ft_clubs"], club_links=club_links,
+        t3=d["ft_help"], col_help=col_help, copy=d["footer_copy"])
 
 
 def size_table_html(chart):
@@ -1980,14 +2245,73 @@ def home_body():
     new_html = "".join(product_card(p) for p in prods if "new" in p.get("badges", []))
 
     clubs_html = ""
+    loy_btns = ""
     for cid, c in cfg.CLUBS.items():
         th = club_themes().get(cid, {})
         ac = th.get("ac", "#E11D48"); ac2 = th.get("ac2", "#F97316")
         cnt = sum(1 for p in prods if p.get("club_id") == cid)
-        clubs_html += ('<a class="clubcard" href="/club/{cid}" style="background:linear-gradient(135deg,{ac},{ac2})">'
-                       '<span class="cc-emoji">{em}</span><b>{nm}</b><span class="cc-count">{cnt} {prod}</span></a>'
-                       ).format(cid=cid, ac=ac, ac2=ac2, em=c.get("emoji", "⚽"),
-                                nm=c.get(en and "en" or "ar", ""), cnt=cnt, prod=d["filter_type"])
+        nm = c.get(en and "en" or "ar", "")
+        em = c.get("emoji", "⚽")
+        clubs_html += ('<a class="clubcard" href="/club/{cid}" style="--cc:{ac};--cc2:{ac2}">'
+                       '<span class="cc-logo"><span class="em">{em}</span></span>'
+                       '<b>{nm}</b><span class="cc-count">{cnt} {prod}</span>'
+                       '<span class="cc-go">{go} ←</span></a>'
+                       ).format(cid=cid, ac=ac, ac2=ac2, em=em, nm=nm,
+                                cnt=cnt, prod=d["club_items_label"], go=d["club_view_lineup"])
+        loy_btns += ('<button class="loy-btn" data-cid="{cid}" style="--cc:{ac}" onclick="pickLoyal(\'{cid}\',this)">'
+                     '<span class="lb-em">{em}</span><span class="lb-t">{nm}</span></button>'
+                     ).format(cid=cid, ac=ac, em=em, nm=nm)
+
+    steps = "".join(
+        ('<div class="step-card rv"><span class="step-num">{n}</span>'
+         '<div class="step-ic">{ic}</div><h3>{t}</h3><p>{x}</p></div>')
+        .format(n=i + 1, ic=("🛒", "📏", "💬", "🚚")[i],
+                t=d["step_%d_t" % (i + 1)], x=d["step_%d_d" % (i + 1)])
+        for i in range(4))
+
+    hero = ('<div class="hero">'
+            '<span class="hero-tag"><span class="pulse"></span>{tag}</span>'
+            '<h1>{t1}<br><span class="g">{t2}</span></h1><p>{sub}</p>'
+            '<div class="hero-btns"><a class="btn pri" href="/products">{cj}</a>'
+            '<a class="btn ghost" href="#clubs">{ct}</a></div>'
+            '<div class="hero-ball"><span class="ring"></span>⚽</div></div>'
+            ).format(tag=d["home_section_hero_tag"], t1=d["home_hero_t1"], t2=d["home_hero_t2"],
+                     sub=d["home_hero_sub"], cj=d["home_cta_shop"], ct=d["home_cta_team"])
+
+    clubs_sec = ('<div class="sec rv" id="clubs"><div class="sec-head"><h2><span class="bar"></span>{t}</h2>'
+                 '<span class="sec-sub">{s}</span></div>'
+                 '<div class="clubs">{cards}</div></div>'
+                 ).format(t=d["clubs_pick_title"], s=d["clubs_pick_sub"], cards=clubs_html)
+
+    loyal_sec = ('<div class="sec rv"><div class="sec-head"><h2><span class="bar"></span>{t}</h2></div>'
+                 '<div class="loyal">'
+                 '<div style="font-size:42px">⚽</div>'
+                 '<h3 class="loyal-q">{q}</h3>'
+                 '<p class="loyal-sub" id="loyMsg">{pick}</p>'
+                 '<div class="loyal-pick">{btns}</div>'
+                 '<div class="loyal-out" id="loyOut"><span class="great">{great}</span>'
+                 '<div><a class="btn pri loyal-go" id="loyGo" href="#">{go} ←</a></div></div>'
+                 '</div></div>'
+                 ).format(t=d["loyal_title"], q=d["loyal_q"], pick=d["loyal_pick_plz"],
+                          btns=loy_btns, great=d["loyal_great"], go=d["loyal_go"])
+
+    size_sec = ('<div class="sec rv"><div class="szsec-banner">'
+                '<span class="big-ic">📏</span>'
+                '<div><h2>{t}</h2><p>{s}</p></div>'
+                '<a class="btn btn-light" href="/size-guide">{b} ←</a></div></div>'
+                ).format(t=d["szsec_title"], s=d["szsec_sub"], b=d["szsec_btn"])
+
+    steps_sec = ('<div class="sec rv"><div class="sec-head"><h2><span class="bar"></span>{t}</h2></div>'
+                 '<div class="steps-grid">{steps}</div></div>'
+                 ).format(t=d["steps_title"], steps=steps)
+
+    pitch_sec = ('<div class="sec rv"><div class="pitch-sec">'
+                 '<span class="pitch-lines"></span><span class="pitch-half"></span><span class="pitch-mid"></span>'
+                 '<span class="pitch-ball">⚽</span>'
+                 '<h2>{t1}<br>{t2}</h2>'
+                 '<a class="btn pri" href="/products">{b}</a>'
+                 '</div></div>'
+                 ).format(t1=d["pitch_title"], t2=d["pitch_title2"], b=d["pitch_btn"])
 
     match_html = ""
     mi = match_info()
@@ -2039,51 +2363,49 @@ def home_body():
                     label=esc(label), votes=votes, vs=d["poll_votes"])
             poll_html += '</div></div>'
 
-    quick = ('<div class="qcard" onclick="location.href=\'/size-guide\'"><div class="qic">📏</div>'
+    quick = ('<div class="qcard rv" onclick="location.href=\'/size-guide\'"><div class="qic">📏</div>'
              '<h3>{a}</h3><p>{b}</p><span class="qview">{c} ←</span></div>'
-             '<div class="qcard" onclick="location.href=\'/care\'"><div class="qic">🧺</div>'
+             '<div class="qcard rv" onclick="location.href=\'/care\'"><div class="qic">🧺</div>'
              '<h3>{d}</h3><p>{e}</p><span class="qview">{c} ←</span></div>'
-             '<div class="qcard" onclick="location.href=\'/returns\'"><div class="qic">🔄</div>'
+             '<div class="qcard rv" onclick="location.href=\'/return-policy\'"><div class="qic">🔄</div>'
              '<h3>{f}</h3><p>{g}</p><span class="qview">{c} ←</span></div>'
-             '<div class="qcard" onclick="openModal(\'m-request\')"><div class="qic">📝</div>'
+             '<div class="qcard rv" onclick="openModal(\'m-request\')"><div class="qic">📝</div>'
              '<h3>{h}</h3><p>{i}</p><span class="qview">{c} ←</span></div>'
              ).format(a=d["quick_size_t"], b=d["quick_size_d"], c=d["view_details"],
                       d=d["quick_wash_t"], e=d["quick_wash_d"], f=d["quick_ret_t"], g=d["quick_ret_d"],
                       h=d["req_title"], i=d["req_sub"])
 
-    best_sec = ('<div class="sec" id="best"><div class="sec-head"><h2><span class="bar"></span>{t}</h2>'
+    best_sec = ('<div class="sec rv" id="best"><div class="sec-head"><h2><span class="bar"></span>{t}</h2>'
                 '<span class="sec-sub">{s}</span><a class="sec-more" href="/products">{all} ←</a></div>'
                 '<div class="scroll-row">{cards}</div></div>'
                 ).format(t=d["best_title"], s=d["best_sub"], all=d["view_all"], cards=best_html or "") if best_html else ""
-    new_sec = ('<div class="sec" id="new"><div class="sec-head"><h2><span class="bar"></span>{t}</h2>'
+    new_sec = ('<div class="sec rv" id="new"><div class="sec-head"><h2><span class="bar"></span>{t}</h2>'
                '<span class="sec-sub">{s}</span><a class="sec-more" href="/products">{all} ←</a></div>'
                '<div class="scroll-row">{cards}</div></div>'
                ).format(t=d["new_title"], s=d["new_sub"], all=d["view_all"], cards=new_html or "") if new_html else ""
 
-    return ('<div class="wrap">'
-            '<div class="hero"><div class="hero-glow"></div>'
-            '<div class="ball-f bf1">⚽</div><div class="ball-f bf2">⚽</div><div class="ball-f bf3">⚽</div>'
-            '<h1>{t1}<br><span class="g">{t2}</span></h1><p>{sub}</p>'
-            '<div class="hero-btns"><a class="btn pri" href="/products">{cj}</a>'
-            '<a class="btn ghost" href="/mugs">{cm}</a></div></div>'
+    return (atmos_html("full")
+            + '<div class="wrap">'
+            + hero
             + searchbar
             + '<p class="mnote" id="searchNone" style="display:none;text-align:center;font-weight:800">{sn}</p>'
-            + poll_html
-            + '<div class="sec"><div class="sec-head"><h2><span class="bar"></span>{ct}</h2><span class="sec-sub">{cs}</span></div>'
-            + '<div class="clubs">{clubs}</div></div>'
-            + match_html
+            + clubs_sec
             + best_sec
             + new_sec
-            + '<div class="sec" id="jerseys"><div class="sec-head"><h2><span class="bar"></span>{sj}</h2><span class="sec-sub">{sj_sub}</span></div>'
+            + loyal_sec
+            + size_sec
+            + steps_sec
+            + '<div class="sec rv" id="jerseys"><div class="sec-head"><h2><span class="bar"></span>{sj}</h2><span class="sec-sub">{sj_sub}</span></div>'
             + '<div class="grid" id="gridJ">{jgrid}</div></div>'
-            + '<div class="sec" id="mugs"><div class="sec-head"><h2><span class="bar"></span>{sm}</h2><span class="sec-sub">{sm_sub}</span></div>'
+            + '<div class="sec rv" id="mugs"><div class="sec-head"><h2><span class="bar"></span>{sm}</h2><span class="sec-sub">{sm_sub}</span></div>'
             + '<div class="grid" id="gridM">{mgrid}</div></div>'
-            + '<div class="sec" id="info"><div class="sec-head"><h2><span class="bar"></span>{qt}</h2></div>'
+            + pitch_sec
+            + match_html
+            + poll_html
+            + '<div class="sec rv" id="info"><div class="sec-head"><h2><span class="bar"></span>{qt}</h2></div>'
             + '<div class="quick">{quick}</div></div>'
             + '</div>'
-            ).format(t1=d["hero_t1"], t2=d["hero_t2"], sub=d["hero_sub"], cj=d["hero_cta_j"], cm=d["hero_cta_m"],
-                     sn=d["search_none"], ct=d["clubs_title"], cs=d["clubs_sub"], clubs=clubs_html,
-                     sj=d["sec_jerseys"], sj_sub=d["sec_jerseys_sub"],
+            ).format(sn=d["search_none"], sj=d["sec_jerseys"], sj_sub=d["sec_jerseys_sub"],
                      sm=d["sec_mugs"], sm_sub=d["sec_mugs_sub"], qt=d["quick_title"],
                      jgrid=jgrid, mgrid=mgrid, quick=quick)
 
@@ -2097,7 +2419,8 @@ def listing_page(kind):
         title, sub = d["prod_title"], d["prod_sub"]
     prods = [p for p in cfg.PRODUCTS if not p.get("hidden") and p["kind"] == kind]
     grid = "".join(product_card(p) for p in prods)
-    body = ('<div class="wrap">'
+    body = (atmos_html("light")
+            + '<div class="wrap">'
             '<div class="page-head"><h1>{t}</h1><p>{s}</p></div>'
             + searchbar_html()
             + '<p class="mnote" id="searchNone" style="display:none;text-align:center;font-weight:800">{sn}</p>'
@@ -2177,16 +2500,18 @@ def club_page(cid):
     prods = [p for p in cfg.PRODUCTS if not p.get("hidden") and p.get("club_id") == cid]
     grid = "".join(product_card(p) for p in prods)
     name = c.get(en and "en" or "ar", "")
-    body = ('<div class="wrap">'
-            '<div class="club-banner" style="background:linear-gradient(135deg,{ac},{ac2})">'
+    body = (atmos_html("full")
+            + '<div class="bs-wrap" aria-hidden="true"><span class="bs-ball">⚽</span></div>'
+            + '<div class="wrap club-in">'
+            + '<div class="club-banner" style="background:linear-gradient(135deg,{ac},{ac2})">'
             '<span class="cb-emoji">{em}</span><h1>{name}</h1>'
             '<p>{shop}</p><a class="btn lightbtn" href="/home#jerseys">← {b}</a></div>'
-            '<div class="sec"><div class="sec-head"><h2><span class="bar"></span>{pt}</h2>'
+            + '<div class="sec"><div class="sec-head"><h2><span class="bar"></span>{pt}</h2>'
             '<span class="sec-sub">{n} {p}</span></div>'
             '<div class="grid">{grid}</div></div>'
-            '</div>').format(ac=ac, ac2=ac2, em=c.get("emoji", "⚽"), name=name,
-                             shop=d["club_shop"], b=d["back"], pt=d["club_products"],
-                             n=len(prods), p=d["filter_type"], grid=grid)
+            + '</div>').format(ac=ac, ac2=ac2, em=c.get("emoji", "⚽"), name=name,
+                               shop=d["club_shop"], b=d["back"], pt=d["club_products"],
+                               n=len(prods), p=d["club_items_label"], grid=grid)
     return base_page(body, extra_club=cid)
 
 
@@ -2223,19 +2548,23 @@ def product_card(p):
     club = cfg.club_of(p)
     club_id = club and p["club_id"] or ""
     clubn = (club and club.get(en and "en" or "ar")) or ""
+    th = club_themes().get(club_id, {}) if club_id else {}
+    pc = th.get("ac", "#E11D48"); pc2 = th.get("ac2", "#F97316")
     first = p["imgs"][0]
     return (
-        '<div class="pcard" data-id="{id}" data-kind="{kind}" data-club="{cid}" data-clubn="{cn}" data-stock="{csv}" data-price="{price}" data-name="{name}">'
+        '<div class="pcard" data-id="{id}" data-kind="{kind}" data-club="{cid}" data-clubn="{cn}" data-stock="{csv}" data-price="{price}" data-name="{name}" style="--pc:{pc};--pc2:{pc2}">'
         '<div class="badges">{badges}</div>'
         '<button class="heart {on}" onclick="toggleFav(\'{id}\',this)">{h}</button>'
         '<a href="/product/{id}"><div class="pimg" style="background:linear-gradient(135deg,{c1},{c2})">'
         '<img src="/img/{first}" alt="{name}" loading="lazy"></div></a>'
+        '<div class="pover"><a class="pover-btn" href="/product/{id}">{view} ←</a></div>'
         '<div class="pbody"><span class="pcat">{cat}</span><h3>{name}</h3>'
         '{low}'
         '<div class="pfoot"><b>{pr}</b><a class="pview" href="/product/{id}">{view} ←</a></div></div></div>'
     ).format(id=p["id"], kind=p["kind"], cid=club_id, cn=clubn.replace('"', "&quot;"), csv=stock_csv,
              price=eff_price(p), name=name.replace('"', "&quot;"), badges=badges_html, on="on" if fav else "", h="❤" if fav else "🤍",
-             c1=p["colors"][0], c2=p["colors"][1], first=first, cat=cat, pr=pr, view=d["view"], low=low)
+             c1=p["colors"][0], c2=p["colors"][1], first=first, cat=cat, pr=pr, view=d["view"], low=low,
+             pc=pc, pc2=pc2)
 
 
 def gx_fav_marker(pid):
@@ -2371,7 +2700,8 @@ def product_body(pid):
         trybtn = '<button class="btn ghost orderbtn" style="margin-top:10px" onclick="tryOpen(\'{id}\')">📸 {tr}</button>'.format(id=p["id"], tr=d["try_title"])
 
     body = (
-        '<div class="wrap">'
+        atmos_html("light")
+        + '<div class="wrap">'
         '<input type="hidden" id="prod_id" value="{id}">'
         '<a class="back" href="/home">← {back}</a>'
         '<div class="pg">'

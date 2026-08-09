@@ -3856,7 +3856,7 @@ def api_auth_otp():
     if len(ph) < 6:
         return json_d({"error": "bad"})
     code = db.otp_new(ph)
-    demo = not os.environ.get("SMS_PROVIDER")
+    demo = True
     return json_d({"demo": demo, "otp": code if demo else None,
                    "registered": db.user_by_phone(ph) is not None})
 

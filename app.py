@@ -17,6 +17,9 @@ import db
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "golazox-secret-2026")
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+app.config["PERMANENT_SESSION_LIFETIME"] = datetime.timedelta(days=30)
 
 
 def reload_products():
@@ -826,6 +829,14 @@ html[data-theme="dark"] .mwarning { background:#3B1D0B; border-color:#7C2D12; co
 .auth-demo { display:none; background:#FEF3C7; border:1px solid #FCD34D; color:#78350F; border-radius:12px; padding:10px 12px; margin-top:10px; font-size:.82rem; }
 .auth-demo b { font-size:1.3rem; letter-spacing:3px; }
 .auth-new { display:none; font-size:.8rem; color:var(--mut); margin-top:8px; }
+.phone-row { display:flex; gap:8px; }
+.phone-row .cc-sel { flex:0 0 112px; border:1.5px solid var(--line); border-radius:12px; padding:0 10px; font-size:.9rem; font-weight:800; background:#fff; color:var(--txt); font-family:inherit; }
+.phone-row input { flex:1; min-width:0; }
+.auth-sent { font-size:.88rem; color:var(--mut); margin-bottom:12px; line-height:1.7; }
+.auth-sent b { color:var(--txt); font-weight:900; }
+.auth-actions { display:flex; gap:8px; justify-content:center; margin-top:12px; flex-wrap:wrap; }
+.auth-actions .hbtn { font-size:.82rem; }
+.btn[disabled] { opacity:.6; cursor:not-allowed; transform:none !important; }
 /* ticket journey */
 .tj { display:flex; align-items:center; gap:6px; margin-top:16px; flex-wrap:wrap; }
 .tj .tj-step { flex:1; min-width:80px; text-align:center; }
@@ -1514,10 +1525,9 @@ function waOrderMsg(code,items,name,phone,area,addr,del,disc,total){
   l.push(''); l.push('🚚 '+gxT('cart_delivery')+': '+pmoney(del)+' '+GX.cur);
   if(disc>0) l.push(gxT('pts_discount')+': −'+pmoney(disc)+' '+GX.cur);
   l.push('💰 '+gxT('cart_total')+': '+pmoney(total)+' '+GX.cur);
-  l.push(''); l.push('👤 '+gxT('co_name').replace(/[^\u0600-\u06FF\w\s]/g,'')+': '+name);
-  l.push('📱 '+gxT('co_phone').replace(/[^\u0600-\u06FF\w\s]/g,'')+': '+phone);
-  l.push('📍 '+gxT('co_area').replace(/[^\u0600-\u06FF\w\s]/g,'')+': '+area);
-  l.push('🏠 '+gxT('co_address').replace(/[^\u0600-\u06FF\w\s]/g,'')+': '+addr);
+  l.push(''); l.push('👤 '+gxT('co_name').replace(/[^\u0600-\u06FF\\w\\s]/g,'')+': '+name);
+  l.push('📱 '+gxT('co_phone').replace(/[^\u0600-\u06FF\\w\\s]/g,'')+': '+phone);  l.push('📍 '+gxT('co_area').replace(/[^\u0600-\u06FF\\w\\s]/g,'')+': '+area);
+  l.push('🏠 '+gxT('co_address').replace(/[^\u0600-\u06FF\\w\\s]/g,'')+': '+addr);
   return l.join('\\n');
 }
 /* ---------- order via Telegram ---------- */
@@ -1832,11 +1842,16 @@ function authTab(t){
   document.querySelectorAll('.auth-pane').forEach(function(x){ x.style.display='none'; });
   $('auth_pane_'+t).style.display='block';
 }
+function authPhone(){ return (($('au_cc')||{}).value||'+973')+''+ (($('au_phone').value||'').trim()); }
 function authSendCode(){
-  var ph=($('au_phone').value||'').trim();
-  if(ph.length<6){ toast(gxT('auth_bad_phone')); return; }
+  var full=authPhone();
+  var digits=(($('au_phone').value||'').trim()).replace(/\\D/g,'');
+  if(digits.length<8){ toast(gxT('auth_bad_phone')); return; }
+  var btn=$('au_sendbtn');
+  if(btn){ btn.disabled=true; btn.textContent=gxT('auth_loading'); }
   $('au_step1').style.display='none'; $('au_step2').style.display='block';
-  fetch('/api/auth/otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:ph})})
+  var st=$('au_sentto'); if(st) st.textContent=full;
+  fetch('/api/auth/otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:full})})
   .then(function(r){return r.json();}).then(function(d){
     $('au_demo').style.display= d.demo?'block':'none';
     if(d.demo){
@@ -1845,24 +1860,41 @@ function authSendCode(){
       var dl=$('au_demo_note'); if(dl) dl.style.display='block';
     }
     $('au_newbox').style.display= d.registered?'none':'block';
-    $('au_pwbox').style.display= d.registered?'none':'block';
+    toast(gxT('auth_sent_ok'));
   }).catch(function(){
     var s2=$('au_step2'); if(s2){ s2.style.display='none'; }
     var s1=$('au_step1'); if(s1){ s1.style.display='block'; }
     toast(gxT('auth_otp_fail'));
+  }).then(function(){
+    if(btn){ btn.disabled=false; btn.textContent=gxT('auth_continue'); }
   });
 }
+function authResend(){ authSendCode(); }
+function authChangePhone(){
+  var s2=$('au_step2'); if(s2){ s2.style.display='none'; }
+  var s1=$('au_step1'); if(s1){ s1.style.display='block'; }
+  var ac=$('au_code'); if(ac) ac.value='';
+}
 function authVerify(){
-  var ph=($('au_phone').value||'').trim(), code=($('au_code').value||'').trim();
-  var name=($('au_name').value||'').trim(), pw=($('au_pw').value||'').trim();
-  fetch('/api/auth/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:ph,code:code,name:name,password:pw})})
+  var ph=authPhone(), code=($('au_code').value||'').trim();
+  var name=($('au_name').value||'').trim();
+  if(code.length<4){ toast(gxT('auth_otp_short')); return; }
+  var btn=$('au_vbtn');
+  if(btn){ btn.disabled=true; btn.textContent=gxT('auth_verifying'); }
+  fetch('/api/auth/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:ph,code:code,name:name})})
   .then(function(r){return r.json();}).then(function(d){
-    if(d.ok){ afterLogin(); } else { toast(gxT('auth_wrong')); }
+    if(d.ok){ afterLogin(); return; }
+    if(d.reason==='blocked'){ toast(gxT('auth_blocked')); }
+    else { toast(gxT('auth_wrong')); }
+    if(btn){ btn.disabled=false; btn.textContent=gxT('auth_verify'); }
+  }).catch(function(){
+    toast(gxT('auth_otp_fail'));
+    if(btn){ btn.disabled=false; btn.textContent=gxT('auth_verify'); }
   });
 }
 function authPwLogin(){
-  var ph=($('pw_phone').value||'').trim(), pw=($('pw_pass').value||'').trim();
-  if(ph.length<6||!pw){ toast(gxT('auth_bad_phone')); return; }
+  var ph=(($('pw_cc')||{}).value||'+973')+''+ (($('pw_phone').value||'').trim()), pw=($('pw_pass').value||'').trim();
+  if(ph.replace(/\\D/g,'').length<8||!pw){ toast(gxT('auth_bad_phone')); return; }
   fetch('/api/auth/password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:ph,password:pw})})
   .then(function(r){return r.json();}).then(function(d){
     if(d.ok){ afterLogin(); } else { toast(gxT('auth_pw_wrong')); }
@@ -2313,32 +2345,45 @@ def size_diagram():
 
 def auth_box_html():
     d = cfg.L[lang()]
+    cc_opts = "".join(
+        '<option value="%s"%s>%s</option>' % (cc, " selected" if cc == "+973" else "", lbl)
+        for cc, lbl in (("+973", "🇧🇭 +973"), ("+966", "🇸🇦 +966"), ("+965", "🇰🇼 +965"),
+                        ("+974", "🇶🇦 +974"), ("+971", "🇦🇪 +971"), ("+20", "🇪🇬 +20"),
+                        ("+218", "🇱🇾 +218"), ("+962", "🇯🇴 +962")))
     return ('<div class="auth-box">'
             '<p class="mnote">{sub}</p>'
             '<div class="auth-tabs">'
             '<button class="atab on" data-tab="otp" onclick="authTab(\'otp\')">{t1}</button>'
             '<button class="atab" data-tab="pw" onclick="authTab(\'pw\')">{t2}</button></div>'
             '<div class="auth-pane" id="auth_pane_otp">'
-            '<div class="fld"><label>{ph}</label><input id="au_phone" inputmode="tel" placeholder="+973 ________"></div>'
+            '<div class="auth-step1" id="au_step1">'
+            '<div class="fld"><label>{ph}</label>'
+            '<div class="phone-row"><select id="au_cc" class="cc-sel">{cc}</select>'
+            '<input id="au_phone" inputmode="tel" placeholder="3312 2641" autocomplete="off"></div></div>'
+            '<button class="btn pri big" id="au_sendbtn" onclick="authSendCode()">{ct}</button></div>'
             '<div class="auth-step2" id="au_step2">'
-            '<div class="fld"><label>{otp}</label><input id="au_code" inputmode="numeric"></div>'
+            '<p class="auth-sent">📨 {sent} <b id="au_sentto"></b></p>'
+            '<div class="fld"><label>{otp}</label><input id="au_code" inputmode="numeric" maxlength="6"></div>'
             '<div class="fld" id="au_newbox"><label>{nm}</label><input id="au_name"></div>'
-            '<div class="fld" id="au_pwbox"><label>{ps}</label><input id="au_pw" type="password"></div>'
             '<div class="auth-new" id="au_new">{new}</div>'
             '<div class="auth-demo" id="au_demo">{demo} <b id="au_democode"></b>'
             '<div id="au_demo_note" style="display:none;margin-top:6px;font-weight:800">✅ {fill}</div></div>'
-            '<button class="btn pri big" onclick="authVerify()">{v}</button></div>'
-            '<div class="auth-step1" id="au_step1">'
-            '<button class="btn pri big" onclick="authSendCode()">{s}</button></div></div>'
+            '<button class="btn pri big" id="au_vbtn" onclick="authVerify()">{v}</button>'
+            '<div class="auth-actions">'
+            '<button class="hbtn" id="au_resendbtn" onclick="authResend()">🔄 {resend}</button>'
+            '<button class="hbtn" onclick="authChangePhone()">↩ {chg}</button></div></div>'
+            '</div>'
             '<div class="auth-pane" id="auth_pane_pw" style="display:none">'
-            '<div class="fld"><label>{ph}</label><input id="pw_phone" inputmode="tel" placeholder="+973 ________"></div>'
+            '<div class="fld"><label>{ph}</label><div class="phone-row"><select id="pw_cc" class="cc-sel">{cc}</select>'
+            '<input id="pw_phone" inputmode="tel" placeholder="3312 2641" autocomplete="off"></div></div>'
             '<div class="fld"><label>{pw}</label><input id="pw_pass" type="password"></div>'
             '<button class="btn pri big" onclick="authPwLogin()">{pb}</button></div>'
             '</div>'
-            ).format(sub=d["auth_sub"], ph=d["auth_phone"], otp=d["auth_otp_ph"],
-                     nm=d["auth_name_ph"], ps=d["auth_pw_set"], new=d["auth_new"], demo=d["auth_demo_note"],
-                     v=d["auth_verify"], s=d["auth_otp_btn"], t1=d["auth_tab_otp"], t2=d["auth_tab_pw"],
-                     pw=d["auth_pw_ph"], pb=d["auth_pw_btn"], fill=d["auth_demo_fill"])
+            ).format(sub=d["auth_sub"], t1=d["auth_tab_otp"], t2=d["auth_tab_pw"],
+                     ph=d["auth_phone"], cc=cc_opts, ct=d["auth_continue"], sent=d["auth_sent_to"],
+                     otp=d["auth_otp_ph"], nm=d["auth_name_ph"], new=d["auth_new"], demo=d["auth_demo_note"],
+                     fill=d["auth_demo_fill"], v=d["auth_verify"], resend=d["auth_resend"], chg=d["auth_change_num"],
+                     pw=d["auth_pw_ph"], pb=d["auth_pw_btn"])
 
 
 def modals_html():
@@ -3877,17 +3922,18 @@ def api_auth_verify():
     ph = normal_phone(data.get("phone", ""))
     code = str(data.get("code", "")).strip()
     if not db.otp_verify(ph, code):
-        return json_d({"ok": False})
+        return json_d({"ok": False, "reason": "code"})
     u = db.user_by_phone(ph)
     if not u:
         uid = db.user_create(ph, str(data.get("name", "") or "").strip(), "customer", lang())
         u = db.user_by_id(uid)
     if not u or u["status"] != "active":
-        return json_d({"ok": False})
+        return json_d({"ok": False, "reason": "blocked"})
     pw = str(data.get("password", "") or "").strip()
     if pw:
         db.user_update(u["id"], password=pw)
     session["user_id"] = u["id"]
+    session.permanent = True
     db.user_touch(u["id"])
     return json_d({"ok": True, "role": u["role"]})
 
@@ -3901,6 +3947,7 @@ def api_auth_password():
     if not u or u.get("status") != "active" or not u.get("password") or u["password"] != pw:
         return json_d({"ok": False})
     session["user_id"] = u["id"]
+    session.permanent = True
     db.user_touch(u["id"])
     return json_d({"ok": True, "role": u["role"]})
 

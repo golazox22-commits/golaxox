@@ -57,6 +57,16 @@ CREATE TABLE IF NOT EXISTS users(
 CREATE TABLE IF NOT EXISTS otps(
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   phone TEXT, code TEXT, expires TEXT, used INTEGER DEFAULT 0, created TEXT);
+CREATE TABLE IF NOT EXISTS user_notifs(
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER, text TEXT, created TEXT, read INTEGER DEFAULT 0);
+CREATE TABLE IF NOT EXISTS admin_notifs(
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  type TEXT, text TEXT, created TEXT, read INTEGER DEFAULT 0);
+CREATE TABLE IF NOT EXISTS ads(
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  text_ar TEXT, text_en TEXT, link TEXT DEFAULT '', place TEXT DEFAULT 'home',
+  active INTEGER DEFAULT 1, created TEXT);
 """
 
 
@@ -711,3 +721,113 @@ def otp_consume(oid):
     conn.execute("UPDATE otps SET used=1 WHERE id=?", (oid,))
     conn.commit()
     conn.close()
+
+
+# ---- user notifications (shown in the customer's account) ----
+def user_notif_add(user_id, text):
+    conn = _conn()
+    conn.execute("INSERT INTO user_notifs(user_id,text,created,read) VALUES(?,?,?,0)",
+                 (user_id, text, datetime.datetime.now().strftime("%Y-%m-%d %H:%M")))
+    conn.commit()
+    conn.close()
+
+
+def user_notifs(user_id, limit=50):
+    conn = _conn()
+    rows = conn.execute("SELECT * FROM user_notifs WHERE user_id=? ORDER BY id DESC LIMIT ?",
+                        (user_id, limit)).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def user_notif_unread(user_id):
+    conn = _conn()
+    r = conn.execute("SELECT COUNT(*) c FROM user_notifs WHERE user_id=? AND read=0", (user_id,)).fetchone()
+    conn.close()
+    return r["c"] if r else 0
+
+
+def user_notif_read_all(user_id):
+    conn = _conn()
+    conn.execute("UPDATE user_notifs SET read=1 WHERE user_id=? AND read=0", (user_id,))
+    conn.commit()
+    conn.close()
+
+
+# ---- admin notifications (dashboard notification center) ----
+def admin_notif_add(type_, text):
+    conn = _conn()
+    conn.execute("INSERT INTO admin_notifs(type,text,created,read) VALUES(?,?,?,0)",
+                 (type_, text, datetime.datetime.now().strftime("%Y-%m-%d %H:%M")))
+    conn.commit()
+    conn.close()
+
+
+def admin_notifs(limit=80):
+    conn = _conn()
+    rows = conn.execute("SELECT * FROM admin_notifs ORDER BY id DESC LIMIT ?", (limit,)).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def admin_notif_unread():
+    conn = _conn()
+    r = conn.execute("SELECT COUNT(*) c FROM admin_notifs WHERE read=0").fetchone()
+    conn.close()
+    return r["c"] if r else 0
+
+
+def admin_notif_read_all():
+    conn = _conn()
+    conn.execute("UPDATE admin_notifs SET read=1 WHERE read=0")
+    conn.commit()
+    conn.close()
+
+
+# ---- announcements / ads (home, products, banner) ----
+def ad_add(text_ar, text_en, link, place):
+    conn = _conn()
+    conn.execute("INSERT INTO ads(text_ar,text_en,link,place,active,created) VALUES(?,?,?,?,1,?)",
+                 (text_ar, text_en, link, place, datetime.datetime.now().strftime("%Y-%m-%d %H:%M")))
+    conn.commit()
+    conn.close()
+
+
+def ad_update(aid, text_ar, text_en, link, place):
+    conn = _conn()
+    conn.execute("UPDATE ads SET text_ar=?, text_en=?, link=?, place=? WHERE id=?",
+                 (text_ar, text_en, link, place, aid))
+    conn.commit()
+    conn.close()
+
+
+def ad_toggle(aid, active):
+    conn = _conn()
+    conn.execute("UPDATE ads SET active=? WHERE id=?", (1 if active else 0, aid))
+    conn.commit()
+    conn.close()
+
+
+def ad_delete(aid):
+    conn = _conn()
+    conn.execute("DELETE FROM ads WHERE id=?", (aid,))
+    conn.commit()
+    conn.close()
+
+
+def ads_list(place=None, active_only=False):
+    conn = _conn()
+    q = "SELECT * FROM ads"
+    args = []
+    if place and active_only:
+        q += " WHERE place=? AND active=1"
+        args = [place]
+    elif place:
+        q += " WHERE place=?"
+        args = [place]
+    elif active_only:
+        q += " WHERE active=1"
+    q += " ORDER BY id DESC"
+    rows = conn.execute(q, args).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]

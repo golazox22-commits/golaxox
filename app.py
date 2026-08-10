@@ -382,11 +382,17 @@ html[data-theme="dark"][data-club] .hero { background:linear-gradient(120deg, va
 .pcard:hover .pimg img { transform:scale(1.05); }
 .pbody { padding:14px 15px 15px; }
 .pcat { font-size:.7rem; font-weight:800; letter-spacing:.4px; text-transform:uppercase; color:var(--ac); }
+.ads-strip { display:flex; flex-direction:column; gap:10px; margin:16px 0; }
+.ads-item { display:block; background:linear-gradient(135deg,var(--ac,#E11D48),var(--ac2,#F97316)); color:#fff; border-radius:14px; padding:12px 16px; text-decoration:none; box-shadow:0 6px 18px rgba(225,29,72,.18); }
+.ads-item .ads-txt { font-weight:800; font-size:.95rem; }
+.ads-item:hover { opacity:.94; }
 .pbody h3 { font-size:1.02rem; font-weight:800; margin-top:4px; line-height:1.4; }
 .pfoot { display:flex; align-items:center; justify-content:space-between; margin-top:11px; gap:8px; }
 .pfoot b { font-size:1.05rem; color:var(--ac); }
 .pview { font-size:.8rem; font-weight:800; color:var(--mut); }
 .pcard:hover .pview { color:var(--ac); }
+.tryme { width:100%; margin-top:10px; padding:8px 10px; border:1.5px dashed var(--ac,#E11D48); background:rgba(225,29,72,.05); color:var(--ac,#E11D48); border-radius:12px; font-family:inherit; font-size:.82rem; font-weight:800; cursor:pointer; }
+.tryme:hover { background:var(--ac,#E11D48); color:#fff; }
 .badges { position:absolute; top:10px; inset-inline-start:10px; display:flex; flex-direction:column; gap:5px; z-index:2; }
 .badge { font-size:.68rem; font-weight:900; padding:4px 9px; border-radius:999px; color:#fff; width:max-content; }
 .badge.new { background:linear-gradient(90deg,#8B5CF6,#A78BFA); }
@@ -810,6 +816,9 @@ html[data-theme="dark"] .mwarning { background:#3B1D0B; border-color:#7C2D12; co
 .acc-szrow { display:flex; align-items:center; justify-content:space-between; gap:12px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px 16px; }
 .acc-szrow a { text-decoration:none; color:var(--txt); font-weight:800; }
 .acc-szrow a:hover { color:var(--ac); }
+.acc-n { position:relative; display:flex; gap:12px; align-items:flex-start; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px 16px; margin-bottom:10px; }
+.acc-ndot { flex:0 0 8px; width:8px; height:8px; border-radius:50%; background:var(--ac); margin-top:8px; }
+.acc-ndt { font-size:.72rem; color:var(--mut); white-space:nowrap; margin-inline-start:auto; }
 .acc-box { max-width:740px; margin:0 auto; }
 .acc-card { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:16px; margin-bottom:12px; }
 .acc-ord { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
@@ -1247,6 +1256,8 @@ html[data-theme="dark"] .list-search .ls-box input { background:var(--card2); }
 .pfoot b { font-size:1rem; color:#0B0B0C; }
 .pview { color:#6B6B74; }
 .pcard:hover .pview { color:#A8852E; }
+.tryme { width:100%; margin-top:10px; padding:8px 10px; border:1.5px dashed #0B0B0C; background:#F7F3E9; color:#0B0B0C; border-radius:12px; font-family:inherit; font-size:.82rem; font-weight:800; cursor:pointer; }
+.tryme:hover { background:#0B0B0C; color:#fff; }
 .sizes-row { display:flex; gap:6px; flex-wrap:wrap; margin-top:9px; }
 .sz-pill { min-width:30px; text-align:center; font-size:.68rem; font-weight:800; padding:4px 5px;
   border-radius:7px; border:1px solid var(--line); color:var(--mut); background:#fff; }
@@ -1339,7 +1350,7 @@ function applyFilters(){
     if(ok && filters.color!=='all' && c.getAttribute('data-col')!==filters.color) ok=false;
     if(ok && filters.cat!=='all' && !hasB(c,filters.cat)) ok=false;
     if(ok && q){
-      var hay=((c.getAttribute('data-name')||'')+' '+(c.getAttribute('data-clubn')||'')).toLowerCase();
+      var hay=((c.getAttribute('data-search')||'')+' '+(c.getAttribute('data-name')||'')+' '+(c.getAttribute('data-clubn')||'')).toLowerCase();
       if(hay.indexOf(q)===-1) ok=false;
     }
     c.style.display=ok?'':'none'; if(ok) shown++;
@@ -1371,6 +1382,7 @@ function clearFilters(){
   document.querySelectorAll('.club-opt.on,.sz-btn.on,.col-dot.on').forEach(function(x){x.classList.remove('on');});
   document.querySelectorAll('input[name="fpcat"]').forEach(function(r){r.checked=false;});
   var sq=$('sq'); if(sq) sq.value='';
+  var sq2=$('sq2'); if(sq2) sq2.value='';
   applyFilters();
 }
 /* ---------- sorting & filters drawer ---------- */
@@ -1741,22 +1753,36 @@ function isHandleFile(input,isCam){
 }
 function isAnalyze(dataUrl){
   var img=new Image(); img.onload=function(){
+    var an=$('is_analyzing'); if(an) an.style.display='block';
+    var box=$('is_resultsBox'); if(box) box.innerHTML='';
+    var prev=$('is_preview'); if(prev){ prev.src=dataUrl; prev.style.display='block'; }
     var cv=document.createElement('canvas'); cv.width=64; cv.height=64;
     var cx=cv.getContext('2d'); cx.drawImage(img,0,0,64,64);
-    var d=cx.getImageData(0,0,64,64).data; var R=0,G=0,B=0,n=d.length/4;
-    for(var i=0;i<d.length;i+=4){ R+=d[i]; G+=d[i+1]; B+=d[i+2]; }
-    R=Math.round(R/n); G=Math.round(G/n); B=Math.round(B/n);
+    var d=cx.getImageData(0,0,64,64).data;
+    var buckets={};
+    for(var i=0;i<d.length;i+=4){
+      var a=d[i],b=d[i+1],c2=d[i+2]; if(a+b+c2<60) continue;
+      var k=Math.round(a/48)*48+','+Math.round(b/48)*48+','+Math.round(c2/48)*48;
+      buckets[k]=(buckets[k]||0)+1;
+    }
+    var dom=Object.keys(buckets).map(function(k){ return {c:k.split(',').map(Number),n:buckets[k]}; })
+      .sort(function(x,y){ return y.n-x.n; }).slice(0,5);
+    if(!dom.length) dom=[{c:[200,200,200],n:1}];
     var desc=($('is_desc').value||'').trim().toLowerCase();
     var scores=GX.products.map(function(p){
-      var best=0; p.colors.forEach(function(hex){ var d2=hex2rgb(hex); if(!d2) return;
-        var dist=Math.sqrt((R-d2[0])*(R-d2[0])+(G-d2[1])*(G-d2[1])+(B-d2[2])*(B-d2[2]));
-        var sim=Math.max(0,1-dist/441.7); if(sim>best) best=sim; });
+      var best=0;
+      p.colors.forEach(function(hex){ var rgb=hex2rgb(hex); if(!rgb) return;
+        dom.forEach(function(dc){
+          var dist=Math.sqrt((rgb[0]-dc.c[0])*(rgb[0]-dc.c[0])+(rgb[1]-dc.c[1])*(rgb[1]-dc.c[1])+(rgb[2]-dc.c[2])*(rgb[2]-dc.c[2]));
+          var sim=Math.max(0,1-dist/441.7); if(sim>best) best=sim;
+        });
+      });
       var sc=best*100;
-      if(desc){ var hay=((p.name_ar||'')+' '+(p.name_en||'')+' '+(p.club_ar||'')+' '+(p.club_en||'')).toLowerCase();
+      if(desc){ var hay=((p.name_ar||'')+' '+(p.name_en||'')+' '+(p.club_ar||'')+' '+(p.club_en||'')+' '+(p.desc_ar||'')+' '+(p.desc_en||'')).toLowerCase();
         var boost = hay.indexOf(desc)>-1?12:0; sc=Math.min(99,sc*0.8+boost); }
       return {p:p, sc:Math.round(sc)};
     }).sort(function(a,b){return b.sc-a.sc;});
-    $('is_analyzing').style.display='none';
+    if(an) an.style.display='none';
     var out=$('is_resultsBox'); var html='';
     var top=scores[0];
     if(top.sc<40){ html+='<p class="mnote">'+gxT('is_notfound')+'</p><p class="mnote">'+gxT('is_near')+'</p>'; }
@@ -1764,6 +1790,7 @@ function isAnalyze(dataUrl){
     scores.slice(1,4).forEach(function(s){ html+=isCard(s); });
     html+='<div style="text-align:center;margin-top:14px"><button class="btn pri sm" onclick="closeModal(\\'m-imgsearch\\');openRequest(\\''+dataUrl+'\\')">'+gxT('is_request')+'</button></div>';
     html+='<p class="img-search-tip">'+gxT('is_priv')+'</p>';
+    html+='<p class="img-search-tip" style="color:var(--mut);font-size:.72rem">'+gxT('is_note')+'</p>';
     out.innerHTML=html;
   };
   img.src=dataUrl;
@@ -1852,8 +1879,17 @@ function submitPriceDrop(){
   });
 }
 /* ---------- try it on (AI preview) ---------- */
-var TRY={img:null,pid:null,cv:null};
-function tryOpen(pid){ TRY.pid=pid; openModal('m-tryit'); }
+var TRY={img:null,pid:null,cv:null,size:''};
+function tryOpen(pid){ TRY.pid=pid; TRY.size='';
+  var sel=$('try_sel'); if(sel){ sel.value=pid; }
+  document.querySelectorAll('#try_sizes .sz-pill').forEach(function(x){ x.classList.remove('on'); });
+  openModal('m-tryit');
+}
+function tryPickSize(el,sz){ TRY.size=sz;
+  document.querySelectorAll('#try_sizes .sz-pill').forEach(function(x){ x.classList.remove('on'); });
+  if(el) el.classList.add('on');
+}
+function trySwitch(pid){ TRY.pid=pid; tryRedraw(); }
 function tryHandle(input,cam){
   var f=input.files[0]; if(!f) return;
   var fr=new FileReader(); fr.onload=function(){ TRY.img=new Image(); TRY.img.onload=function(){ tryPrep(); }; TRY.img.src=fr.result; };
@@ -1866,13 +1902,22 @@ function tryPrep(){
   cv.width=W; cv.height=H; TRY.cv=cv;
   var ctx=cv.getContext('2d'); ctx.fillStyle='#0F172A'; ctx.fillRect(0,0,W,H);
   ctx.drawImage(TRY.img,0,0,W,H);
+  tryRedraw();
+}
+function tryRedraw(){
+  var cv=$('tryCanvas'); if(!cv || !TRY.img) return;
+  var W=cv.width, H=cv.height;
+  var ctx=cv.getContext('2d'); ctx.clearRect(0,0,W,H);
+  ctx.drawImage(TRY.img,0,0,W,H);
   drawJersey(ctx,W,H);
 }
 function drawJersey(ctx,W,H){
   var img=TRY.pid? GX.products.find(function(x){return x.id===TRY.pid;}):null;
   if(!img) return;
+  var ld=$('tryLoading'); if(ld) ld.style.display='block';
   var ji=new Image();
   ji.onload=function(){
+    if(ld) ld.style.display='none';
     ctx.save(); ctx.globalAlpha=.92;
     ctx.beginPath();
     var tw=W*0.66, th=H*0.34, x=(W-tw)/2, y=H*0.28;
@@ -1884,9 +1929,13 @@ function drawJersey(ctx,W,H){
     ctx.strokeStyle='rgba(255,255,255,.6)'; ctx.lineWidth=2;
     ctx.beginPath(); ctx.moveTo(x+tw*0.12,y); ctx.lineTo(x+tw*0.88,y); ctx.lineTo(x+tw*0.72,y+th); ctx.lineTo(x+tw*0.28,y+th); ctx.closePath(); ctx.stroke();
   };
+  ji.onerror=function(){ if(ld) ld.style.display='none'; };
   ji.src='/img/'+img.imgs[0];
 }
-function tryAdd(){ if(!TRY.pid) return; var q=parseInt($('qty').textContent,10); addCart(TRY.pid, selSize||'', q); }
+function tryAdd(){ if(!TRY.pid) return;
+  if(!TRY.size){ toast(gxT('size_required')); return; }
+  var q=1; addCart(TRY.pid, TRY.size, q);
+}
 function tryShare(){
   var cv=$('tryCanvas'); if(!cv) return;
   cv.toBlob(function(blob){
@@ -1898,7 +1947,9 @@ function tryShare(){
     }
   });
 }
-function tryReset(){ $('tryCanvasWrap').style.display='none'; var f=$('tryfile'); if(f) f.value=''; }
+function tryReset(){ $('tryCanvasWrap').style.display='none'; var f=$('tryfile'); if(f) f.value=''; TRY.size='';
+  document.querySelectorAll('#try_sizes .sz-pill').forEach(function(x){ x.classList.remove('on'); });
+}
 /* ---------- drop remind ---------- */
 function submitDropRemind(){
   var ph=($('dr_phone').value||'').trim();
@@ -2224,6 +2275,7 @@ function syncServerFavs(){
 document.addEventListener('DOMContentLoaded',function(){
   applyPrefs(); syncPrefs(); gxDev(); renderFavs(); syncServerFavs();
   if($('sq')){ $('sq').addEventListener('input',applyFilters); }
+  if($('sq2')){ $('sq2').addEventListener('input',applyFilters); }
   if($('prod_id')){ trackView($('prod_id').value); }
   applyFilters(); renderCart(); tickCountdown(); setInterval(tickCountdown,1000);
   if($('dnaBox')) loadDNA();
@@ -2385,7 +2437,7 @@ JS
         .replace("PRE", pre) \
         .replace("BODY", body) \
         .replace("FOOTER", footer_html()) \
-        .replace("MODALS", modals_html()) \
+        .replace("MODALS", ads_html("banner") + modals_html()) \
         .replace("T_CART", d["cart_title"]) \
         .replace("WA", cfg.WHATSAPP) \
         .replace("PAGEJS", page_js) \
@@ -2631,6 +2683,7 @@ def modals_html():
                 '<label class="btn pri" style="flex:1;justify-content:center">{cam}<input type="file" accept="image/*" capture="environment" onchange="isHandleFile(this,true)" style="display:none"></label>'
                 '<label class="btn ghost" style="flex:1;justify-content:center">{up}<input type="file" accept="image/*" onchange="isHandleFile(this,false)" style="display:none"></label></div>'
                 '<div class="fld" style="margin-top:12px"><label>{desc}</label><input id="is_desc" placeholder="{ph}"></div>'
+                '<img id="is_preview" style="display:none;max-height:150px;border-radius:14px;margin-top:12px" alt="">'
                 '<p id="is_analyzing" class="mnote" style="margin-top:10px;font-weight:800;display:none">{an}</p>'
                 '<div id="is_resultsBox"></div>'
                 ).format(sub=d["is_sub"], cam=d["is_camera"], up=d["is_upload"],
@@ -2638,13 +2691,21 @@ def modals_html():
 
     points_body = '<div id="ptsBox"></div>'
 
+    try_opts = "".join('<option value="{id}">{name}</option>'.format(
+        id=x["id"], name=x.get("name_ar", x["id"])) for x in cfg.PRODUCTS if x["kind"] == "jersey")
+    try_sizes = "".join('<button class="sz-pill" data-sz="{sz}" onclick="tryPickSize(this,\'{sz}\')">{sz}</button>'.format(sz=s)
+                        for s in cfg.SIZE_ORDER[:5])
     tryit_body = ('<p class="mnote">{sub}</p>'
                   '<div style="display:flex;gap:10px;flex-wrap:wrap">'
                   '<label class="btn pri" style="flex:1;justify-content:center">{cam}<input id="tryfile" type="file" accept="image/*" capture="environment" onchange="tryHandle(this,true)" style="display:none"></label>'
                   '<label class="btn ghost" style="flex:1;justify-content:center">{up}<input type="file" accept="image/*" onchange="tryHandle(this,false)" style="display:none"></label></div>'
                   '<p class="img-search-tip">{hint}</p>'
                   '<div id="tryCanvasWrap" style="display:none;margin-top:10px">'
+                  '<div class="fld" style="margin-top:6px"><label>{prod}</label>'
+                  '<select id="try_sel" onchange="trySwitch(this.value)">{opts}</select></div>'
+                  '<div class="sizes-row" id="try_sizes" style="margin-top:8px">{sizes}</div>'
                   '<div class="try-stage"><canvas id="tryCanvas"></canvas><span class="try-ai">{ai}</span></div>'
+                  '<p class="try-load" id="tryLoading" style="display:none;margin-top:8px;font-weight:800">⚙️ {loading}</p>'
                   '<div class="mwarning">⚠️ {dis}</div>'
                   '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">'
                   '<button class="btn pri" style="flex:1" onclick="tryAdd()">{add}</button>'
@@ -2652,7 +2713,9 @@ def modals_html():
                   '<button class="btn ghost" style="flex:1" onclick="tryReset()">{ag}</button></div>'
                   '<p class="img-search-tip">{priv}</p></div>'
                   ).format(sub=d["try_sub"], cam=d["try_cam"], up=d["try_up"], hint=d["try_hint"],
-                           ai=d["try_ai"], dis=d["try_dis"], add=d["try_add"], sh=d["try_share"],
+                           prod=d["try_product"], opts=try_opts, sizes=try_sizes,
+                           ai=d["try_ai"], loading=d["try_loading"],
+                           dis=d["try_dis"], add=d["try_add"], sh=d["try_share"],
                            ag=d["try_again"], priv=d["try_priv"])
 
     pricedrop_body = ('<p class="mnote">{sub}</p>'
@@ -2750,6 +2813,31 @@ def features_html():
                  '<div><b>{t}</b><span>{x}</span></div></div>').format(
             ic=("🚚", "💳", "🏆", "🔄")[i - 1], t=d["feat_%d_t" % i], x=d["feat_%d_d" % i])
     return '<div class="feat-bar">{rows}</div>'.format(rows=rows)
+
+
+def ads_html(place):
+    """Render active announcement/ads strips for a given placement."""
+    try:
+        ads = db.ads_list(place=place, active_only=True)
+        if not ads:
+            return ""
+    except Exception:
+        return ""
+    en = lang() == "en"
+    items = ""
+    for a in ads:
+        txt = (a.get("text_en") if en else a.get("text_ar")) or a.get("text_ar") or a.get("text_en") or ""
+        if not txt:
+            continue
+        link = a.get("link") or ""
+        inner = '<span class="ads-txt">📢 ' + esc(txt) + '</span>'
+        if link:
+            items += '<a class="ads-item" href="' + esc(link) + '">' + inner + '</a>'
+        else:
+            items += '<div class="ads-item">' + inner + '</div>'
+    if not items:
+        return ""
+    return '<div class="ads-strip">{items}</div>'.format(items=items)
 
 
 def home_body():
@@ -2909,6 +2997,7 @@ def home_body():
     return (atmos_html("full")
             + '<div class="wrap">'
             + hero
+            + ads_html("home")
             + features_html()
             + '<div class="sec rv" id="jerseys"><div class="sec-head"><h2><span class="bar"></span>{sj}</h2><span class="sec-sub">{sj_sub}</span></div>'
             + shop_section_html(jgrid, "gridJ")
@@ -2954,6 +3043,7 @@ def listing_page(kind):
         ).format(ic=head_ic, t=title, s=sub, ph=d["search_ph"], go=d["search_ph"], is_=d["is_title"])
     body = (atmos_html("light")
             + '<div class="wrap">'
+            + ads_html("products")
             + search_bar
             + shop_section_html(grid, "gridL")
             + '<div style="text-align:center;margin-top:26px"><a class="back" href="/home">← {b}</a></div>'
@@ -3116,6 +3206,8 @@ def product_card(p):
     club = cfg.club_of(p)
     club_id = club and p["club_id"] or ""
     clubn = (club and club.get(en and "en" or "ar")) or ""
+    clubn_ar = (club and club.get("ar")) or ""
+    clubn_en = (club and club.get("en")) or ""
     th = club_themes().get(club_id, {}) if club_id else {}
     pc = th.get("ac", "#E11D48"); pc2 = th.get("ac2", "#F97316")
     first = p["imgs"][0]
@@ -3130,8 +3222,17 @@ def product_card(p):
             for sz in cfg.SIZE_ORDER[:5])
         sizes_row = '<div class="sizes-row">{pills}</div>'.format(pills=pills)
     pdots = "".join('<span class="pdot" style="background:%s"></span>' % c for c in p["colors"])
+    searchable = " ".join(filter(None, [
+        p.get("name_ar", ""), p.get("name_en", ""),
+        clubn_ar, clubn_en,
+        p.get("desc_ar", ""), p.get("desc_en", ""),
+        p["id"], p["kind"],
+    ])).replace('"', "&quot;").lower()
+    trybtn = ""
+    if p["kind"] == "jersey":
+        trybtn = '<button class="tryme" onclick="tryOpen(\'{id}\')">📸 {tr}</button>'.format(id=p["id"], tr=d["try_title"])
     return (
-        '<div class="pcard" data-id="{id}" data-kind="{kind}" data-club="{cid}" data-clubn="{cn}" data-stock="{csv}" data-price="{price}" data-name="{name}" data-order="{order}" data-badge="{bcsv}" data-col="{ncol}" style="--pc:{pc};--pc2:{pc2}">'
+        '<div class="pcard" data-id="{id}" data-kind="{kind}" data-club="{cid}" data-clubn="{cn}" data-search="{search}" data-stock="{csv}" data-price="{price}" data-name="{name}" data-order="{order}" data-badge="{bcsv}" data-col="{ncol}" style="--pc:{pc};--pc2:{pc2}">'
         '<div class="badges">{badges}</div>'
         '<button class="heart {on}" onclick="toggleFav(\'{id}\',this)">{h}</button>'
         '<a href="/product/{id}"><div class="pimg" style="background:linear-gradient(135deg,{c1},{c2})">'
@@ -3141,11 +3242,13 @@ def product_card(p):
         '{low}'
         '{sizes_row}'
         '<div class="pcols">{pdots}</div>'
+        '{trybtn}'
         '<div class="pfoot"><b>{pr}</b><a class="pview" href="/product/{id}">{view} ←</a></div></div></div>'
-    ).format(id=p["id"], kind=p["kind"], cid=club_id, cn=clubn.replace('"', "&quot;"), csv=stock_csv,
-             price=eff_price(p), name=name.replace('"', "&quot;"), badges=badges_html, on="on" if fav else "", h="❤" if fav else "🤍",
+    ).format(id=p["id"], kind=p["kind"], cid=club_id, cn=clubn.replace('"', "&quot;"), search=searchable,
+             csv=stock_csv, price=eff_price(p), name=name.replace('"', "&quot;"), badges=badges_html,
+             on="on" if fav else "", h="❤" if fav else "🤍",
              c1=p["colors"][0], c2=p["colors"][1], first=first, cat=cat, pr=pr, view=d["view"], low=low,
-             order=order, bcsv=b_csv, ncol=ncol, sizes_row=sizes_row, pdots=pdots,
+             order=order, bcsv=b_csv, ncol=ncol, sizes_row=sizes_row, pdots=pdots, trybtn=trybtn,
              pc=pc, pc2=pc2)
 
 
@@ -3477,7 +3580,8 @@ def account_page():
     else:
         sizes_html = '<p class="mnote">' + d["acc_sizes_empty"] + '</p>'
 
-    tabs = [("acc-orders", d["acc_orders"]), ("acc-favs", d["acc_favs"]),
+    tabs = [("acc-orders", d["acc_orders"]), ("acc-notifs", d["acc_notifs"]),
+            ("acc-favs", d["acc_favs"]),
             ("acc-sizes", d["acc_sizes"]), ("acc-alerts", d["acc_alerts"]),
             ("acc-points", d["acc_points"]), ("acc-passport", d["acc_passport"]),
             ("acc-dna", d["acc_dna"]), ("acc-data", d["acc_data"]),
@@ -3485,12 +3589,22 @@ def account_page():
     nav = "".join('<button class="acc-btn%s" data-tab="%s" onclick="accTab(\'%s\')">%s</button>' % (
         " on" if i == 0 else "", sid, sid, lbl) for i, (sid, lbl) in enumerate(tabs))
 
+    notifs = db.user_notifs(u["id"])
+    db.user_notif_read_all(u["id"])
+    if notifs:
+        n_html = "".join('<div class="acc-n{ifirst}"><span class="acc-ndot"></span><p>{txt}</p><span class="acc-ndt">{dt}</span></div>'.format(
+            ifirst=" first" if i == 0 else "", txt=esc(x["text"]), dt=esc(x["created"]))
+            for i, x in enumerate(notifs))
+    else:
+        n_html = '<p class="mnote">' + d["acc_notifs_empty"] + '</p>'
+
     body = (
         '<div class="wrap"><div class="acc-box">'
         '<div class="acc-hero"><h2>{w} {n} 👋</h2><p>{since}: {d} · {sp}: <b>{s} {c}</b></p>'
         '<button class="hbtn" style="position:absolute;top:16px;inset-inline-end:16px;background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.4)" onclick="authOut()">{out}</button></div>'
         '<div class="acc-nav">{nav}</div>'
         '<div class="acc-sec on" id="acc-orders">{orders}</div>'
+        '<div class="acc-sec" id="acc-notifs">{notifs}</div>'
         '<div class="acc-sec" id="acc-favs"><div id="favsBox"></div></div>'
         '<div class="acc-sec" id="acc-sizes">{sizes}</div>'
         '<div class="acc-sec" id="acc-alerts"><div id="alertsBox"></div></div>'
@@ -3502,7 +3616,7 @@ def account_page():
         '</div></div>'
     ).format(w=d["acc_welcome"], n=esc(u.get("name", "") or "👤"), since=d["acc_member_since"],
              d=u.get("created", ""), sp=d["acc_spent"], s=fmt_cur(spent), c=cur(), out=d["ac_logout"],
-             nav=nav, orders=ord_html, sizes=sizes_html, pp=pp_html, rw=rw_html, data=data_html, set=set_html)
+             nav=nav, orders=ord_html, notifs=n_html, sizes=sizes_html, pp=pp_html, rw=rw_html, data=data_html, set=set_html)
     return base_page(body)
 
 
@@ -4075,6 +4189,26 @@ def admin_order(code):
     return admin_order_page(code)
 
 
+@app.route("/admin/notifs")
+def admin_notifs_page():
+    if not admin_auth():
+        if current_user():
+            return blocked_page()
+        return redirect("/admin/login")
+    an = db.admin_notifs(200)
+    rows = ""
+    for x in an:
+        rows += ('<tr class="{un}"><td>{txt}</td><td style="white-space:nowrap">{dt}</td></tr>').format(
+            un="un" if not x["read"] else "", txt=esc(x["text"]), dt=esc(x["created"]))
+    db.admin_notif_read_all()
+    body = ('<div class="adm">'
+            '<div class="hd-in" style="justify-content:space-between;padding:14px 0"><b style="font-size:1.2rem">🔔 مركز الإشعارات</b>'
+            '<a href="/admin" class="hbtn">← لوحة التحكم</a></div>'
+            '<div class="adm-card"><table class="anbox" style="max-height:none;border:0"><tr><th>الإشعار</th><th>التاريخ</th></tr>{rows}</table></div>'
+            '</div>').format(rows=rows if rows else '<tr><td colspan="2"><p class="mnote">لا توجد إشعارات</p></td></tr>')
+    return admin_template(body)
+
+
 @app.route("/health")
 def health():
     return "ok"
@@ -4107,6 +4241,11 @@ def api_order():
     if u:
         data["user_id"] = u["id"]
     code = db.order_create(data)
+    try:
+        nm = data.get("name", "")
+        db.admin_notif_add("order", "🛒 طلب جديد %s — %s" % (code, nm))
+    except Exception:
+        pass
     return json_d({"code": code})
 
 
@@ -4661,6 +4800,10 @@ def api_review():
     db.review_add(pid, device, name[:40], design, fabric, quality, fit,
                   str(data.get("fit", "") or "")[:20], str(data.get("text", "") or "")[:500],
                   data.get("photo") or None, db.review_verified(pid, device))
+    try:
+        db.admin_notif_add("review", "⭐ مراجعة جديدة على %s من %s" % (pid, name[:30]))
+    except Exception:
+        pass
     return json_d({"ok": True})
 
 
@@ -4719,6 +4862,28 @@ def admin_auth():
     return bool(u and u.get("role") in ("admin", "super_admin"))
 
 
+def notify_order_status(o, code, new_st):
+    """Send the customer an in-account notification when the order status changes."""
+    try:
+        if not o:
+            return
+        uid = o["data"].get("user_id")
+        old_st = o["status"]
+        if uid and new_st and new_st != old_st:
+            st_names = {
+                "pending": "📝 تم استلام طلبك",
+                "confirmed": "✅ تم تأكيد طلبك",
+                "preparing": "👕 جاري تجهيز طلبك",
+                "delivering": "🚚 طلبك خرج للتوصيل",
+                "delivered": "🏠 تم تسليم طلبك",
+                "cancelled": "❌ تم إلغاء طلبك",
+            }
+            txt = (st_names.get(new_st, "📢 تم تحديث طلبك") + " #" + code)
+            db.user_notif_add(uid, txt)
+    except Exception:
+        pass
+
+
 def admin_login_page(msg=""):
     body = (
         '<div class="wrap"><div style="max-width:400px;margin:60px auto;text-align:center">'
@@ -4764,8 +4929,12 @@ def admin():
     if request.method == "POST":
         act = request.form.get("act", "")
         if act == "order":
-            db.order_update(request.form.get("code", ""), status=request.form.get("status", "pending"),
+            code = request.form.get("code", "")
+            new_st = request.form.get("status", "pending")
+            o = db.order_get(code)
+            db.order_update(code, status=new_st,
                             payment=request.form.get("payment", "pending"))
+            notify_order_status(o, code, new_st)
             return admin_page("<div class='msg'>تم الحفظ</div>")
         if act == "order_save":
             code = request.form.get("code", "")
@@ -4794,8 +4963,10 @@ def admin():
                     items.append(it)
                 dta["items"] = items
                 dta["total"] = total
-                db.order_update(code, data=dta, status=request.form.get("status", o["status"]),
+                new_st = request.form.get("status", o["status"])
+                db.order_update(code, data=dta, status=new_st,
                                 payment=request.form.get("payment", o["payment"]))
+                notify_order_status(o, code, new_st)
             return admin_page("<div class='msg'>💾 تم حفظ الطلب</div>")
         if act == "stock":
             pid = request.form.get("pid", "")
@@ -4975,12 +5146,50 @@ def admin():
         if act == "admins_toggle":
             db.user_update(int(request.form.get("uid", 0)), role=request.form.get("role", "customer"))
             return admin_page("<div class='msg'>تم الحفظ</div>")
+        if act == "notif_read":
+            db.admin_notif_read_all()
+            return admin_page("<div class='msg'>تم تحديد الكل كمقروء</div>")
+        if act == "ad_save":
+            aid = int(request.form.get("aid", 0) or 0)
+            ta = request.form.get("text_ar", "").strip()
+            te = request.form.get("text_en", "").strip()
+            link = request.form.get("link", "").strip()
+            place = request.form.get("place", "home")
+            if aid:
+                db.ad_update(aid, ta, te, link, place)
+            else:
+                db.ad_add(ta, te, link, place)
+            return admin_page("<div class='msg'>✅ تم حفظ الإعلان</div>")
+        if act == "ad_toggle":
+            db.ad_toggle(int(request.form.get("aid", 0) or 0), request.form.get("active", "1") == "1")
+            return admin_page("<div class='msg'>تم الحفظ</div>")
+        if act == "ad_del":
+            db.ad_delete(int(request.form.get("aid", 0) or 0))
+            return admin_page("<div class='msg'>🗑 تم حذف الإعلان</div>")
     return admin_page("")
 
 
 def reload_stock():
     global STOCK
     STOCK = db.get_stock()
+
+
+@app.route("/api/admin/notifs")
+def api_admin_notifs():
+    if not admin_auth():
+        return json_d({"error": "unauthorized"}), 401
+    return json_d({
+        "unread": db.admin_notif_unread(),
+        "list": db.admin_notifs(60),
+    })
+
+
+@app.route("/api/admin/notifs/read", methods=["POST"])
+def api_admin_notifs_read():
+    if not admin_auth():
+        return json_d({"error": "unauthorized"}), 401
+    db.admin_notif_read_all()
+    return json_d({"ok": True, "unread": 0})
 
 
 def admin_page(msg=""):
@@ -5228,6 +5437,48 @@ def admin_page(msg=""):
                     '<button class="hbtn">إضافة مدير</button></form>'
                     '<table><tr><th>الاسم</th><th>الهاتف</th><th>الدور</th><th></th></tr>{adm_rows}</table></div>').format(adm_rows=adm_rows)
 
+    adm_notifs = db.admin_notifs(60)
+    n_unread = db.admin_notif_unread()
+    an_rows = ""
+    for an in adm_notifs:
+        an_rows += ('<tr class="{un}"><td>{txt}</td><td style="white-space:nowrap">{dt}</td></tr>').format(
+            un="un" if not an["read"] else "", txt=esc(an["text"]), dt=esc(an["created"]))
+    an_card = ('<div class="adm-card"><h3>🔔 مركز الإشعارات '
+               '<span class="anbadge" style="display:{show}">{u}</span>'
+               '<a href="/admin/notifs" class="hbtn" style="float:left">عرض الكل</a></h3>'
+               '<div class="anbox">{rows}</div>'
+               '<form method="post" style="margin-top:10px"><input type="hidden" name="act" value="notif_read">'
+               '<button class="hbtn">تحديد الكل كمقروء</button></form></div>').format(
+        show="inline-block" if n_unread else "none", u=n_unread, rows=an_rows if an_rows else '<p class="mnote">لا توجد إشعارات</p>')
+
+    ads = db.ads_list()
+    ad_rows = ""
+    for a in ads:
+        ad_rows += ('<tr><td>{id}</td><td>{ta}<br><small style="color:#64748b">{te}</small></td>'
+                    '<td>{place}</td><td>{st}</td>'
+                    '<td><form method="post" style="display:inline"><input type="hidden" name="act" value="ad_toggle">'
+                    '<input type="hidden" name="aid" value="{id}"><input type="hidden" name="active" value="{newv}">'
+                    '<button class="hbtn">{newl}</button></form> '
+                    '<form method="post" style="display:inline" onsubmit="return confirm(\'حذف الإعلان؟\')">'
+                    '<input type="hidden" name="act" value="ad_del"><input type="hidden" name="aid" value="{id}">'
+                    '<button class="hbtn" style="background:#dc2626">حذف</button></form></td></tr>').format(
+            id=a["id"], ta=esc(a["text_ar"] or ""), te=esc(a["text_en"] or ""),
+            place={"home": "الرئيسية", "products": "المنتجات", "banner": "شريط علوي"}.get(a["place"], a["place"]),
+            st="مفعّل ✓" if a["active"] else "متوقف",
+            newv="0" if a["active"] else "1", newl="إيقاف" if a["active"] else "تفعيل")
+    ad_add_form = ('<h4 style="margin-top:12px">➕ إعلان جديد</h4>'
+                   '<form method="post" style="display:grid;gap:8px;max-width:560px">'
+                   '<input type="hidden" name="act" value="ad_save">'
+                   '<input name="text_ar" placeholder="نص الإعلان (عربي)" required>'
+                   '<input name="text_en" placeholder="Announcement text (EN)">'
+                   '<input name="link" placeholder="الرابط (اختياري)، مثال: /products">'
+                   '<select name="place"><option value="home">الرئيسية</option>'
+                   '<option value="products">صفحة المنتجات</option><option value="banner">شريط علوي</option></select>'
+                   '<button class="hbtn">💾 حفظ الإعلان</button></form>')
+    ad_card = ('<div class="adm-card"><h3>📢 إدارة الإعلانات</h3>'
+               '<table><tr><th>#</th><th>النص</th><th>الموضع</th><th>الحالة</th><th></th></tr>{rows}</table>'
+               + ad_add_form + '</div>').format(rows=ad_rows if ad_rows else '<tr><td colspan="5"><p class="mnote">لا توجد إعلانات</p></td></tr>')
+
     body = ('<div class="adm">'
             '<div class="hd-in" style="justify-content:space-between;padding:14px 0"><b style="font-size:1.2rem">⚙️ لوحة تحكم golazox</b>'
             '<span><a href="/home" class="hbtn">الموقع</a> <a href="/admin/logout" class="hbtn">خروج</a></span></div>'
@@ -5240,7 +5491,9 @@ def admin_page(msg=""):
             '<div class="stat"><b>{rm}</b><span>إيراد الشهر</span></div>'
             '<div class="stat"><b>{top}</b><span>الأكثر مبيعًا</span></div>'
             '<div class="stat"><b>{nc}</b><span>العملاء</span></div>'
-            '<div class="stat"><b>{n3}</b><span>تنبيهات جاهزة</span></div></div>'
+            '<div class="stat"><b>{n3}</b><span>تنبيهات جاهزة</span></div>'
+            '<div class="stat"><b>{np}</b><span>إشعارات غير مقروءة</span></div></div>'
+            + an_card + ad_card +
             '<div class="adm-card"><h3>📦 الطلبات</h3><table><tr><th>الرقم</th><th>العميل</th><th>المنتجات</th><th>الإجمالي</th><th>الحالة</th><th>الدفع</th><th></th></tr>{rows}</table></div>'
             + top_card +
             '<div class="adm-card"><h3>📦 المخزون</h3><table><tr><th>المنتج</th><th>المقاسات (الكمية)</th><th></th></tr>{stock_rows}</table></div>'
@@ -5283,6 +5536,7 @@ def admin_page(msg=""):
             '</div>').format(
         n1=n_orders, n2=len(orders), rev=fmt_cur(rev), cu=cur(), n3=n_ready,
         rt=fmt_cur(rev_today), rm=fmt_cur(rev_month), top=esc(top), nc=n_cust,
+        np=n_unread,
         rows=rows, stock_rows=stock_rows, rev_rows=rev_rows, al_rows=al_rows,
         cust_rows=cust_rows, req_rows=req_rows, notif_rows=notif_rows, poll_rows=poll_rows,
         mk=(m["kickoff"].replace(" ", "T") if m and m.get("kickoff") else ""),
@@ -5318,6 +5572,12 @@ a{text-decoration:none;color:inherit}
 .stat b{font-size:1.5rem;display:block;color:#E11D48}
 .stat span{color:#64748B;font-size:.8rem}
 .msg{background:#ECFDF5;border:1px solid #A7F3D0;color:#065F46;border-radius:12px;padding:10px 14px;margin-bottom:14px}
+.anbadge{background:#E11D48;color:#fff;border-radius:999px;font-size:.7rem;padding:1px 8px;margin-inline-start:6px}
+.anbox{max-height:320px;overflow:auto;border:1px solid #E2E8F0;border-radius:12px}
+.anbox table{width:100%;border-collapse:collapse}
+.anbox tr.un{background:#FFF1F2}
+.anbox td{padding:8px 10px;border-bottom:1px dashed #E2E8F0;font-size:.85rem}
+.anbox tr.un td{font-weight:800}
 </style></head>
 <body><div class="wrap2">BODY</div></body></html>""".replace("BODY", body)
 

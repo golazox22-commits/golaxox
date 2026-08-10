@@ -1894,8 +1894,9 @@ function authSendCode(P){
   if(!isEmail(full)){ toast(gxT('auth_bad_phone')); return; }
   var btn=ap(P,'au_sendbtn');
   if(btn){ btn.disabled=true; btn.textContent=gxT('auth_loading'); }
+  console.log('[LOGIN] OTP request started');
   fetch('/api/auth/otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:full})})
-  .then(function(r){return r.json();}).then(function(d){
+  .then(function(r){ console.log('[LOGIN] OTP request completed status='+r.status); return r.json(); }).then(function(d){
     if(d.ok===false){
       var em = d.error==='sms_notcfg'?gxT('auth_sms_notcfg') :
                (d.error==='rate_limit'||d.error==='rate_gap')?gxT('auth_rate_limit') : gxT('auth_sms_fail');
@@ -2406,7 +2407,8 @@ def auth_box_html(prefix=""):
             '<div class="auth-pane" id="{p}auth_pane_otp">'
             '<div class="auth-step1" id="{p}au_step1">'
             '<div class="fld"><label>{em}</label>'
-            '<input id="{p}au_email" type="email" inputmode="email" placeholder="{emph}" autocomplete="off"></div>'
+            '<input id="{p}au_email" type="email" inputmode="email" placeholder="{emph}" autocomplete="off" '
+            'onkeydown="if(event.key==\'Enter\'){event.preventDefault();authSendCode(\'{p}\');}"></div>'
             '<button class="btn pri big" id="{p}au_sendbtn" onclick="authSendCode(\'{p}\')">{ct}</button></div>'
             '<div class="auth-step2" id="{p}au_step2">'
             '<p class="auth-sent">📨 {sent} <b id="{p}au_sentto"></b></p>'

@@ -8,12 +8,14 @@ NEW DROP countdown, MATCHDAY mode, admin panel.
 """
 import os
 import json
+import time
 import datetime
 import random
 from flask import Flask, request, redirect, Response, send_file, session, url_for
 
 import cfg
 import db
+import tryon
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "golazox-secret-2026")
@@ -135,12 +137,13 @@ def gx_data():
     u = current_user()
     user = {"id": u["id"], "role": u["role"]} if u else None
     return {
-        "lang": lang(), "cur": cur(), "wa": cfg.WHATSAPP, "tg": cfg.TG_LINK, "tg_user": cfg.TG_USER,
+        "lang": lang(), "cur": cur(), "wa": cfg.WHATSAPP,
         "delivery": cfg.DELIVERY_FEE,
         "sizes": cfg.SIZE_ORDER, "chart": cfg.SIZE_CHART, "rewards": cfg.REWARDS,
         "products": products, "clubs": clubs, "points_per": cfg.POINTS_PER_BHD,
         "match": m, "drop": d, "poll": poll, "now": datetime.datetime.now().isoformat(),
         "user": user,
+        "tryon": {"configured": tryon.configured(), "provider": tryon.provider()},
         "T": cfg.L[lang()],
     }
 
@@ -363,8 +366,6 @@ html[data-theme="dark"][data-club] .hero { background:linear-gradient(120deg, va
 .btn.ghost:hover { border-color:var(--ac); color:var(--ac); }
 .btn.wa { background:var(--green); color:#073a1f; box-shadow:0 12px 30px rgba(37,211,102,.3); }
 .btn.wa:hover { transform:translateY(-2px); }
-.btn.tg { background:#229ED9; color:#fff; box-shadow:0 12px 30px rgba(34,158,217,.3); }
-.btn.tg:hover { transform:translateY(-2px); background:#1e8fc4; }
 .btn.big { width:100%; justify-content:center; padding:14px; font-size:1rem; }
 .btn.sm { padding:8px 16px; font-size:.85rem; }
 .btn.block { width:100%; justify-content:center; }
@@ -762,9 +763,12 @@ html[data-theme="dark"] .mwarning { background:#3B1D0B; border-color:#7C2D12; co
 .pen-result .pts { background:rgba(255,255,255,.14); border-radius:999px; padding:8px 20px; font-weight:900; }
 .pen-note { color:var(--mut); font-size:.82rem; margin-top:10px; }
 /* try it on */
-.try-stage { position:relative; border-radius:16px; overflow:hidden; background:#0F172A; }
+.try-stage { position:relative; border-radius:16px; overflow:hidden; background:#0F172A; min-height:180px; display:flex; align-items:center; justify-content:center; }
 .try-stage canvas { display:block; width:100%; max-height:380px; }
 .try-ai { position:absolute; top:10px; inset-inline-start:10px; background:rgba(0,0,0,.65); color:#fff; font-size:.72rem; font-weight:900; padding:5px 12px; border-radius:999px; }
+.try-ph { color:rgba(255,255,255,.55); font-size:.85rem; font-weight:700; padding:30px 16px; text-align:center; }
+.try-err { }
+.try-result-head { font-size:1.05rem; font-weight:900; color:var(--ac); margin-bottom:10px; }
 /* reviews v2 */
 .rat-dims { flex:1; min-width:220px; display:flex; flex-direction:column; gap:7px; }
 .rv2-dim { display:flex; align-items:center; gap:10px; font-size:.8rem; font-weight:700; }
@@ -1543,7 +1547,7 @@ function renderCartPage(){
     +'<div class="row-t total"><span>'+gxT('cart_total')+'</span><b>'+pmoney(tot.total)+' '+GX.cur+'</b></div>'
     +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">'
     +'<button class="btn wa" style="flex:1" onclick="openCheckout()">'+gxT('cart_checkout')+'</button>'
-    +'<button class="btn tg" style="flex:1" onclick="orderCartTG()">✈️ '+gxT('order_tg')+'</button>'
+    +'<button class="btn wa" style="flex:1" onclick="orderCartWA()">💬 '+gxT('order_wa')+'</button>'
     +'<button class="btn ghost" onclick="clearCart()">🗑 '+gxT('cart_clear')+'</button></div>';
   box.innerHTML=html;
 }
@@ -1566,7 +1570,7 @@ function fillFoot(){
     }
   }
   html+='<button class="btn wa block" '+(cart.length?'':'disabled style="opacity:.5"')+' onclick="openCheckout()">'+gxT('cart_checkout')+'</button>'
-    +'<button class="btn tg block" '+(cart.length?'':'disabled style="opacity:.5"')+' onclick="orderCartTG()" style="margin-top:8px">✈️ '+gxT('order_tg')+'</button>'
+    +'<button class="btn wa block" '+(cart.length?'':'disabled style="opacity:.5"')+' onclick="orderCartWA()" style="margin-top:8px">💬 '+gxT('order_wa')+'</button>'
     +'<div style="text-align:center;margin-top:8px"><button class="hbtn" onclick="clearCart()">🗑 '+gxT('cart_clear')+'</button></div>';
   ft.innerHTML=html;
 }
@@ -1615,21 +1619,8 @@ function waOrderMsg(code,items,name,phone,area,addr,del,disc,total){
   l.push('🏠 '+gxT('co_address').replace(/[^\u0600-\u06FF\\w\\s]/g,'')+': '+addr);
   return l.join('\\n');
 }
-/* ---------- order via Telegram ---------- */
-function tgOrderMsg(code,items,del,disc,total){
-  var l=[]; l.push(gxT('hello').trim()+' 👋'); l.push('');
-  l.push(gxT('code_w')+code);
-  items.forEach(function(it){
-    l.push(''); l.push('• '+it.emoji+' '+it.name);
-    if(it.kind!=='mug') l.push('  '+gxT('size_w')+it.size);
-    l.push('  '+gxT('qty_w')+it.qty+' · '+pmoney(it.price*it.qty)+' '+GX.cur);
-  });
-  l.push(''); l.push('🚚 '+gxT('cart_delivery')+': '+pmoney(del)+' '+GX.cur);
-  if(disc>0) l.push(gxT('pts_discount')+': −'+pmoney(disc)+' '+GX.cur);
-  l.push('💰 '+gxT('cart_total')+': '+pmoney(total)+' '+GX.cur);
-  return l.join('\\n');
-}
-function orderCartTG(){
+/* ---------- order via WhatsApp ---------- */
+function orderCartWA(){
   var cart=gxGet('gx_cart',[]); if(!cart.length) return;
   var tot=cartTotals(); var disc=rewardSel?rewardSel.discount:0;
   var fin=Math.max(0,tot.total-disc);
@@ -1639,30 +1630,14 @@ function orderCartTG(){
     items:items,name:'',phone:'',area:'',address:'',notes:'',delivery:tot.delivery,discount:disc,total:fin,reward:rewardSel?rewardSel.points:0,fast:1,device:gxDev()})})
   .then(function(r){return r.json();}).then(function(d){
     if(d.code){
-      var msg=tgOrderMsg(d.code,items,tot.delivery,disc,fin);
-      window.open(GX.tg+'?text='+encodeURIComponent(msg),'_blank');
+      var msg=gxT('hello').trim()+' 👋\\n'+gxT('wa_intro')+'\\n';
+      items.forEach(function(it){
+        msg+='- '+it.emoji+' '+it.name+(it.kind!=='mug'?' ('+it.size+')':'')+' × '+it.qty+'\\n';
+      });
+      msg+='\\n'+gxT('cart_total')+': '+pmoney(fin)+' '+GX.cur;
+      window.open('https://wa.me/'+GX.wa+'?text='+encodeURIComponent(msg),'_blank');
       location.href='/order/success?code='+d.code;
     } else { toast('Error'); }
-  });
-}
-function orderTG(pid){
-  var p=GX.products.find(function(x){return x.id===pid;});
-  if(!p) return;
-  var q=parseInt(document.getElementById('qty').textContent,10);
-  var chip=document.querySelector('.size-chip.on'); var sz=chip?chip.getAttribute('data-sz'):null;
-  if(p.kind!=='mug' && !sz){ toast(gxT('size_required')); return; }
-  var items=[{id:pid,size:sz||'OS',qty:q,name:p[GX.lang==='ar'?'name_ar':'name_en'],price:p.price,emoji:p.emoji,kind:p.kind}];
-  var tot=(p.price*q)+GX.delivery;
-  fetch('/api/order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-    items:items,name:'',phone:'',area:'',address:'',notes:'',delivery:GX.delivery,discount:0,total:tot,reward:0,fast:1,device:gxDev()})})
-  .then(function(r){return r.json();}).then(function(d){
-    if(d.code){
-      var msg=gxT('hello').trim()+':\\n'+items[0].emoji+' '+items[0].name;
-      if(sz) msg+='\\n'+gxT('size_w')+sz;
-      msg+='\\n'+gxT('qty_w')+q+' · '+pmoney(p.price*q)+' '+GX.cur+'\\n\\n'+gxT('code_w')+d.code;
-      window.open(GX.tg+'?text='+encodeURIComponent(msg),'_blank');
-      location.href='/order/success?code='+d.code;
-    }
   });
 }
 /* ---------- points ---------- */
@@ -1878,10 +1853,23 @@ function submitPriceDrop(){
     closeModal('m-pricedrop'); toast(gxT('pd_ok'));
   });
 }
-/* ---------- try it on (AI preview) ---------- */
-var TRY={img:null,pid:null,cv:null,size:''};
-function tryOpen(pid){ TRY.pid=pid; TRY.size='';
+/* ---------- try it on (real Virtual Try-On, server AI) ---------- */
+var TRY={img:null,pid:null,size:'',job:null,result:null};
+function dataURLtoBlob(dataUrl){
+  try{
+    var parts=dataUrl.split(','); var mime=parts[0].match(/:(.*?);/)[1];
+    var bin=atob(parts[1]); var arr=new Uint8Array(bin.length);
+    for(var i=0;i<bin.length;i++){ arr[i]=bin.charCodeAt(i); }
+    return new Blob([arr],{type:mime});
+  }catch(e){ return null; }
+}
+function tryOpen(pid){ TRY.pid=pid; TRY.size=''; TRY.result=null; TRY.job=null;
   var sel=$('try_sel'); if(sel){ sel.value=pid; }
+  var prev=$('tryPrev'); if(prev){ prev.style.display='none'; prev.src=''; }
+  var res=$('tryResultWrap'); if(res) res.style.display='none';
+  var stage=$('tryStage'); if(stage) stage.style.display='block';
+  var btn=$('tryRun'); if(btn){ btn.style.display='block'; }
+  var err=$('tryErr'); if(err){ err.style.display='none'; err.textContent=''; }
   document.querySelectorAll('#try_sizes .sz-pill').forEach(function(x){ x.classList.remove('on'); });
   openModal('m-tryit');
 }
@@ -1889,65 +1877,107 @@ function tryPickSize(el,sz){ TRY.size=sz;
   document.querySelectorAll('#try_sizes .sz-pill').forEach(function(x){ x.classList.remove('on'); });
   if(el) el.classList.add('on');
 }
-function trySwitch(pid){ TRY.pid=pid; tryRedraw(); }
+function trySwitch(pid){ TRY.pid=pid; }
 function tryHandle(input,cam){
   var f=input.files[0]; if(!f) return;
-  var fr=new FileReader(); fr.onload=function(){ TRY.img=new Image(); TRY.img.onload=function(){ tryPrep(); }; TRY.img.src=fr.result; };
+  if(!/^image\//.test(f.type)){ toast(gxT('is_bad_photo')); input.value=''; return; }
+  var fr=new FileReader(); fr.onload=function(){
+    var img=new Image(); img.onload=function(){ TRY.img=img; tryPreview(); }; img.src=fr.result;
+  };
   fr.readAsDataURL(f);
 }
-function tryPrep(){
-  var wrap=$('tryCanvasWrap'); wrap.style.display='block';
-  var cv=$('tryCanvas'); if(!cv) return;
-  var W=Math.min(460,TRY.img.width||460), H=Math.min(460,TRY.img.height||460);
-  cv.width=W; cv.height=H; TRY.cv=cv;
-  var ctx=cv.getContext('2d'); ctx.fillStyle='#0F172A'; ctx.fillRect(0,0,W,H);
-  ctx.drawImage(TRY.img,0,0,W,H);
-  tryRedraw();
+function tryPreview(){
+  var ok=tryCheckFace();
+  var err=$('tryErr'); if(err){ err.style.display= ok? 'none':'block'; err.textContent= ok? '':gxT('try_badface'); }
+  var prev=$('tryPrev'); if(prev){ prev.src=TRY.img.src; prev.style.display='block'; }
 }
-function tryRedraw(){
-  var cv=$('tryCanvas'); if(!cv || !TRY.img) return;
-  var W=cv.width, H=cv.height;
-  var ctx=cv.getContext('2d'); ctx.clearRect(0,0,W,H);
-  ctx.drawImage(TRY.img,0,0,W,H);
-  drawJersey(ctx,W,H);
+function tryCheckFace(){
+  if(!TRY.img) return false;
+  if(TRY.img.width<160 || TRY.img.height<160) return false;
+  var cv=document.createElement('canvas'); cv.width=TRY.img.width; cv.height=TRY.img.height;
+  var ctx=cv.getContext('2d'); ctx.drawImage(TRY.img,0,0);
+  try{ var d=ctx.getImageData(0,0,cv.width,cv.height).data; }catch(e){ return false; }
+  var cx=cv.width/2, cy=cv.height/2, rx=Math.max(60,cv.width*0.22), ry=Math.max(60,cv.height*0.22);
+  var x0=Math.max(0,Math.floor(cx-rx)), x1=Math.min(cv.width,Math.ceil(cx+rx));
+  var y0=Math.max(0,Math.floor(cy-ry)), y1=Math.min(cv.height,Math.ceil(cy+ry));
+  var n=0, bright=0, skin=0;
+  for(var y=y0;y<y1;y++){ for(var x=x0;x<x1;x++){
+    var i=(y*cv.width+x)*4; var r=d[i],g=d[i+1],b=d[i+2];
+    bright+= (0.299*r+0.587*g+0.114*b)/255;
+    if(r>80 && r>g && g>=b && (r-g)>18 && (r-b)>28){ skin++; }
+    n++;
+  }}
+  if(n===0) return false;
+  var avg=bright/n;
+  if(avg<0.12 || avg>0.94) return false;
+  if(skin/n < 0.035) return false;
+  return true;
 }
-function drawJersey(ctx,W,H){
-  var img=TRY.pid? GX.products.find(function(x){return x.id===TRY.pid;}):null;
-  if(!img) return;
-  var ld=$('tryLoading'); if(ld) ld.style.display='block';
-  var ji=new Image();
-  ji.onload=function(){
-    if(ld) ld.style.display='none';
-    ctx.save(); ctx.globalAlpha=.92;
-    ctx.beginPath();
-    var tw=W*0.66, th=H*0.34, x=(W-tw)/2, y=H*0.28;
-    ctx.moveTo(x+tw*0.12,y); ctx.lineTo(x+tw*0.88,y);
-    ctx.lineTo(x+tw*0.72,y+th); ctx.lineTo(x+tw*0.28,y+th); ctx.closePath();
-    ctx.clip();
-    ctx.drawImage(ji,x,y,tw,th);
-    ctx.restore();
-    ctx.strokeStyle='rgba(255,255,255,.6)'; ctx.lineWidth=2;
-    ctx.beginPath(); ctx.moveTo(x+tw*0.12,y); ctx.lineTo(x+tw*0.88,y); ctx.lineTo(x+tw*0.72,y+th); ctx.lineTo(x+tw*0.28,y+th); ctx.closePath(); ctx.stroke();
-  };
-  ji.onerror=function(){ if(ld) ld.style.display='none'; };
-  ji.src='/img/'+img.imgs[0];
+function tryRun(){
+  if(!TRY.img){ toast(gxT('try_up')); return; }
+  if(!TRY.pid){ toast(gxT('try_product')); return; }
+  if(!tryCheckFace()){ var err=$('tryErr'); if(err){ err.style.display='block'; err.textContent=gxT('try_badface'); } return; }
+  if(!(GX.tryon&&GX.tryon.configured)){
+    var err=$('tryErr'); if(err){ err.style.display='block'; err.textContent=gxT('try_not_configured'); }
+    toast(gxT('try_not_configured')); return;
+  }
+  var fd=new FormData();
+  var blob=dataURLtoBlob(TRY.img.src);
+  fd.append('photo', blob, 'me.jpg');
+  fd.append('product', TRY.pid);
+  var run=$('tryRun'), load=$('tryLoading'); if(run) run.disabled=true;
+  if(load) load.style.display='block';
+  fetch('/api/tryon/start',{method:'POST',body:fd})
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(!d.ok){ if(run) run.disabled=false; if(load) load.style.display='none';
+      var err=$('tryErr'); if(err){ err.style.display='block'; err.textContent=gxT(d&&d.reason==='not_configured'?'try_not_configured':'try_error'); }
+      return; }
+    TRY.job=d.job; tryPoll();
+  }).catch(function(){ if(run) run.disabled=false; if(load) load.style.display='none'; toast(gxT('try_error')); });
+}
+function tryPoll(){
+  fetch('/api/tryon/status?job='+encodeURIComponent(TRY.job))
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(d.ok && d.img){ tryDone(d.img); return; }
+    if(d.pending){ setTimeout(tryPoll, 2200); return; }
+    var run=$('tryRun'), load=$('tryLoading'); if(run) run.disabled=false; if(load) load.style.display='none';
+    var err=$('tryErr'); if(err){ err.style.display='block'; err.textContent=gxT('try_error'); }
+    toast(gxT('try_error'));
+  }).catch(function(){ setTimeout(tryPoll, 3000); });
+}
+function tryDone(dataUrl){
+  TRY.result=dataUrl;
+  var run=$('tryRun'), load=$('tryLoading'); if(run) run.disabled=false; if(load) load.style.display='none';
+  var stage=$('tryStage'); if(stage) stage.style.display='none';
+  var res=$('tryResultWrap'); if(res){ res.style.display='block'; }
+  var img=$('tryResultImg'); if(img){ img.src=dataUrl; }
+  var err=$('tryErr'); if(err) err.style.display='none';
+}
+function tryAnother(){ TRY.result=null; TRY.job=null;
+  var res=$('tryResultWrap'); if(res) res.style.display='none';
+  var stage=$('tryStage'); if(stage) stage.style.display='block';
+  var run=$('tryRun'); if(run) run.style.display='block';
 }
 function tryAdd(){ if(!TRY.pid) return;
   if(!TRY.size){ toast(gxT('size_required')); return; }
   var q=1; addCart(TRY.pid, TRY.size, q);
 }
 function tryShare(){
-  var cv=$('tryCanvas'); if(!cv) return;
-  cv.toBlob(function(blob){
-    var file=new File([blob],'golazox-preview.png',{type:'image/png'});
-    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
-      navigator.share({files:[file]});
-    } else {
-      var a=document.createElement('a'); a.href=cv.toDataURL('image/png'); a.download='golazox-preview.png'; a.click(); toast(gxT('try_share'));
-    }
-  });
+  var src=TRY.result||(TRY.img?TRY.img.src:null); if(!src) return;
+  try{
+    var a=document.createElement('a'); a.href=src; a.download='golazox-tryon.jpg'; a.click(); toast(gxT('try_share'));
+  }catch(e){}
 }
-function tryReset(){ $('tryCanvasWrap').style.display='none'; var f=$('tryfile'); if(f) f.value=''; TRY.size='';
+function tryReset(){ TRY.img=null; TRY.job=null; TRY.result=null; TRY.size='';
+  var f=$('tryfile'); if(f) f.value='';
+  var prev=$('tryPrev'); if(prev){ prev.style.display='none'; prev.src=''; }
+  var res=$('tryResultWrap'); if(res) res.style.display='none';
+  var stage=$('tryStage'); if(stage) stage.style.display='block';
+  var run=$('tryRun'); if(run){ run.disabled=false; run.style.display='block'; }
+  var err=$('tryErr'); if(err){ err.style.display='none'; err.textContent=''; }
+  var load=$('tryLoading'); if(load) load.style.display='none';
   document.querySelectorAll('#try_sizes .sz-pill').forEach(function(x){ x.classList.remove('on'); });
 }
 /* ---------- drop remind ---------- */
@@ -2502,18 +2532,17 @@ def footer_html():
             '<p class="ft-desc">{badge}</p>'
             '<div class="ft-social">'
             '<a target="_blank" rel="noopener" href="https://wa.me/{wa}" title="{wa_title}">💬</a>'
-            '<a target="_blank" rel="noopener" href="{tg}" title="{tg_title}">✈️</a>'
             '<a onclick="setLang(\'{other}\')" title="{lang}">{langname}</a>'
             '</div></div>'
             '<div class="ft-col"><h4>{t1}</h4>{col_links}</div>'
             '<div class="ft-col"><h4>{t2}</h4>{club_links}</div>'
             '<div class="ft-col"><h4>{t3}</h4>{col_help}'
-            '<a target="_blank" rel="noopener" href="{tg}" style="margin-top:10px;font-weight:800">{tg_txt} ✈️</a>'
+            '<a target="_blank" rel="noopener" href="https://wa.me/{wa}" style="margin-top:10px;font-weight:800">{wa_txt} 💬</a>'
             '</div></div>'
             '<p class="ft-copy">{copy}</p>'
             '</div></footer>').format(
-        badge=d["badge"], wa=cfg.WHATSAPP, wa_title=d["ft_wa"], tg=cfg.TG_LINK,
-        tg_title=d["ft_tg"], tg_txt=d["order_tg"], other="ar" if en else "en",
+        badge=d["badge"], wa=cfg.WHATSAPP, wa_title=d["ft_wa"], wa_txt=d["order_wa"],
+        other="ar" if en else "en",
         lang=d["lang_name"], langname=d["lang_name"],
         t1=d["ft_links"], col_links=col_links, t2=d["ft_clubs"], club_links=club_links,
         t3=d["ft_help"], col_help=col_help, copy=d["footer_copy"])
@@ -2699,24 +2728,34 @@ def modals_html():
                   '<div style="display:flex;gap:10px;flex-wrap:wrap">'
                   '<label class="btn pri" style="flex:1;justify-content:center">{cam}<input id="tryfile" type="file" accept="image/*" capture="environment" onchange="tryHandle(this,true)" style="display:none"></label>'
                   '<label class="btn ghost" style="flex:1;justify-content:center">{up}<input type="file" accept="image/*" onchange="tryHandle(this,false)" style="display:none"></label></div>'
+                  '<img id="tryPrev" alt="" style="display:none;max-width:150px;max-height:150px;border-radius:16px;margin-top:10px;border:2px solid var(--ac)">'
                   '<p class="img-search-tip">{hint}</p>'
-                  '<div id="tryCanvasWrap" style="display:none;margin-top:10px">'
-                  '<div class="fld" style="margin-top:6px"><label>{prod}</label>'
+                  '<p class="try-err" id="tryErr" style="display:none;margin-top:8px;background:#FEE2E2;border:1px solid #FCA5A5;color:#B91C1C;border-radius:12px;padding:10px 14px;font-weight:800"></p>'
+                  '<div class="fld" style="margin-top:8px"><label>{prod}</label>'
                   '<select id="try_sel" onchange="trySwitch(this.value)">{opts}</select></div>'
                   '<div class="sizes-row" id="try_sizes" style="margin-top:8px">{sizes}</div>'
-                  '<div class="try-stage"><canvas id="tryCanvas"></canvas><span class="try-ai">{ai}</span></div>'
+                  '<div class="try-stage" id="tryStage"><span class="try-ai">{ai}</span>'
+                  '<div class="try-ph" id="tryPh">{ph}</div></div>'
                   '<p class="try-load" id="tryLoading" style="display:none;margin-top:8px;font-weight:800">⚙️ {loading}</p>'
                   '<div class="mwarning">⚠️ {dis}</div>'
-                  '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">'
+                  '<div id="tryResultWrap" style="display:none;margin-top:12px">'
+                  '<div class="try-result-head">✨ {done}</div>'
+                  '<img id="tryResultImg" alt="' + esc(d["try_result_alt"]) + '" style="display:block;width:100%;max-height:440px;object-fit:contain;border-radius:16px;border:2px solid var(--ac)">'
+                  '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">'
+                  '<button class="btn ghost" style="flex:1" onclick="tryAnother()">{another}</button>'
                   '<button class="btn pri" style="flex:1" onclick="tryAdd()">{add}</button>'
-                  '<button class="btn ghost" style="flex:1" onclick="tryShare()">{sh}</button>'
-                  '<button class="btn ghost" style="flex:1" onclick="tryReset()">{ag}</button></div>'
-                  '<p class="img-search-tip">{priv}</p></div>'
+                  '<button class="btn ghost" style="flex:1" onclick="tryReset()">{redo}</button></div>'
+                  '<p class="img-search-tip">{fine}</p></div>'
+                  '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px" id="tryRunRow">'
+                  '<button class="btn pri" style="flex:1" id="tryRun" onclick="tryRun()">{run}</button>'
+                  '<button class="btn ghost" style="flex:1" onclick="tryShare()">{sh}</button></div>'
+                  '<p class="img-search-tip">{priv}</p>'
                   ).format(sub=d["try_sub"], cam=d["try_cam"], up=d["try_up"], hint=d["try_hint"],
                            prod=d["try_product"], opts=try_opts, sizes=try_sizes,
-                           ai=d["try_ai"], loading=d["try_loading"],
-                           dis=d["try_dis"], add=d["try_add"], sh=d["try_share"],
-                           ag=d["try_again"], priv=d["try_priv"])
+                           ai=d["try_ai"], ph=d["try_ph"], loading=d["try_loading"],
+                           dis=d["try_dis"], done=d["try_done"], another=d["try_another"],
+                           add=d["try_add"], redo=d["try_again"], fine=d["try_fine"],
+                           run=d["try_run"], sh=d["try_share"], priv=d["try_priv"])
 
     pricedrop_body = ('<p class="mnote">{sub}</p>'
                       '<input type="hidden" id="pd_prod">'
@@ -3410,7 +3449,6 @@ def product_body(pid):
         '<div class="qty"><button onclick="chgQ(-1)">−</button><span class="qn" id="qty">1</span><button onclick="chgQ(1)">+</button></div></div>'
         '<button class="btn pri orderbtn" onclick="var q=parseInt(document.getElementById(\'qty\').textContent,10);addCart(\'{id}\',selSize||\'\',q)">🛒 {add}</button>'
         '<button class="btn wa orderbtn" style="margin-top:10px" onclick="orderDirect(\'{id}\')">💬 {ow}</button>'
-        '<button class="btn tg orderbtn" style="margin-top:10px" onclick="orderTG(\'{id}\')">✈️ {ot}</button>'
         '{trybtn}'
         '<button class="btn ghost orderbtn" style="margin-top:10px" onclick="openPriceDrop(\'{id}\')">🔔 {pd}</button>'
         '{notify}'
@@ -3423,7 +3461,7 @@ def product_body(pid):
         '</div>'
     ).format(back=d["back"], first=p["imgs"][0], name=name, gal_nav=gal_nav, thumbs_block=thumbs_block,
              gthumbs=gthumbs, zh=d["zoom_hint"], cat=cat, pr=pr, trust=trust, trust_info=trust_info,
-             sizes=sizes, ql=d["qty_label"], id=p["id"], add=d["add"], ow=d["order_wa"], ot=d["order_tg"],
+             sizes=sizes, ql=d["qty_label"], id=p["id"], add=d["add"], ow=d["order_wa"],
              trybtn=trybtn, pd=d["pd_title"],
              notify=notify, a=d["prod_links_sz"], b=d["prod_links_wash"], c=d["prod_links_ret"],
              ratings=ratings, yml=yml)
@@ -4261,6 +4299,88 @@ def api_request():
     data = request.get_json(force=True)
     ref = db.request_add(data)
     return json_d({"ref": ref})
+
+
+# ---------- virtual try-on (real AI adapter, privacy-safe) ----------
+import tempfile
+import base64 as _b64
+import uuid as _uuid
+tryon_jobs = {}  # job_id -> {"ts": float, "bytes": result|None, "err": str|None, "done": bool}
+
+
+def _tryon_model_bytes(pid):
+    p = next((x for x in cfg.PRODUCTS if x["id"] == pid), None)
+    if not p:
+        return None
+    imgs = p.get("imgs") or []
+    for im in imgs:
+        for ext in (".jpg", ".jpeg", ".png", ".webp", ".avif"):
+            pth = os.path.join(STATIC_IMG, im + ext)
+            if os.path.exists(pth):
+                with open(pth, "rb") as fh:
+                    return fh.read()
+    return None
+
+
+@app.route("/api/tryon/start", methods=["POST"])
+def api_tryon_start():
+    if not tryon.configured():
+        return json_d({"ok": False, "reason": "not_configured"})
+    photo = request.files.get("photo")
+    if not photo or not photo.filename:
+        return json_d({"ok": False, "reason": "no_photo"})
+    pid = (request.form.get("product", "") or "").strip()
+    model = _tryon_model_bytes(pid)
+    if model is None:
+        return json_d({"ok": False, "reason": "no_model"})
+    raw = photo.read(8 * 1024 * 1024)
+    if not raw:
+        return json_d({"ok": False, "reason": "no_photo"})
+    tmp = None
+    try:
+        fd, tmp = tempfile.mkstemp(suffix=".jpg")
+        os.close(fd)
+        with open(tmp, "wb") as fh:
+            fh.write(raw)
+        job = {"ts": time.time(), "done": False, "bytes": None, "err": None}
+        jid = _uuid.uuid4().hex[:16]
+        tryon_jobs[jid] = job
+        if len(tryon_jobs) > 60:
+            now = time.time()
+            for k in [k for k, v in tryon_jobs.items() if now - v["ts"] > 1200]:
+                tryon_jobs.pop(k, None)
+        try:
+            data = tryon.poll_until_done(tryon.start(raw, model))
+            job["bytes"] = data
+        except tryon.TryOnNotConfigured:
+            job["err"] = "not_configured"
+        except Exception as e:
+            job["err"] = str(e) or "provider_failed"
+        finally:
+            job["done"] = True
+        return json_d({"ok": True, "job": jid})
+    except Exception as e:
+        return json_d({"ok": False, "reason": "start_failed"})
+    finally:
+        if tmp:
+            try:
+                os.remove(tmp)
+            except Exception:
+                pass
+
+
+@app.route("/api/tryon/status", methods=["GET"])
+def api_tryon_status():
+    jid = request.args.get("job", "")
+    job = tryon_jobs.get(jid)
+    if not job:
+        return json_d({"ok": False, "reason": "no_job"})
+    if not job["done"]:
+        return json_d({"ok": False, "pending": True})
+    tryon_jobs.pop(jid, None)
+    if job["bytes"]:
+        return json_d({"ok": True, "img": "data:image/jpeg;base64," + _b64.b64encode(job["bytes"]).decode("ascii")})
+    return json_d({"ok": False, "reason": job["err"] or "provider_failed"})
 
 
 @app.route("/api/vote", methods=["POST"])

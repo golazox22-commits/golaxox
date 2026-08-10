@@ -10,8 +10,6 @@ ADMIN_PASS = os.environ.get("ADMIN_PASS", "golazox2026")
 ADMIN_EMAIL = "golazox22@gmail.com"
 ADMIN_QUESTION = "أفضل شخص مين؟"
 ADMIN_ANSWER = "احمد الشيخ"
-TG_USER = "rms_2o"
-TG_LINK = "https://t.me/rms_2o"
 CURRENCY_AR = "د.ب"
 CURRENCY_EN = "BHD"
 PRICE_JERSEY = 7.0
@@ -203,7 +201,7 @@ L = {
         "cat_jersey": "تيشيرت النادي", "cat_mug": "مق رياضي",
         "view": "عرض المنتج", "add": "أضف للسلة",
         "price_jersey": "7 د.ب", "price_mug": "6 د.ب",
-        "order_tg": "اطلب الآن عبر تيليجرام", "ft_tg": "اطلب عبر تيليجرام",
+        "wa_intro": "أريد طلب:",
         "sort_label": "ترتيب حسب:", "sort_new": "الأحدث", "sort_lo": "السعر: من الأقل للأعلى",
         "sort_hi": "السعر: من الأعلى للأقل", "sort_best": "الأكثر مبيعًا",
         "filters_btn": "الفلاتر", "show_all": "عرض جميع التيشيرتات",
@@ -223,7 +221,7 @@ L = {
         "filter_price": "السعر", "price_min": "من", "price_max": "إلى",
         "filter_avail": "المتوفر فقط", "filter_apply": "تطبيق",
         "size_label": "اختر المقاس", "size_guide": "دليل المقاسات",
-        "qty_label": "الكمية", "order_wa": "اطلب عبر واتساب",
+        "qty_label": "الكمية", "order_wa": "اطلب عبر WhatsApp",
         "size_required": "⚠️ يرجى اختيار المقاس أولًا.",
         "size_oos": "هذا المقاس غير متوفر حاليًا.",
         "notify_me": "🔔 أبلغني عند توفر المقاس",
@@ -456,10 +454,16 @@ L = {
         "try_title": "📸 جرّبه عليك", "try_sub": "شوف كيف ممكن يبدو التيشرت عليك 👕",
         "try_cam": "📷 التقط صورة", "try_up": "🖼️ ارفع صورة",
         "try_hint": "اختر صورة واضحة يظهر فيها الجزء العلوي من جسمك لمعاينة أفضل.",
-        "try_ai": "AI Preview ✨", "try_dis": "هذه معاينة تقريبية فقط ولا تمثل المقاس أو الشكل النهائي للمنتج بدقة.",
-        "try_add": "🛒 أضف للسلة", "try_share": "📤 مشاركة المعاينة", "try_again": "🔄 تجربة صورة أخرى",
-        "try_priv": "🔐 صورتك تُستخدم للمعاينة فقط على جهازك ولا تُرفع أو تُنشر.",
-        "try_product": "👕 اختر التيشيرت", "try_loading": "جاري تجهيز المعاينة...",
+        "try_ai": "Virtual Try-On ✨", "try_dis": "النتيجة تجربة افتراضية وقد تختلف عن الشكل الحقيقي.",
+        "try_add": "🛒 أضف للسلة", "try_share": "📤 تحميل المعاينة", "try_again": "🔄 إعادة التجربة",
+        "try_priv": "🔐 صورتك تُرسل فقط لخادم الذكاء الاصطناعي لمعالجة المعاينة ولا تُخزن ولا تُنشر.",
+        "try_product": "👕 اختر التيشيرت", "try_loading": "⚙️ جاري تركيب المعاينة بواسطة الذكاء الاصطناعي...",
+        "try_ph": "سيظهر هنا معاينة لتيشيرتك عليك بعد رفع صورتك",
+        "try_done": "النتيجة ✨", "try_another": "👕 جرّب تيشيرت آخر", "try_fine": "النتيجة تجربة افتراضية وقد تختلف عن الشكل الحقيقي.",
+        "try_run": "✨ جرّبه عليّ", "try_badface": "📸 نحتاج صورة أوضح لوجهك — جرّب صورة بإضاءة جيدة ووجه ظاهر.",
+        "try_error": "حدث خطأ أثناء معالجة المعاينة. حاول مرة أخرى لاحقًا.",
+        "try_not_configured": "خدمة المعاينة غير متاحة حاليًا، حاول لاحقًا.",
+        "try_result_alt": "معاينة ارتداء تيشيرت جولازوكس",
         "rv2_design": "التصميم", "rv2_fabric": "الخامة", "rv2_quality": "الجودة", "rv2_fit": "المقاس",
         "rv2_fit_q": "كيف كان المقاس؟", "rv2_fit_s": "صغير", "rv2_fit_o": "مناسب تمامًا", "rv2_fit_w": "واسع",
         "rv2_exp": "اكتب تجربتك مع المنتج...", "rv2_ver": "✓ عملية شراء موثقة",
@@ -560,7 +564,7 @@ L = {
         "cat_jersey": "Club Jersey", "cat_mug": "Sports Mug",
         "view": "View Product", "add": "Add to Cart",
         "price_jersey": "7 BHD", "price_mug": "6 BHD",
-        "order_tg": "Order now on Telegram", "ft_tg": "Order via Telegram",
+        "wa_intro": "I'd like to order:",
         "sort_label": "Sort by:", "sort_new": "Newest", "sort_lo": "Price: Low to High",
         "sort_hi": "Price: High to Low", "sort_best": "Best Selling",
         "filters_btn": "Filters", "show_all": "Show all jerseys",

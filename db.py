@@ -584,7 +584,7 @@ def user_by_id(uid):
 
 
 def user_update(uid, **kw):
-    allowed = ("name", "role", "status", "lang", "theme", "font", "area", "address", "password", "favs", "sizes")
+    allowed = ("name", "role", "status", "lang", "theme", "font", "area", "address", "password", "favs", "sizes", "phone")
     fields = {k: v for k, v in kw.items() if k in allowed}
     if not fields:
         return

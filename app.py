@@ -229,10 +229,25 @@ def admin_role():
     return u.get("role") if u.get("role") in ("admin", "super_admin") else None
 
 
+def fix_phone(ph):
+    p = normal_phone(ph)
+    if p.startswith("+"):
+        return p
+    if p.isdigit():
+        return "+" + p
+    return p
+
+
 def seed_super_admin():
-    phone = os.environ.get("SUPER_ADMIN_PHONE") or os.environ.get("ADMIN_PHONE") or cfg.WHATSAPP
+    phone = fix_phone(os.environ.get("SUPER_ADMIN_PHONE") or os.environ.get("ADMIN_PHONE") or cfg.WHATSAPP)
     name = os.environ.get("SUPER_ADMIN_NAME", "Owner")
     u = db.user_by_phone(phone)
+    if not u:
+        bare = phone[1:] if phone.startswith("+") else phone
+        legacy = db.user_by_phone(bare)
+        if legacy:
+            db.user_update(legacy["id"], phone=phone)
+            u = legacy
     if not u:
         uid = db.user_create(phone, name, "super_admin")
         db.user_update(uid, password=cfg.ADMIN_PASS)
@@ -1842,13 +1857,15 @@ function authTab(t){
   document.querySelectorAll('.auth-pane').forEach(function(x){ x.style.display='none'; });
   $('auth_pane_'+t).style.display='block';
 }
-function authPhone(){ return (($('au_cc')||{}).value||'+973')+''+ (($('au_phone').value||'').trim()); }
-function maskPhone(full){
-  var d=(full||'').replace(/\\D/g,'');
-  if(d.length<7) return full;
-  var head=full.indexOf('+')===0 ? '+'+d.substr(0,3) : d.substr(0,3);
-  var tail=d.substr(-4);
-  return head+' *****'+tail;
+function authContact(){ return (($('au_email').value||'')||'').trim(); }
+function isEmail(v){
+  var r=/^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$/;
+  return r.test(v);
+}
+function maskEmail(em){
+  var at=em.indexOf('@');
+  if(at<=1) return em;
+  return em.charAt(0)+'***'+em.substr(at-1);
 }
 var auth_timer=null;
 function authTimer(secs){
@@ -1869,12 +1886,11 @@ function authTimer(secs){
   auth_timer=setInterval(tick,1000);
 }
 function authSendCode(){
-  var full=authPhone();
-  var digits=(($('au_phone').value||'').trim()).replace(/\\D/g,'');
-  if(digits.length<8){ toast(gxT('auth_bad_phone')); return; }
+  var full=authContact();
+  if(!isEmail(full)){ toast(gxT('auth_bad_phone')); return; }
   var btn=$('au_sendbtn');
   if(btn){ btn.disabled=true; btn.textContent=gxT('auth_loading'); }
-  fetch('/api/auth/otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:full})})
+  fetch('/api/auth/otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:full})})
   .then(function(r){return r.json();}).then(function(d){
     if(d.ok===false){
       var em = d.error==='sms_notcfg'?gxT('auth_sms_notcfg') :
@@ -1883,7 +1899,7 @@ function authSendCode(){
       return;
     }
     $('au_step1').style.display='none'; $('au_step2').style.display='block';
-    var st=$('au_sentto'); if(st) st.textContent=maskPhone(full);
+    var st=$('au_sentto'); if(st) st.textContent=maskEmail(full);
     $('au_demo').style.display= d.demo?'block':'none';
     if(d.demo){
       $('au_democode').textContent=d.otp;
@@ -1906,12 +1922,12 @@ function authChangePhone(){
   var ac=$('au_code'); if(ac) ac.value='';
 }
 function authVerify(){
-  var ph=authPhone(), code=($('au_code').value||'').trim();
+  var em=authContact(), code=($('au_code').value||'').trim();
   var name=($('au_name').value||'').trim();
   if(code.length<4){ toast(gxT('auth_otp_short')); return; }
   var btn=$('au_vbtn');
   if(btn){ btn.disabled=true; btn.textContent=gxT('auth_verifying'); }
-  fetch('/api/auth/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:ph,code:code,name:name})})
+  fetch('/api/auth/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:em,code:code,name:name})})
   .then(function(r){return r.json();}).then(function(d){
     if(d.ok){ afterLogin(); return; }
     var rm = d.reason==='blocked'?gxT('auth_blocked') :
@@ -1925,9 +1941,9 @@ function authVerify(){
   });
 }
 function authPwLogin(){
-  var ph=(($('pw_cc')||{}).value||'+973')+''+ (($('pw_phone').value||'').trim()), pw=($('pw_pass').value||'').trim();
-  if(ph.replace(/\\D/g,'').length<8||!pw){ toast(gxT('auth_bad_phone')); return; }
-  fetch('/api/auth/password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:ph,password:pw})})
+  var em=(($('pw_email').value||'')||'').trim(), pw=($('pw_pass').value||'').trim();
+  if(!isEmail(em)||!pw){ toast(gxT('auth_bad_phone')); return; }
+  fetch('/api/auth/password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:em,password:pw})})
   .then(function(r){return r.json();}).then(function(d){
     if(d.ok){ afterLogin(); } else { toast(gxT('auth_pw_wrong')); }
   });
@@ -2377,11 +2393,6 @@ def size_diagram():
 
 def auth_box_html():
     d = cfg.L[lang()]
-    cc_opts = "".join(
-        '<option value="%s"%s>%s</option>' % (cc, " selected" if cc == "+973" else "", lbl)
-        for cc, lbl in (("+973", "🇧🇭 +973"), ("+966", "🇸🇦 +966"), ("+965", "🇰🇼 +965"),
-                        ("+974", "🇶🇦 +974"), ("+971", "🇦🇪 +971"), ("+20", "🇪🇬 +20"),
-                        ("+218", "🇱🇾 +218"), ("+962", "🇯🇴 +962")))
     return ('<div class="auth-box">'
             '<p class="mnote">{sub}</p>'
             '<div class="auth-tabs">'
@@ -2389,9 +2400,8 @@ def auth_box_html():
             '<button class="atab" data-tab="pw" onclick="authTab(\'pw\')">{t2}</button></div>'
             '<div class="auth-pane" id="auth_pane_otp">'
             '<div class="auth-step1" id="au_step1">'
-            '<div class="fld"><label>{ph}</label>'
-            '<div class="phone-row"><select id="au_cc" class="cc-sel">{cc}</select>'
-            '<input id="au_phone" inputmode="tel" placeholder="3312 2641" autocomplete="off"></div></div>'
+            '<div class="fld"><label>{em}</label>'
+            '<input id="au_email" type="email" inputmode="email" placeholder="{emph}" autocomplete="off"></div>'
             '<button class="btn pri big" id="au_sendbtn" onclick="authSendCode()">{ct}</button></div>'
             '<div class="auth-step2" id="au_step2">'
             '<p class="auth-sent">📨 {sent} <b id="au_sentto"></b></p>'
@@ -2406,13 +2416,13 @@ def auth_box_html():
             '<button class="hbtn" onclick="authChangePhone()">↩ {chg}</button></div></div>'
             '</div>'
             '<div class="auth-pane" id="auth_pane_pw" style="display:none">'
-            '<div class="fld"><label>{ph}</label><div class="phone-row"><select id="pw_cc" class="cc-sel">{cc}</select>'
-            '<input id="pw_phone" inputmode="tel" placeholder="3312 2641" autocomplete="off"></div></div>'
+            '<div class="fld"><label>{em}</label>'
+            '<input id="pw_email" type="email" inputmode="email" placeholder="{emph}" autocomplete="off"></div>'
             '<div class="fld"><label>{pw}</label><input id="pw_pass" type="password"></div>'
             '<button class="btn pri big" onclick="authPwLogin()">{pb}</button></div>'
             '</div>'
             ).format(sub=d["auth_sub"], t1=d["auth_tab_otp"], t2=d["auth_tab_pw"],
-                     ph=d["auth_phone"], cc=cc_opts, ct=d["auth_continue"], sent=d["auth_sent_to"],
+                     em=d["auth_email"], emph=d["auth_email_ph"], ct=d["auth_continue"], sent=d["auth_sent_to"],
                      otp=d["auth_otp_ph"], nm=d["auth_name_ph"], new=d["auth_new"], demo=d["auth_demo_note"],
                      fill=d["auth_demo_fill"], v=d["auth_verify"], resend=d["auth_resend"], chg=d["auth_change_num"],
                      pw=d["auth_pw_ph"], pb=d["auth_pw_btn"])
@@ -4011,6 +4021,65 @@ def otp_sms_text(code):
     return tpl.replace("{code}", code)
 
 
+def otp_email_subject():
+    return "GOLAZOX - رمز التحقق / Verification code"
+
+
+def otp_email_text(code):
+    tpl = (os.environ.get("OTP_EMAIL_TEXT", "") or "").strip()
+    if not tpl:
+        tpl = ("GOLAZOX\nرمز التحقق الخاص بك: {code} (صالح لمدة 10 دقائق)\n"
+               "Your verification code: {code} (valid 10 minutes)")
+    return tpl.replace("{code}", code)
+
+
+def send_email(to, subject, text):
+    host = (os.environ.get("SMTP_HOST", "") or "").strip()
+    port_s = (os.environ.get("SMTP_PORT", "") or "").strip()
+    port = int(port_s) if port_s.isdigit() else 587
+    user = (os.environ.get("SMTP_USER", "") or "").strip()
+    pwd = os.environ.get("SMTP_PASS", "") or ""
+    frm = (os.environ.get("EMAIL_FROM", "") or user).strip()
+    if not (host and user):
+        sms_log("SMTP not configured (SMTP_HOST/SMTP_USER missing)")
+        return (False, "notcfg")
+    try:
+        import smtplib
+        from email.mime.text import MIMEText
+        from email.mime.multipart import MIMEMultipart
+        msg = MIMEMultipart()
+        msg["From"] = frm
+        msg["To"] = to
+        msg["Subject"] = subject
+        msg.attach(MIMEText(text, "plain", "utf-8"))
+        s = smtplib.SMTP(host, port, timeout=25)
+        s.ehlo()
+        if port in (587, 465):
+            s.starttls()
+        s.login(user, pwd)
+        s.sendmail(frm, [to], msg.as_string())
+        s.quit()
+        sms_log("email ok -> %s" % to)
+        return (True, "sent")
+    except Exception as e:
+        sms_log("email error: %r" % e)
+        return (False, "provider")
+
+
+def auth_contact(data):
+    em = (data.get("email") or "").strip().lower()
+    if em:
+        parts = em.split("@")
+        if len(parts) != 2 or not parts[0] or len(parts[1]) < 3 or "." not in parts[1]:
+            return (None, "bad")
+        return (em, "email")
+    ph = fix_phone(data.get("phone", ""))
+    digits = "".join(ch for ch in ph if ch.isdigit())
+    if not (ph.startswith("+") and 8 <= len(digits) <= 15):
+        return (None, "bad")
+    return (ph, "phone")
+
+
 # ---------- auth ----------
 RATE_SEND_MAX = 5
 RATE_SEND_WINDOW = 600
@@ -4057,26 +4126,36 @@ def otp_rate_reset(phone):
 @app.route("/api/auth/otp", methods=["POST"])
 def api_auth_otp():
     data = request.get_json(force=True)
-    ph = normal_phone(data.get("phone", ""))
-    digits = "".join(ch for ch in ph if ch.isdigit())
-    if not (ph.startswith("+") and 8 <= len(digits) <= 15):
+    contact, mode = auth_contact(data)
+    if not contact:
         return json_d({"ok": False, "error": "bad"})
-    if otp_rate_blocked(ph):
+    if otp_rate_blocked(contact):
         return json_d({"ok": False, "error": "rate_limit"})
-    allow = otp_rate_allow_send(ph)
+    allow = otp_rate_allow_send(contact)
     if allow is False:
         return json_d({"ok": False, "error": "rate_limit"})
     if allow == "gap":
         return json_d({"ok": False, "error": "rate_gap"})
-    code = db.otp_new(ph)
-    registered = db.user_by_phone(ph) is not None
+    code = db.otp_new(contact)
+    registered = db.user_by_phone(contact) is not None
+    demo = os.environ.get("DEMO_OTP", "0") == "1"
+    if mode == "email":
+        if not (os.environ.get("SMTP_HOST", "") or "").strip():
+            if demo:
+                return json_d({"ok": True, "demo": True, "otp": code, "registered": registered})
+            sms_log("email OTP blocked: SMTP_HOST not set on the server (set DEMO_OTP=1 only for local dev)")
+            return json_d({"ok": False, "error": "sms_notcfg", "registered": registered})
+        ok, detail = send_email(contact, otp_email_subject(), otp_email_text(code))
+        if not ok:
+            return json_d({"ok": False, "error": "sms_fail", "registered": registered})
+        return json_d({"ok": True, "demo": False, "registered": registered})
     provider = (os.environ.get("SMS_PROVIDER", "") or "").strip().lower()
     if not provider:
-        if os.environ.get("DEMO_OTP", "0") == "1":
+        if demo:
             return json_d({"ok": True, "demo": True, "otp": code, "registered": registered})
         sms_log("OTP blocked: SMS_PROVIDER not set on the server (set DEMO_OTP=1 only for local dev)")
         return json_d({"ok": False, "error": "sms_notcfg", "registered": registered})
-    ok, detail = send_sms(ph, otp_sms_text(code))
+    ok, detail = send_sms(contact, otp_sms_text(code))
     if not ok:
         return json_d({"ok": False, "error": "sms_fail", "registered": registered})
     return json_d({"ok": True, "demo": False, "registered": registered})
@@ -4085,20 +4164,22 @@ def api_auth_otp():
 @app.route("/api/auth/verify", methods=["POST"])
 def api_auth_verify():
     data = request.get_json(force=True)
-    ph = normal_phone(data.get("phone", ""))
+    contact, mode = auth_contact(data)
+    if not contact:
+        return json_d({"ok": False, "reason": "code"})
     code = str(data.get("code", "")).strip()
-    if otp_rate_blocked(ph):
+    if otp_rate_blocked(contact):
         return json_d({"ok": False, "reason": "rate"})
-    state, oid = db.otp_state(ph, code)
+    state, oid = db.otp_state(contact, code)
     if state != "ok":
-        if otp_rate_fail(ph):
+        if otp_rate_fail(contact):
             return json_d({"ok": False, "reason": "rate"})
         reason = "expired" if state == "expired" else "code"
         return json_d({"ok": False, "reason": reason})
     db.otp_consume(oid)
-    u = db.user_by_phone(ph)
+    u = db.user_by_phone(contact)
     if not u:
-        uid = db.user_create(ph, str(data.get("name", "") or "").strip(), "customer", lang())
+        uid = db.user_create(contact, str(data.get("name", "") or "").strip(), "customer", lang())
         u = db.user_by_id(uid)
     if not u or u["status"] != "active":
         return json_d({"ok": False, "reason": "blocked"})
@@ -4108,16 +4189,16 @@ def api_auth_verify():
     session["user_id"] = u["id"]
     session.permanent = True
     db.user_touch(u["id"])
-    otp_rate_reset(ph)
+    otp_rate_reset(contact)
     return json_d({"ok": True, "role": u["role"]})
 
 
 @app.route("/api/auth/password", methods=["POST"])
 def api_auth_password():
     data = request.get_json(force=True)
-    ph = normal_phone(data.get("phone", ""))
+    contact, mode = auth_contact(data)
     pw = str(data.get("password", "") or "")
-    u = db.user_by_phone(ph)
+    u = db.user_by_phone(contact) if contact else None
     if not u or u.get("status") != "active" or not u.get("password") or u["password"] != pw:
         return json_d({"ok": False})
     session["user_id"] = u["id"]

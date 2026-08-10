@@ -4144,20 +4144,36 @@ def otp_rate_reset(phone):
     _otp_rate.pop(phone, None)
 
 
+def mask_contact(c):
+    if c and "@" in c:
+        local, dom = c.split("@", 1)
+        keep = 2 if len(local) > 2 else 1
+        return (local[:keep] + "***@" + dom[:1] + "***")
+    if c:
+        return (c[:3] + "***" + c[-2:])
+    return "none"
+
+
 @app.route("/api/auth/otp", methods=["POST"])
 def api_auth_otp():
+    sms_log("[EMAIL OTP] Request received")
     data = request.get_json(force=True)
     contact, mode = auth_contact(data)
     if not contact:
+        sms_log("[EMAIL OTP] Email validation FAILED")
         return json_d({"ok": False, "error": "bad"})
+    sms_log("[EMAIL OTP] Email validation passed (mode=%s)" % mode)
     if otp_rate_blocked(contact):
+        sms_log("[EMAIL OTP] rate blocked %s" % mask_contact(contact))
         return json_d({"ok": False, "error": "rate_limit"})
     allow = otp_rate_allow_send(contact)
     if allow is False:
+        sms_log("[EMAIL OTP] rate limit %s" % mask_contact(contact))
         return json_d({"ok": False, "error": "rate_limit"})
     if allow == "gap":
         return json_d({"ok": False, "error": "rate_gap"})
     code = db.otp_new(contact)
+    sms_log("[EMAIL OTP] OTP generated and saved")
     registered = db.user_by_phone(contact) is not None
     demo = os.environ.get("DEMO_OTP", "0") == "1"
     if mode == "email":
@@ -4166,9 +4182,13 @@ def api_auth_otp():
                 return json_d({"ok": True, "demo": True, "otp": code, "registered": registered})
             sms_log("email OTP blocked: SMTP_HOST not set on the server (set DEMO_OTP=1 only for local dev)")
             return json_d({"ok": False, "error": "sms_notcfg", "registered": registered})
+        sms_log("[EMAIL OTP] Calling send_email() -> %s" % mask_contact(contact))
+        sms_log("[EMAIL OTP] SMTP send started")
         ok, detail = send_email(contact, otp_email_subject(), otp_email_text(code), otp_email_html(code))
         if not ok:
+            sms_log("[EMAIL OTP] SMTP send FAILED")
             return json_d({"ok": False, "error": "email_send_failed", "registered": registered})
+        sms_log("[EMAIL OTP] SMTP send success")
         return json_d({"ok": True, "demo": False, "registered": registered})
     provider = (os.environ.get("SMS_PROVIDER", "") or "").strip().lower()
     if not provider:

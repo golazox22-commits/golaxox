@@ -4045,6 +4045,30 @@ def otp_email_html(code):
             "إذا لم تطلب تسجيل الدخول، يمكنك تجاهل هذه الرسالة.</p></div></div>" % code)
 
 
+def _log_resend_error(code, raw):
+    body = (raw or "").strip()
+    sms_log("[EMAIL OTP] Resend HTTP status: %s" % code)
+    if len(body) > 800:
+        body = body[:800] + "..."
+    sms_log("[EMAIL OTP] Resend response body: %s" % body)
+    try:
+        import json as _json
+        j = _json.loads(body)
+        if isinstance(j, dict):
+            if "statusCode" in j:
+                sms_log("[EMAIL OTP] Resend error code: %s" % j.get("statusCode"))
+            if "name" in j:
+                sms_log("[EMAIL OTP] Resend error name: %s" % j.get("name"))
+            if "message" in j:
+                sms_log("[EMAIL OTP] Resend error message: %s" % j.get("message"))
+            if "code" in j:
+                sms_log("[EMAIL OTP] Resend error code: %s" % j.get("code"))
+            if "errors" in j:
+                sms_log("[EMAIL OTP] Resend error details: %s" % j.get("errors"))
+    except Exception:
+        sms_log("[EMAIL OTP] Resend response is not JSON (see body above)")
+
+
 def send_email(to, subject, text, html=None):
     key = (os.environ.get("RESEND_API_KEY", "") or "").strip()
     frm = (os.environ.get("RESEND_FROM", "") or os.environ.get("EMAIL_FROM", "") or "onboarding@resend.dev").strip()
@@ -4074,10 +4098,10 @@ def send_email(to, subject, text, html=None):
         return (True, body)
     except HTTPError as e:
         try:
-            detail = e.read().decode("utf-8", "replace")[:600]
+            detail = e.read().decode("utf-8", "replace")
         except Exception:
             detail = str(e)
-        sms_log("[EMAIL OTP] Resend ERROR: HTTP %s status, body: %s" % (e.code, detail))
+        _log_resend_error(e.code, detail)
         return (False, "provider")
     except Exception as e:
         sms_log("[EMAIL OTP] Resend ERROR: %r" % e)

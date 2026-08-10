@@ -4222,6 +4222,19 @@ def api_me():
                    "role": u["role"], "favs": db.user_favs(u["id"])})
 
 
+@app.route("/api/diag")
+def api_diag():
+    return json_d({
+        "smtp_host": bool((os.environ.get("SMTP_HOST") or "").strip()),
+        "smtp_user": bool((os.environ.get("SMTP_USER") or "").strip()),
+        "smtp_pass": bool(os.environ.get("SMTP_PASS") or ""),
+        "smtp_port": (os.environ.get("SMTP_PORT") or "").strip(),
+        "email_from": bool((os.environ.get("EMAIL_FROM") or "").strip()),
+        "sms_provider": (os.environ.get("SMS_PROVIDER") or "").strip(),
+        "demo_otp": (os.environ.get("DEMO_OTP") or "").strip(),
+    })
+
+
 @app.route("/api/favs", methods=["POST"])
 def api_favs():
     u = current_user()

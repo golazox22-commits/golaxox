@@ -8,12 +8,14 @@ NEW DROP countdown, MATCHDAY mode, admin panel.
 """
 import os
 import json
+import time
 import datetime
 import random
 from flask import Flask, request, redirect, Response, send_file, session, url_for
 
 import cfg
 import db
+import tryon
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "golazox-secret-2026")
@@ -96,8 +98,9 @@ def eff_stock(p):
 
 
 def eff_price(p):
-    ov = db.get_price_override(p["id"])
-    return ov if ov is not None else p["price"]
+    if p["kind"] == "mug":
+        return cfg.PRICE_MUG
+    return cfg.PRICE_JERSEY
 
 
 def total_avail(p):
@@ -109,9 +112,7 @@ def cur():
 
 
 def fmt_cur(v):
-    if v == int(v):
-        return "%.0f %s" % (v, cur())
-    return "%.2f %s" % (v, cur())
+    return "%.3f %s" % (v, cur())
 
 
 def prod_json(p):
@@ -136,12 +137,13 @@ def gx_data():
     u = current_user()
     user = {"id": u["id"], "role": u["role"]} if u else None
     return {
-        "lang": lang(), "cur": cur(), "wa": cfg.WHATSAPP, "tg": cfg.TG_LINK, "tg_user": cfg.TG_USER,
+        "lang": lang(), "cur": cur(), "wa": cfg.WHATSAPP,
         "delivery": cfg.DELIVERY_FEE,
         "sizes": cfg.SIZE_ORDER, "chart": cfg.SIZE_CHART, "rewards": cfg.REWARDS,
         "products": products, "clubs": clubs, "points_per": cfg.POINTS_PER_BHD,
         "match": m, "drop": d, "poll": poll, "now": datetime.datetime.now().isoformat(),
         "user": user,
+        "tryon": {"configured": tryon.configured(), "provider": tryon.provider()},
         "T": cfg.L[lang()],
     }
 
@@ -364,8 +366,6 @@ html[data-theme="dark"][data-club] .hero { background:linear-gradient(120deg, va
 .btn.ghost:hover { border-color:var(--ac); color:var(--ac); }
 .btn.wa { background:var(--green); color:#073a1f; box-shadow:0 12px 30px rgba(37,211,102,.3); }
 .btn.wa:hover { transform:translateY(-2px); }
-.btn.tg { background:#229ED9; color:#fff; box-shadow:0 12px 30px rgba(34,158,217,.3); }
-.btn.tg:hover { transform:translateY(-2px); background:#1e8fc4; }
 .btn.big { width:100%; justify-content:center; padding:14px; font-size:1rem; }
 .btn.sm { padding:8px 16px; font-size:.85rem; }
 .btn.block { width:100%; justify-content:center; }
@@ -383,11 +383,17 @@ html[data-theme="dark"][data-club] .hero { background:linear-gradient(120deg, va
 .pcard:hover .pimg img { transform:scale(1.05); }
 .pbody { padding:14px 15px 15px; }
 .pcat { font-size:.7rem; font-weight:800; letter-spacing:.4px; text-transform:uppercase; color:var(--ac); }
+.ads-strip { display:flex; flex-direction:column; gap:10px; margin:16px 0; }
+.ads-item { display:block; background:linear-gradient(135deg,var(--ac,#E11D48),var(--ac2,#F97316)); color:#fff; border-radius:14px; padding:12px 16px; text-decoration:none; box-shadow:0 6px 18px rgba(225,29,72,.18); }
+.ads-item .ads-txt { font-weight:800; font-size:.95rem; }
+.ads-item:hover { opacity:.94; }
 .pbody h3 { font-size:1.02rem; font-weight:800; margin-top:4px; line-height:1.4; }
 .pfoot { display:flex; align-items:center; justify-content:space-between; margin-top:11px; gap:8px; }
 .pfoot b { font-size:1.05rem; color:var(--ac); }
 .pview { font-size:.8rem; font-weight:800; color:var(--mut); }
 .pcard:hover .pview { color:var(--ac); }
+.tryme { width:100%; margin-top:10px; padding:8px 10px; border:1.5px dashed var(--ac,#E11D48); background:rgba(225,29,72,.05); color:var(--ac,#E11D48); border-radius:12px; font-family:inherit; font-size:.82rem; font-weight:800; cursor:pointer; }
+.tryme:hover { background:var(--ac,#E11D48); color:#fff; }
 .badges { position:absolute; top:10px; inset-inline-start:10px; display:flex; flex-direction:column; gap:5px; z-index:2; }
 .badge { font-size:.68rem; font-weight:900; padding:4px 9px; border-radius:999px; color:#fff; width:max-content; }
 .badge.new { background:linear-gradient(90deg,#8B5CF6,#A78BFA); }
@@ -757,9 +763,12 @@ html[data-theme="dark"] .mwarning { background:#3B1D0B; border-color:#7C2D12; co
 .pen-result .pts { background:rgba(255,255,255,.14); border-radius:999px; padding:8px 20px; font-weight:900; }
 .pen-note { color:var(--mut); font-size:.82rem; margin-top:10px; }
 /* try it on */
-.try-stage { position:relative; border-radius:16px; overflow:hidden; background:#0F172A; }
+.try-stage { position:relative; border-radius:16px; overflow:hidden; background:#0F172A; min-height:180px; display:flex; align-items:center; justify-content:center; }
 .try-stage canvas { display:block; width:100%; max-height:380px; }
 .try-ai { position:absolute; top:10px; inset-inline-start:10px; background:rgba(0,0,0,.65); color:#fff; font-size:.72rem; font-weight:900; padding:5px 12px; border-radius:999px; }
+.try-ph { color:rgba(255,255,255,.55); font-size:.85rem; font-weight:700; padding:30px 16px; text-align:center; }
+.try-err { }
+.try-result-head { font-size:1.05rem; font-weight:900; color:var(--ac); margin-bottom:10px; }
 /* reviews v2 */
 .rat-dims { flex:1; min-width:220px; display:flex; flex-direction:column; gap:7px; }
 .rv2-dim { display:flex; align-items:center; gap:10px; font-size:.8rem; font-weight:700; }
@@ -811,6 +820,9 @@ html[data-theme="dark"] .mwarning { background:#3B1D0B; border-color:#7C2D12; co
 .acc-szrow { display:flex; align-items:center; justify-content:space-between; gap:12px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px 16px; }
 .acc-szrow a { text-decoration:none; color:var(--txt); font-weight:800; }
 .acc-szrow a:hover { color:var(--ac); }
+.acc-n { position:relative; display:flex; gap:12px; align-items:flex-start; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px 16px; margin-bottom:10px; }
+.acc-ndot { flex:0 0 8px; width:8px; height:8px; border-radius:50%; background:var(--ac); margin-top:8px; }
+.acc-ndt { font-size:.72rem; color:var(--mut); white-space:nowrap; margin-inline-start:auto; }
 .acc-box { max-width:740px; margin:0 auto; }
 .acc-card { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:16px; margin-bottom:12px; }
 .acc-ord { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
@@ -820,6 +832,20 @@ html[data-theme="dark"] .mwarning { background:#3B1D0B; border-color:#7C2D12; co
 .acc-hero { background:linear-gradient(120deg,var(--ac),var(--ac2)); color:#fff; border-radius:22px; padding:22px; margin-bottom:18px; position:relative; overflow:hidden; }
 .acc-hero h2 { font-size:1.5rem; font-weight:900; }
 .acc-hero p { opacity:.92; font-size:.85rem; margin-top:6px; }
+.acc-ordhead { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+.acc-ordhead .ao b { font-size:1rem; }
+.acc-ordhead .ao span { font-size:.78rem; color:var(--mut); }
+.acc-oit { display:flex; align-items:center; gap:12px; padding:8px 0; border-bottom:1px dashed var(--line); }
+.acc-oit:last-of-type { border-bottom:none; }
+.acc-oit img { width:52px; height:52px; border-radius:12px; object-fit:cover; flex:none; border:1px solid var(--line); }
+.acc-oem { width:52px; height:52px; border-radius:12px; background:var(--card2); display:flex; align-items:center; justify-content:center; font-size:1.4rem; flex:none; }
+.acc-oit .aoit { flex:1; min-width:0; }
+.acc-oit .aoit b { font-size:.9rem; }
+.acc-oit .aoit span { font-size:.76rem; color:var(--mut); }
+.acc-tlbtn { width:100%; justify-content:center; margin-top:10px; }
+.acc-badge { background:var(--ac); color:#fff; border-radius:999px; font-size:.68rem; font-weight:900; padding:2px 8px; margin-inline-start:6px; vertical-align:middle; }
+.ro-out b { color:var(--err); }
+.ro-out span { color:var(--err); font-weight:800; }
 /* passport */
 .pp-card { background:linear-gradient(135deg,#0B0F19,#1E3A5F); color:#fff; border-radius:20px; padding:22px; position:relative; overflow:hidden; }
 .pp-card::after { content:'⚽'; position:absolute; font-size:7rem; opacity:.08; inset-inline-end:12px; bottom:-14px; }
@@ -902,6 +928,15 @@ body { overflow-x:hidden; }
 .stadium-bg .atm-dot { position:absolute; width:6px; height:6px; border-radius:50%; background:var(--ac,#E11D48);
   opacity:.16; animation:atmDot linear infinite; }
 @keyframes atmDot { 0% { transform:translateY(0) scale(1); opacity:.14; } 50% { transform:translateY(-76px) scale(1.5); opacity:.32; } 100% { transform:translateY(0) scale(1); opacity:.14; } }
+.stadium-bg .atm-light { position:absolute; width:2px; background:linear-gradient(to bottom, transparent, rgba(255,255,255,.55));
+  filter:blur(1px); transform-origin:top center; opacity:.5; animation:atmLight 7s ease-in-out infinite; }
+@keyframes atmLight { 0%,100% { opacity:.35; transform:rotate(-3deg) scaleY(1); } 50% { opacity:.65; transform:rotate(3deg) scaleY(1.12); } }
+.stadium-bg .atm-pitch { position:absolute; left:-4%; right:-4%; bottom:-3%; height:26%;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 96px, rgba(15,23,42,.045) 96px 98px);
+  border-radius:50% 50% 0 0/ 26% 26% 0 0; opacity:.6; }
+html[data-theme="dark"] .stadium-bg .atm-light { background:linear-gradient(to bottom, transparent, rgba(148,163,184,.7)); }
+html[data-theme="dark"] .stadium-bg .atm-pitch { background:repeating-linear-gradient(90deg, transparent 0 96px, rgba(148,163,184,.05) 96px 98px); }
 html[data-club] .stadium-bg .atm-dot { background:var(--ac); }
 html[data-club] .stadium-bg .atm-circle { border-color:color-mix(in srgb, var(--ac) 22%, transparent); }
 html[data-club] .stadium-bg .atm-glow.g1 { background:radial-gradient(circle, var(--glow, rgba(225,29,72,.2)), transparent 70%); }
@@ -925,6 +960,13 @@ html[data-theme="dark"] .hd.scrolled { background:rgba(11,15,25,.82); }
   color:var(--ac); font-size:.72rem; font-weight:900; letter-spacing:2px; padding:7px 15px; border-radius:999px;
   margin-bottom:18px; box-shadow:var(--sh); }
 .hero-tag .pulse { width:8px; height:8px; border-radius:50%; background:var(--ok); animation:pulse 2s infinite; }
+.hero-brand { font-family:'Poppins','Cairo',sans-serif; font-weight:900; letter-spacing:6px; font-size:2.6rem;
+  line-height:1; color:transparent; background:linear-gradient(90deg, var(--ac), var(--ac2) 55%, var(--gold, #C9A24B));
+  -webkit-background-clip:text; background-clip:text; margin-bottom:6px; opacity:.92;
+  filter:drop-shadow(0 6px 18px var(--glow, rgba(225,29,72,.22))); }
+.hero-price { display:inline-flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
+.hero-price span, .hero-price { font-weight:900; color:var(--ac); }
+.hero-price::before { content:'⚡'; }
 .hero-ball { position:absolute; inset-inline-end:7%; top:50%; transform:translateY(-50%); width:150px; height:150px;
   font-size:150px; line-height:150px; text-align:center; filter:drop-shadow(0 24px 36px rgba(15,23,42,.3));
   animation:heroBall 9s ease-in-out infinite; pointer-events:none; }
@@ -1175,6 +1217,47 @@ details.fp-acc[open] summary::after { content:'−'; }
 .sort-bar .sort-lbl { font-size:.9rem; font-weight:800; color:var(--txt); }
 select.sort { border:1.5px solid var(--line); border-radius:12px; padding:9px 14px; font-size:.85rem;
   font-weight:800; background:#fff; color:var(--txt); font-family:inherit; }
+/* listing page search hero */
+.list-search { border:1px solid var(--line); border-radius:24px; padding:26px 22px; margin-bottom:22px;
+  background:
+    radial-gradient(120% 140% at 8% 0%, color-mix(in srgb, var(--ac) 12%, transparent), transparent 55%),
+    linear-gradient(120deg, var(--card), var(--card2)); box-shadow:var(--sh); }
+.list-search .ls-head { display:flex; align-items:center; gap:14px; margin-bottom:16px; }
+.list-search .ls-ic { font-size:2.2rem; filter:drop-shadow(0 8px 14px var(--glow, rgba(225,29,72,.25))); }
+.list-search h1 { font-size:1.5rem; font-weight:900; color:var(--txt); }
+.list-search p { color:var(--mut); font-size:.9rem; margin-top:4px; }
+.list-search .ls-box { display:flex; gap:10px; flex-wrap:wrap; }
+.list-search .ls-box input { flex:1; min-width:220px; border:1.5px solid var(--line); border-radius:14px;
+  padding:13px 16px; font-size:.95rem; background:#fff; color:var(--txt); font-family:inherit; }
+html[data-theme="dark"] .list-search .ls-box input { background:var(--card2); }
+.list-search .ls-box .btn { font-weight:800; }
+@media (max-width:560px) { .list-search { padding:20px 16px; } .list-search .ls-ic { font-size:1.7rem; } }
+/* how-to-order timeline */
+.hw-timeline { position:relative; display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-bottom:30px; }
+.hw-step { position:relative; display:flex; align-items:flex-start; gap:14px; background:var(--card);
+  border:1px solid var(--line); border-radius:20px; padding:18px 16px; box-shadow:var(--sh); }
+.hw-step .hw-dot { flex:0 0 auto; width:36px; height:36px; border-radius:50%; display:flex; align-items:center;
+  justify-content:center; font-weight:900; color:#fff; background:linear-gradient(135deg,var(--ac),var(--ac2));
+  box-shadow:0 8px 18px var(--glow, rgba(225,29,72,.25)); font-size:.95rem; }
+.hw-step .hw-line { display:none; }
+.hw-step .hw-ic { flex:0 0 auto; font-size:1.8rem; line-height:1.4; filter:drop-shadow(0 6px 10px var(--glow, rgba(225,29,72,.2))); }
+.hw-step .hw-txt b { display:block; font-size:.95rem; font-weight:900; color:var(--txt); }
+.hw-step .hw-txt span { display:block; font-size:.82rem; color:var(--mut); line-height:1.7; margin-top:4px; }
+@media (max-width:700px) { .hw-timeline { grid-template-columns:1fr; } }
+.hw-prices { background:var(--card); border:1px solid var(--line); border-radius:24px; padding:24px 20px; margin-bottom:26px; box-shadow:var(--sh); }
+.hw-prices h2 { font-size:1.3rem; font-weight:900; color:var(--txt); display:flex; align-items:center; gap:10px; }
+.hw-sub { color:var(--mut); font-size:.9rem; margin-top:6px; margin-bottom:16px; }
+.hw-price-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; }
+.hw-price-card { border:1.5px solid var(--line); border-radius:18px; padding:18px 16px; text-align:center;
+  background:linear-gradient(150deg, color-mix(in srgb, var(--hwc,var(--ac)) 12%, transparent), transparent 60%);
+  transition:transform .2s ease, box-shadow .25s ease; }
+.hw-price-card:hover { transform:translateY(-4px); box-shadow:0 16px 34px color-mix(in srgb, var(--hwc,var(--ac)) 25%, transparent); }
+.hw-price-card .hwp-ic { font-size:1.7rem; }
+.hw-price-card .hwp-t { font-weight:900; font-size:.92rem; color:var(--txt); margin-top:6px; }
+.hw-price-card .hwp-price { font-size:1.5rem; font-weight:900; color:var(--hwc,var(--ac)); margin-top:6px; }
+.hw-price-card .hwp-d { font-size:.78rem; color:var(--mut); margin-top:4px; }
+.hw-ctas { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-bottom:8px; }
+.hw-ctas .btn { font-weight:800; }
 /* product card */
 .pcard { background:#fff; border:1px solid var(--line); border-radius:18px; overflow:hidden; box-shadow:var(--sh); }
 .pcard:hover { transform:translateY(-5px); box-shadow:var(--sh2); border-color:#D8D3C6; }
@@ -1191,6 +1274,8 @@ select.sort { border:1.5px solid var(--line); border-radius:12px; padding:9px 14
 .pfoot b { font-size:1rem; color:#0B0B0C; }
 .pview { color:#6B6B74; }
 .pcard:hover .pview { color:#A8852E; }
+.tryme { width:100%; margin-top:10px; padding:8px 10px; border:1.5px dashed #0B0B0C; background:#F7F3E9; color:#0B0B0C; border-radius:12px; font-family:inherit; font-size:.82rem; font-weight:800; cursor:pointer; }
+.tryme:hover { background:#0B0B0C; color:#fff; }
 .sizes-row { display:flex; gap:6px; flex-wrap:wrap; margin-top:9px; }
 .sz-pill { min-width:30px; text-align:center; font-size:.68rem; font-weight:800; padding:4px 5px;
   border-radius:7px; border:1px solid var(--line); color:var(--mut); background:#fff; }
@@ -1208,6 +1293,30 @@ select.sort { border:1.5px solid var(--line); border-radius:12px; padding:9px 14
 .ft-col a:hover, .ft-col span.lk:hover, .ft-links a:hover { color:#E2C26C; }
 .ft-social a { background:rgba(255,255,255,.07); border-color:rgba(255,255,255,.12); }
 .ft-copy { border-color:#232326; }
+/* ============================== MOBILE MENU (HAMBURGER) ============================== */
+.hmenu { display:none; }
+.nv-close { display:none; }
+@media (max-width:900px) {
+  .hmenu { display:inline-flex; align-items:center; justify-content:center; font-size:1.05rem; }
+  .hd-in { gap:6px; }
+  .hd-in .hbtn { padding:6px 9px; font-size:.78rem; }
+  .logo { font-size:1.12rem; }
+  .nav { display:none; order:4; flex:1 0 100%; flex-direction:column; width:100%; gap:2px;
+    justify-content:flex-start; padding:10px 0 2px; }
+  .nav.open { display:flex; }
+  .nav .nv { width:100%; text-align:start; padding:12px 14px; border-radius:10px;
+    white-space:normal; font-size:.9rem; }
+  .nv-close { display:inline-flex; align-self:flex-end; margin-bottom:4px;
+    background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.18); color:#E9E9EC;
+    width:34px; height:34px; align-items:center; justify-content:center; font-size:.85rem;
+    border-radius:10px; }
+  .hd-search { order:5; }
+}
+@media (max-width:480px) {
+  .hd-in { padding:8px 10px; gap:5px; }
+  .hd-in .hbtn { padding:5px 8px; font-size:.74rem; }
+  .hd-search { margin-top:6px; }
+}
 </style>"""
 
 BASE_JS = """<script>
@@ -1263,12 +1372,14 @@ function pickLoyal(cid,btn){
   if(out) out.style.display='block';
 }
 function esc(s){ var d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
-function pmoney(v){ return (Math.round(v*100)/100); }
+function pmoney(v){ return (Math.round(v*1000)/1000).toFixed(3); }
 /* ---------- search & filters ---------- */
 var filters={club:'all',type:'all',size:'all',color:'all',cat:'all',fav:false};
 function gxStock(c){ try{ return JSON.parse(c.getAttribute('data-stock')||'{}'); }catch(e){ return {}; } }
 function applyFilters(){
   var q=((($('sq')||{}).value)||'').trim().toLowerCase();
+  var q2=((($('sq2')||{}).value)||'').trim().toLowerCase();
+  if(!q) q=q2;
   var cards=document.querySelectorAll('.pcard');
   var shown=0;
   cards.forEach(function(c){
@@ -1281,7 +1392,7 @@ function applyFilters(){
     if(ok && filters.color!=='all' && c.getAttribute('data-col')!==filters.color) ok=false;
     if(ok && filters.cat!=='all' && !hasB(c,filters.cat)) ok=false;
     if(ok && q){
-      var hay=((c.getAttribute('data-name')||'')+' '+(c.getAttribute('data-clubn')||'')).toLowerCase();
+      var hay=((c.getAttribute('data-search')||'')+' '+(c.getAttribute('data-name')||'')+' '+(c.getAttribute('data-clubn')||'')).toLowerCase();
       if(hay.indexOf(q)===-1) ok=false;
     }
     c.style.display=ok?'':'none'; if(ok) shown++;
@@ -1313,6 +1424,7 @@ function clearFilters(){
   document.querySelectorAll('.club-opt.on,.sz-btn.on,.col-dot.on').forEach(function(x){x.classList.remove('on');});
   document.querySelectorAll('input[name="fpcat"]').forEach(function(r){r.checked=false;});
   var sq=$('sq'); if(sq) sq.value='';
+  var sq2=$('sq2'); if(sq2) sq2.value='';
   applyFilters();
 }
 /* ---------- sorting & filters drawer ---------- */
@@ -1375,7 +1487,7 @@ function renderFavPageGuest(){
       +'<a href="/product/'+p.id+'"><div class="pimg" style="background:linear-gradient(135deg,'+p.colors[0]+','+p.colors[1]+')">'
       +'<img src="/img/'+p.imgs[0]+'" alt=""></div></a>'
       +'<div class="pbody"><span class="pcat">'+(p.kind==='mug'?gxT('cat_mug'):gxT('cat_jersey'))+'</span><h3>'+esc(p[GX.lang==='ar'?'name_ar':'name_en'])+'</h3>'
-      +'<div class="pfoot"><b>'+p.price+' '+GX.cur+'</b><a class="pview" href="/product/'+p.id+'">'+gxT('view')+' ←</a></div></div></div>';
+      +'<div class="pfoot"><b>'+pmoney(p.price)+' '+GX.cur+'</b><a class="pview" href="/product/'+p.id+'">'+gxT('view')+' ←</a></div></div></div>';
   });
   box.innerHTML=html;
 }
@@ -1473,7 +1585,7 @@ function renderCartPage(){
     +'<div class="row-t total"><span>'+gxT('cart_total')+'</span><b>'+pmoney(tot.total)+' '+GX.cur+'</b></div>'
     +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">'
     +'<button class="btn wa" style="flex:1" onclick="openCheckout()">'+gxT('cart_checkout')+'</button>'
-    +'<button class="btn tg" style="flex:1" onclick="orderCartTG()">✈️ '+gxT('order_tg')+'</button>'
+    +'<button class="btn wa" style="flex:1" onclick="orderCartWA()">💬 '+gxT('order_wa')+'</button>'
     +'<button class="btn ghost" onclick="clearCart()">🗑 '+gxT('cart_clear')+'</button></div>';
   box.innerHTML=html;
 }
@@ -1496,7 +1608,7 @@ function fillFoot(){
     }
   }
   html+='<button class="btn wa block" '+(cart.length?'':'disabled style="opacity:.5"')+' onclick="openCheckout()">'+gxT('cart_checkout')+'</button>'
-    +'<button class="btn tg block" '+(cart.length?'':'disabled style="opacity:.5"')+' onclick="orderCartTG()" style="margin-top:8px">✈️ '+gxT('order_tg')+'</button>'
+    +'<button class="btn wa block" '+(cart.length?'':'disabled style="opacity:.5"')+' onclick="orderCartWA()" style="margin-top:8px">💬 '+gxT('order_wa')+'</button>'
     +'<div style="text-align:center;margin-top:8px"><button class="hbtn" onclick="clearCart()">🗑 '+gxT('cart_clear')+'</button></div>';
   ft.innerHTML=html;
 }
@@ -1545,21 +1657,8 @@ function waOrderMsg(code,items,name,phone,area,addr,del,disc,total){
   l.push('🏠 '+gxT('co_address').replace(/[^\u0600-\u06FF\\w\\s]/g,'')+': '+addr);
   return l.join('\\n');
 }
-/* ---------- order via Telegram ---------- */
-function tgOrderMsg(code,items,del,disc,total){
-  var l=[]; l.push(gxT('hello').trim()+' 👋'); l.push('');
-  l.push(gxT('code_w')+code);
-  items.forEach(function(it){
-    l.push(''); l.push('• '+it.emoji+' '+it.name);
-    if(it.kind!=='mug') l.push('  '+gxT('size_w')+it.size);
-    l.push('  '+gxT('qty_w')+it.qty+' · '+pmoney(it.price*it.qty)+' '+GX.cur);
-  });
-  l.push(''); l.push('🚚 '+gxT('cart_delivery')+': '+pmoney(del)+' '+GX.cur);
-  if(disc>0) l.push(gxT('pts_discount')+': −'+pmoney(disc)+' '+GX.cur);
-  l.push('💰 '+gxT('cart_total')+': '+pmoney(total)+' '+GX.cur);
-  return l.join('\\n');
-}
-function orderCartTG(){
+/* ---------- order via WhatsApp ---------- */
+function orderCartWA(){
   var cart=gxGet('gx_cart',[]); if(!cart.length) return;
   var tot=cartTotals(); var disc=rewardSel?rewardSel.discount:0;
   var fin=Math.max(0,tot.total-disc);
@@ -1569,30 +1668,14 @@ function orderCartTG(){
     items:items,name:'',phone:'',area:'',address:'',notes:'',delivery:tot.delivery,discount:disc,total:fin,reward:rewardSel?rewardSel.points:0,fast:1,device:gxDev()})})
   .then(function(r){return r.json();}).then(function(d){
     if(d.code){
-      var msg=tgOrderMsg(d.code,items,tot.delivery,disc,fin);
-      window.open(GX.tg+'?text='+encodeURIComponent(msg),'_blank');
+      var msg=gxT('hello').trim()+' 👋\\n'+gxT('wa_intro')+'\\n';
+      items.forEach(function(it){
+        msg+='- '+it.emoji+' '+it.name+(it.kind!=='mug'?' ('+it.size+')':'')+' × '+it.qty+'\\n';
+      });
+      msg+='\\n'+gxT('cart_total')+': '+pmoney(fin)+' '+GX.cur;
+      window.open('https://wa.me/'+GX.wa+'?text='+encodeURIComponent(msg),'_blank');
       location.href='/order/success?code='+d.code;
     } else { toast('Error'); }
-  });
-}
-function orderTG(pid){
-  var p=GX.products.find(function(x){return x.id===pid;});
-  if(!p) return;
-  var q=parseInt(document.getElementById('qty').textContent,10);
-  var chip=document.querySelector('.size-chip.on'); var sz=chip?chip.getAttribute('data-sz'):null;
-  if(p.kind!=='mug' && !sz){ toast(gxT('size_required')); return; }
-  var items=[{id:pid,size:sz||'OS',qty:q,name:p[GX.lang==='ar'?'name_ar':'name_en'],price:p.price,emoji:p.emoji,kind:p.kind}];
-  var tot=(p.price*q)+GX.delivery;
-  fetch('/api/order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-    items:items,name:'',phone:'',area:'',address:'',notes:'',delivery:GX.delivery,discount:0,total:tot,reward:0,fast:1,device:gxDev()})})
-  .then(function(r){return r.json();}).then(function(d){
-    if(d.code){
-      var msg=gxT('hello').trim()+':\\n'+items[0].emoji+' '+items[0].name;
-      if(sz) msg+='\\n'+gxT('size_w')+sz;
-      msg+='\\n'+gxT('qty_w')+q+' · '+pmoney(p.price*q)+' '+GX.cur+'\\n\\n'+gxT('code_w')+d.code;
-      window.open(GX.tg+'?text='+encodeURIComponent(msg),'_blank');
-      location.href='/order/success?code='+d.code;
-    }
   });
 }
 /* ---------- points ---------- */
@@ -1683,22 +1766,36 @@ function isHandleFile(input,isCam){
 }
 function isAnalyze(dataUrl){
   var img=new Image(); img.onload=function(){
+    var an=$('is_analyzing'); if(an) an.style.display='block';
+    var box=$('is_resultsBox'); if(box) box.innerHTML='';
+    var prev=$('is_preview'); if(prev){ prev.src=dataUrl; prev.style.display='block'; }
     var cv=document.createElement('canvas'); cv.width=64; cv.height=64;
     var cx=cv.getContext('2d'); cx.drawImage(img,0,0,64,64);
-    var d=cx.getImageData(0,0,64,64).data; var R=0,G=0,B=0,n=d.length/4;
-    for(var i=0;i<d.length;i+=4){ R+=d[i]; G+=d[i+1]; B+=d[i+2]; }
-    R=Math.round(R/n); G=Math.round(G/n); B=Math.round(B/n);
+    var d=cx.getImageData(0,0,64,64).data;
+    var buckets={};
+    for(var i=0;i<d.length;i+=4){
+      var a=d[i],b=d[i+1],c2=d[i+2]; if(a+b+c2<60) continue;
+      var k=Math.round(a/48)*48+','+Math.round(b/48)*48+','+Math.round(c2/48)*48;
+      buckets[k]=(buckets[k]||0)+1;
+    }
+    var dom=Object.keys(buckets).map(function(k){ return {c:k.split(',').map(Number),n:buckets[k]}; })
+      .sort(function(x,y){ return y.n-x.n; }).slice(0,5);
+    if(!dom.length) dom=[{c:[200,200,200],n:1}];
     var desc=($('is_desc').value||'').trim().toLowerCase();
     var scores=GX.products.map(function(p){
-      var best=0; p.colors.forEach(function(hex){ var d2=hex2rgb(hex); if(!d2) return;
-        var dist=Math.sqrt((R-d2[0])*(R-d2[0])+(G-d2[1])*(G-d2[1])+(B-d2[2])*(B-d2[2]));
-        var sim=Math.max(0,1-dist/441.7); if(sim>best) best=sim; });
+      var best=0;
+      p.colors.forEach(function(hex){ var rgb=hex2rgb(hex); if(!rgb) return;
+        dom.forEach(function(dc){
+          var dist=Math.sqrt((rgb[0]-dc.c[0])*(rgb[0]-dc.c[0])+(rgb[1]-dc.c[1])*(rgb[1]-dc.c[1])+(rgb[2]-dc.c[2])*(rgb[2]-dc.c[2]));
+          var sim=Math.max(0,1-dist/441.7); if(sim>best) best=sim;
+        });
+      });
       var sc=best*100;
-      if(desc){ var hay=((p.name_ar||'')+' '+(p.name_en||'')+' '+(p.club_ar||'')+' '+(p.club_en||'')).toLowerCase();
+      if(desc){ var hay=((p.name_ar||'')+' '+(p.name_en||'')+' '+(p.club_ar||'')+' '+(p.club_en||'')+' '+(p.desc_ar||'')+' '+(p.desc_en||'')).toLowerCase();
         var boost = hay.indexOf(desc)>-1?12:0; sc=Math.min(99,sc*0.8+boost); }
       return {p:p, sc:Math.round(sc)};
     }).sort(function(a,b){return b.sc-a.sc;});
-    $('is_analyzing').style.display='none';
+    if(an) an.style.display='none';
     var out=$('is_resultsBox'); var html='';
     var top=scores[0];
     if(top.sc<40){ html+='<p class="mnote">'+gxT('is_notfound')+'</p><p class="mnote">'+gxT('is_near')+'</p>'; }
@@ -1706,6 +1803,7 @@ function isAnalyze(dataUrl){
     scores.slice(1,4).forEach(function(s){ html+=isCard(s); });
     html+='<div style="text-align:center;margin-top:14px"><button class="btn pri sm" onclick="closeModal(\\'m-imgsearch\\');openRequest(\\''+dataUrl+'\\')">'+gxT('is_request')+'</button></div>';
     html+='<p class="img-search-tip">'+gxT('is_priv')+'</p>';
+    html+='<p class="img-search-tip" style="color:var(--mut);font-size:.72rem">'+gxT('is_note')+'</p>';
     out.innerHTML=html;
   };
   img.src=dataUrl;
@@ -1716,7 +1814,7 @@ function isCard(s){
   var p=s.p;
   return '<div class="res-card"><img src="/img/'+p.imgs[0]+'" alt=""><div class="rc-t"><b>'+esc(p.name_ar||p.name_en)+'</b>'
     +'<span>'+gxT('cat_'+(p.kind==='mug'?'mug':'jersey'))+'</span></div>'
-    +'<div><b class="rc-p">'+p.price+' '+GX.cur+'</b><br><span class="rc-s">'+gxT('is_sim').replace('{p}',s.sc)+'</span></div></div>';
+    +'<div><b class="rc-p">'+pmoney(p.price)+' '+GX.cur+'</b><br><span class="rc-s">'+gxT('is_sim').replace('{p}',s.sc)+'</span></div></div>';
 }
 /* ---------- professional reviews ---------- */
 var revDims=['design','fabric','quality','fit'];
@@ -1793,116 +1891,133 @@ function submitPriceDrop(){
     closeModal('m-pricedrop'); toast(gxT('pd_ok'));
   });
 }
-/* ---------- try it on (AI preview) ---------- */
-var TRY={img:null,pid:null,cv:null,poseModelPromise:null};
-function tryOpen(pid){ TRY.pid=pid; openModal('m-tryit'); }
+/* ---------- try it on (real Virtual Try-On, server AI) ---------- */
+var TRY={img:null,pid:null,size:'',job:null,result:null};
+function dataURLtoBlob(dataUrl){
+  try{
+    var parts=dataUrl.split(','); var mime=parts[0].match(/:(.*?);/)[1];
+    var bin=atob(parts[1]); var arr=new Uint8Array(bin.length);
+    for(var i=0;i<bin.length;i++){ arr[i]=bin.charCodeAt(i); }
+    return new Blob([arr],{type:mime});
+  }catch(e){ return null; }
+}
+function tryOpen(pid){ TRY.pid=pid; TRY.size=''; TRY.result=null; TRY.job=null;
+  var sel=$('try_sel'); if(sel){ sel.value=pid; }
+  var prev=$('tryPrev'); if(prev){ prev.style.display='none'; prev.src=''; }
+  var res=$('tryResultWrap'); if(res) res.style.display='none';
+  var stage=$('tryStage'); if(stage) stage.style.display='block';
+  var btn=$('tryRun'); if(btn){ btn.style.display='block'; }
+  var err=$('tryErr'); if(err){ err.style.display='none'; err.textContent=''; }
+  document.querySelectorAll('#try_sizes .sz-pill').forEach(function(x){ x.classList.remove('on'); });
+  openModal('m-tryit');
+}
+function tryPickSize(el,sz){ TRY.size=sz;
+  document.querySelectorAll('#try_sizes .sz-pill').forEach(function(x){ x.classList.remove('on'); });
+  if(el) el.classList.add('on');
+}
+function trySwitch(pid){ TRY.pid=pid; }
 function tryHandle(input,cam){
   var f=input.files[0]; if(!f) return;
-  var fr=new FileReader(); fr.onload=function(){ TRY.img=new Image(); TRY.img.onload=function(){ tryPrep(); }; TRY.img.src=fr.result; };
+  if(!/^image\//.test(f.type)){ toast(gxT('is_bad_photo')); input.value=''; return; }
+  var fr=new FileReader(); fr.onload=function(){
+    var img=new Image(); img.onload=function(){ TRY.img=img; tryPreview(); }; img.src=fr.result;
+  };
   fr.readAsDataURL(f);
 }
-function tryLoadScript(src){
-  return new Promise(function(resolve,reject){
-    var s=document.createElement('script'); s.src=src; s.onload=resolve; s.onerror=reject;
-    document.head.appendChild(s);
-  });
+function tryPreview(){
+  var ok=tryCheckFace();
+  var err=$('tryErr'); if(err){ err.style.display= ok? 'none':'block'; err.textContent= ok? '':gxT('try_badface'); }
+  var prev=$('tryPrev'); if(prev){ prev.src=TRY.img.src; prev.style.display='block'; }
 }
-function tryLoadPoseModel(){
-  if(TRY.poseModelPromise) return TRY.poseModelPromise;
-  TRY.poseModelPromise = tryLoadScript('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js')
-    .then(function(){ return tryLoadScript('https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@2.1.3/dist/pose-detection.min.js'); })
-    .then(function(){
-      return window.poseDetection.createDetector(window.poseDetection.SupportedModels.MoveNet,
-        {modelType:window.poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING});
-    });
-  return TRY.poseModelPromise;
+function tryCheckFace(){
+  if(!TRY.img) return false;
+  if(TRY.img.width<160 || TRY.img.height<160) return false;
+  var cv=document.createElement('canvas'); cv.width=TRY.img.width; cv.height=TRY.img.height;
+  var ctx=cv.getContext('2d'); ctx.drawImage(TRY.img,0,0);
+  try{ var d=ctx.getImageData(0,0,cv.width,cv.height).data; }catch(e){ return false; }
+  var cx=cv.width/2, cy=cv.height/2, rx=Math.max(60,cv.width*0.22), ry=Math.max(60,cv.height*0.22);
+  var x0=Math.max(0,Math.floor(cx-rx)), x1=Math.min(cv.width,Math.ceil(cx+rx));
+  var y0=Math.max(0,Math.floor(cy-ry)), y1=Math.min(cv.height,Math.ceil(cy+ry));
+  var n=0, bright=0, skin=0;
+  for(var y=y0;y<y1;y++){ for(var x=x0;x<x1;x++){
+    var i=(y*cv.width+x)*4; var r=d[i],g=d[i+1],b=d[i+2];
+    bright+= (0.299*r+0.587*g+0.114*b)/255;
+    if(r>80 && r>g && g>=b && (r-g)>18 && (r-b)>28){ skin++; }
+    n++;
+  }}
+  if(n===0) return false;
+  var avg=bright/n;
+  if(avg<0.12 || avg>0.94) return false;
+  if(skin/n < 0.035) return false;
+  return true;
 }
-function tryDefaultFit(W,H){
-  return {x:(W-W*0.66)/2, y:H*0.28, tw:W*0.66, th:H*0.34, angle:0};
+function tryRun(){
+  if(!TRY.img){ toast(gxT('try_up')); return; }
+  if(!TRY.pid){ toast(gxT('try_product')); return; }
+  if(!tryCheckFace()){ var err=$('tryErr'); if(err){ err.style.display='block'; err.textContent=gxT('try_badface'); } return; }
+  if(!(GX.tryon&&GX.tryon.configured)){
+    var err=$('tryErr'); if(err){ err.style.display='block'; err.textContent=gxT('try_not_configured'); }
+    toast(gxT('try_not_configured')); return;
+  }
+  var fd=new FormData();
+  var blob=dataURLtoBlob(TRY.img.src);
+  fd.append('photo', blob, 'me.jpg');
+  fd.append('product', TRY.pid);
+  var run=$('tryRun'), load=$('tryLoading'); if(run) run.disabled=true;
+  if(load) load.style.display='block';
+  fetch('/api/tryon/start',{method:'POST',body:fd})
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(!d.ok){ if(run) run.disabled=false; if(load) load.style.display='none';
+      var err=$('tryErr'); if(err){ err.style.display='block'; err.textContent=gxT(d&&d.reason==='not_configured'?'try_not_configured':'try_error'); }
+      return; }
+    TRY.job=d.job; tryPoll();
+  }).catch(function(){ if(run) run.disabled=false; if(load) load.style.display='none'; toast(gxT('try_error')); });
 }
-function tryFitFromPose(cv,W,H){
-  return tryLoadPoseModel().then(function(det){
-    return det.estimatePoses(cv,{flipHorizontal:false});
-  }).then(function(poses){
-    var kp=poses && poses[0] && poses[0].keypoints;
-    if(!kp) throw new Error('no_pose');
-    var byName={}; kp.forEach(function(k){ byName[k.name]=k; });
-    var ls=byName.left_shoulder, rs=byName.right_shoulder;
-    var lh=byName.left_hip, rh=byName.right_hip;
-    if(!ls||!rs||(ls.score||0)<0.4||(rs.score||0)<0.4) throw new Error('low_confidence');
-    var shW=Math.hypot(rs.x-ls.x, rs.y-ls.y);
-    if(shW<W*0.08 || shW>W*0.9) throw new Error('bad_scale');
-    var shoulderY=(ls.y+rs.y)/2;
-    var hipsOk = lh && rh && (lh.score||0)>0.3 && (rh.score||0)>0.3;
-    var hipY = hipsOk ? (lh.y+rh.y)/2 : null;
-    if(hipsOk && (hipY-shoulderY) < shW*0.4) throw new Error('bad_geometry');
-    if(!hipsOk && (H-shoulderY) < shW*0.5) throw new Error('not_enough_room');
-    var midx=(ls.x+rs.x)/2, midy=shoulderY;
-    var tw=Math.min(shW*2.05, W*0.94), th=tw*0.6;
-    return {x:midx-tw/2, y:midy-th*0.12, tw:tw, th:th, angle:Math.atan2(rs.y-ls.y, rs.x-ls.x)};
-  });
+function tryPoll(){
+  fetch('/api/tryon/status?job='+encodeURIComponent(TRY.job))
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(d.ok && d.img){ tryDone(d.img); return; }
+    if(d.pending){ setTimeout(tryPoll, 2200); return; }
+    var run=$('tryRun'), load=$('tryLoading'); if(run) run.disabled=false; if(load) load.style.display='none';
+    var err=$('tryErr'); if(err){ err.style.display='block'; err.textContent=gxT('try_error'); }
+    toast(gxT('try_error'));
+  }).catch(function(){ setTimeout(tryPoll, 3000); });
 }
-function tryPrep(){
-  var wrap=$('tryCanvasWrap'); wrap.style.display='block';
-  var cv=$('tryCanvas'); if(!cv) return;
-  var W=Math.min(460,TRY.img.width||460), H=Math.min(460,TRY.img.height||460);
-  cv.width=W; cv.height=H; TRY.cv=cv;
-  var ctx=cv.getContext('2d'); ctx.fillStyle='#0F172A'; ctx.fillRect(0,0,W,H);
-  ctx.drawImage(TRY.img,0,0,W,H);
-  var badge=cv.parentNode?cv.parentNode.querySelector('.try-ai'):null;
-  var badgeOrig=badge?badge.textContent:'';
-  if(badge) badge.textContent=gxT('try_detecting');
-  tryFitFromPose(cv,W,H).then(function(fit){
-    if(badge) badge.textContent=badgeOrig;
-    drawJersey(ctx,fit);
-  }).catch(function(err){
-    if(badge) badge.textContent=badgeOrig;
-    var reason=(err&&err.message)||'';
-    var noBodyReasons={no_pose:1,low_confidence:1,bad_scale:1,bad_geometry:1,not_enough_room:1};
-    if(noBodyReasons[reason]){
-      toast(gxT('try_no_body'));
-    } else {
-      drawJersey(ctx,tryDefaultFit(W,H));
-    }
-  });
+function tryDone(dataUrl){
+  TRY.result=dataUrl;
+  var run=$('tryRun'), load=$('tryLoading'); if(run) run.disabled=false; if(load) load.style.display='none';
+  var stage=$('tryStage'); if(stage) stage.style.display='none';
+  var res=$('tryResultWrap'); if(res){ res.style.display='block'; }
+  var img=$('tryResultImg'); if(img){ img.src=dataUrl; }
+  var err=$('tryErr'); if(err) err.style.display='none';
 }
-function drawJersey(ctx,fit){
-  var img=TRY.pid? GX.products.find(function(x){return x.id===TRY.pid;}):null;
-  if(!img) return;
-  var x=fit.x,y=fit.y,tw=fit.tw,th=fit.th,angle=fit.angle||0;
-  var cx=x+tw/2, cy=y+th/2;
-  var ji=new Image();
-  ji.onload=function(){
-    ctx.save();
-    ctx.translate(cx,cy); ctx.rotate(angle); ctx.translate(-cx,-cy);
-    ctx.globalAlpha=.92;
-    ctx.beginPath();
-    ctx.moveTo(x+tw*0.12,y); ctx.lineTo(x+tw*0.88,y);
-    ctx.lineTo(x+tw*0.72,y+th); ctx.lineTo(x+tw*0.28,y+th); ctx.closePath();
-    ctx.clip();
-    ctx.drawImage(ji,x,y,tw,th);
-    ctx.restore();
-    ctx.save();
-    ctx.translate(cx,cy); ctx.rotate(angle); ctx.translate(-cx,-cy);
-    ctx.strokeStyle='rgba(255,255,255,.6)'; ctx.lineWidth=2;
-    ctx.beginPath(); ctx.moveTo(x+tw*0.12,y); ctx.lineTo(x+tw*0.88,y); ctx.lineTo(x+tw*0.72,y+th); ctx.lineTo(x+tw*0.28,y+th); ctx.closePath(); ctx.stroke();
-    ctx.restore();
-  };
-  ji.src='/img/'+img.imgs[0];
+function tryAnother(){ TRY.result=null; TRY.job=null;
+  var res=$('tryResultWrap'); if(res) res.style.display='none';
+  var stage=$('tryStage'); if(stage) stage.style.display='block';
+  var run=$('tryRun'); if(run) run.style.display='block';
 }
-function tryAdd(){ if(!TRY.pid) return; var q=parseInt($('qty').textContent,10); addCart(TRY.pid, selSize||'', q); }
+function tryAdd(){ if(!TRY.pid) return;
+  if(!TRY.size){ toast(gxT('size_required')); return; }
+  var q=1; addCart(TRY.pid, TRY.size, q);
+}
 function tryShare(){
-  var cv=$('tryCanvas'); if(!cv) return;
-  cv.toBlob(function(blob){
-    var file=new File([blob],'golazox-preview.png',{type:'image/png'});
-    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
-      navigator.share({files:[file]});
-    } else {
-      var a=document.createElement('a'); a.href=cv.toDataURL('image/png'); a.download='golazox-preview.png'; a.click(); toast(gxT('try_share'));
-    }
-  });
+  var src=TRY.result||(TRY.img?TRY.img.src:null); if(!src) return;
+  try{
+    var a=document.createElement('a'); a.href=src; a.download='golazox-tryon.jpg'; a.click(); toast(gxT('try_share'));
+  }catch(e){}
 }
-function tryReset(){ $('tryCanvasWrap').style.display='none'; var f=$('tryfile'); if(f) f.value=''; }
+function tryReset(){ TRY.img=null; TRY.job=null; TRY.result=null; TRY.size='';
+  var f=$('tryfile'); if(f) f.value='';
+  var prev=$('tryPrev'); if(prev){ prev.style.display='none'; prev.src=''; }
+  var res=$('tryResultWrap'); if(res) res.style.display='none';
+  var stage=$('tryStage'); if(stage) stage.style.display='block';
+  var run=$('tryRun'); if(run){ run.disabled=false; run.style.display='block'; }
+  var err=$('tryErr'); if(err){ err.style.display='none'; err.textContent=''; }
+  var load=$('tryLoading'); if(load) load.style.display='none';
+  document.querySelectorAll('#try_sizes .sz-pill').forEach(function(x){ x.classList.remove('on'); });
+}
 /* ---------- drop remind ---------- */
 function submitDropRemind(){
   var ph=($('dr_phone').value||'').trim();
@@ -2003,6 +2118,7 @@ function authVerify(P){
   if(btn){ btn.disabled=true; btn.textContent=gxT('auth_verifying'); }
   fetch('/api/auth/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:em,code:code,name:name})})
   .then(function(r){return r.json();}).then(function(d){
+    if(d.ok && d.admin_pending){ showAdminStep(P); return; }
     if(d.ok){ afterLogin(); return; }
     var rm = d.reason==='blocked'?gxT('auth_blocked') :
              d.reason==='expired'?gxT('auth_expired') :
@@ -2012,6 +2128,36 @@ function authVerify(P){
   }).catch(function(){
     toast(gxT('auth_otp_fail'));
     if(btn){ btn.disabled=false; btn.textContent=gxT('auth_verify'); }
+  });
+}
+function showAdminStep(P){
+  var s2=ap(P,'au_step2'); if(s2) s2.style.display='none';
+  var s3=ap(P,'au_step3'); if(s3) s3.style.display='block';
+  var ans=ap(P,'au_ans'); if(ans) ans.focus();
+}
+function authCancelAdmin(P){
+  var s3=ap(P,'au_step3'); if(s3) s3.style.display='none';
+  var s2=ap(P,'au_step2'); if(s2) s2.style.display='block';
+  var an=ap(P,'au_ans'); if(an) an.value='';
+}
+function authAdminCheck(P){
+  var ans=(ap(P,'au_ans').value||'').trim();
+  if(!ans){ toast(gxT('adm_q_wrong')); return; }
+  var btn=ap(P,'au_abtn');
+  if(btn){ btn.disabled=true; btn.textContent=gxT('adm_q_loading'); }
+  fetch('/api/auth/admin_verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({answer:ans})})
+  .then(function(r){return r.json();}).then(function(d){
+    if(btn){ btn.disabled=false; btn.textContent=gxT('adm_q_btn'); }
+    if(d.ok){
+      closeModal('m-login');
+      location.href='/admin';
+    } else {
+      toast(d.reason==='noauth'?gxT('auth_blocked'):gxT('adm_q_wrong'));
+      var an=ap(P,'au_ans'); if(an) an.value='';
+    }
+  }).catch(function(){
+    if(btn){ btn.disabled=false; btn.textContent=gxT('adm_q_btn'); }
+    toast(gxT('adm_q_wrong'));
   });
 }
 function authPwLogin(P){
@@ -2037,11 +2183,17 @@ function openReorder(code){
   fetch('/api/reorder?code='+encodeURIComponent(code)).then(function(r){return r.json();}).then(function(d){
     var html='';
     d.items.forEach(function(it){
+      if(!it.stock){
+        html+='<div class="ro-item ro-out"><b>'+it.emoji+' '+it.name+'</b><span>'+gxT('ro_out_msg')+'</span></div>';
+        return;
+      }
       var alts=it.sizes||[];
+      var opts=alts.slice();
+      if(it.size&&opts.indexOf(it.size)===-1) opts.unshift(it.size);
+      var optsHtml=opts.map(function(s){ return '<option value="'+s+'"'+(s===it.size?' selected':'')+'>'+s+'</option>'; }).join('');
       html+='<div class="ro-item"><b>'+it.emoji+' '+it.name+'</b><span>'+gxT('size_w')+it.size+'</span></div>'
         +'<div class="fld" style="margin-bottom:12px"><label>'+gxT('ro_alt')+'</label><select data-ro="'+it.id+'">'
-        +'<option value="'+it.size+'">'+it.size+'</option>'
-        +alts.map(function(s){ return '<option value="'+s+'">'+s+'</option>'; }).join('')
+        +optsHtml
         +'</select></div>';
     });
     var body='<div id="ro_body">'+html+'</div>'
@@ -2111,7 +2263,7 @@ function loadAlerts(){
     d.alerts.forEach(function(a){
       var p=findProd(a.product);
       html+='<div class="al-item"><div class="at"><b>'+(p?p.name_ar:a.product)+'</b>'
-        +'<span>'+gxT('pd_now').replace('{p}',(p?p.price+' '+GX.cur:'—'))+'</span></div>'
+        +'<span>'+gxT('pd_now').replace('{p}',(p?pmoney(p.price)+' '+GX.cur:'—'))+'</span></div>'
         +'<span class="st '+(a.triggered?'sent':'wait')+'">'+(a.triggered?gxT('pd_sent'):gxT('pd_waiting'))+'</span>'
         +(a.active?'<button class="hbtn" onclick="cancelAlert('+a.id+')">'+gxT('pd_cancel')+'</button>':'')
         +'</div>';
@@ -2144,6 +2296,14 @@ function accTab(id){
   document.querySelectorAll('.acc-btn').forEach(function(b){ b.classList.remove('on'); });
   var el=$(id); if(el) el.classList.add('on');
   var bt=document.querySelector('.acc-btn[data-tab="'+id+'"]'); if(bt) bt.classList.add('on');
+  if(id==='acc-notifs'){
+    var b=$('nbadge'); if(b) b.style.display='none';
+    fetch('/api/account/notifs/read',{method:'POST'}).catch(function(){});
+  }
+}
+function accTl(code){
+  var el=$('tl-'+code); if(!el) return;
+  el.style.display = (el.style.display==='none'||el.style.display==='') ? 'block' : 'none';
 }
 /* ---------- football dna ---------- */
 function trackView(pid){
@@ -2154,7 +2314,7 @@ function dnaCard(id){
   return '<a class="card" href="/product/'+p.id+'" style="text-decoration:none"><div class="pimg" style="background:linear-gradient(135deg,'+(p.colors[0]||'#E2E8F0')+','+(p.colors[1]||'#94A3B8')+')">'
     +'<img loading="lazy" src="/img/'+p.imgs[0]+'" alt=""><span class="pfav'+(gxGet('gx_favs',[]).indexOf(p.id)>-1?' on':'')+'" onclick="event.preventDefault();event.stopPropagation();toggleFav(\\''+p.id+'\\')">❤</span></div>'
     +'<div class="pbody"><b class="pname">'+p.name_ar+'</b><span class="pcat">'+gxT('cat_'+(p.kind==='mug'?'mug':'jersey'))+'</span>'
-    +'<div class="pprice"><b>'+p.price+' '+GX.cur+'</b></div></div></a>';
+    +'<div class="pprice"><b>'+pmoney(p.price)+' '+GX.cur+'</b></div></div></a>';
 }
 function loadDNA(){
   var box=$('dnaBox'); if(!box) return;
@@ -2197,6 +2357,7 @@ function syncServerFavs(){
 document.addEventListener('DOMContentLoaded',function(){
   applyPrefs(); syncPrefs(); gxDev(); renderFavs(); syncServerFavs();
   if($('sq')){ $('sq').addEventListener('input',applyFilters); }
+  if($('sq2')){ $('sq2').addEventListener('input',applyFilters); }
   if($('prod_id')){ trackView($('prod_id').value); }
   applyFilters(); renderCart(); tickCountdown(); setInterval(tickCountdown,1000);
   if($('dnaBox')) loadDNA();
@@ -2266,10 +2427,18 @@ def atmos_html(mode="full"):
         dots_spec = dots_spec[:6]
     dots = "".join('<span class="atm-dot" style="left:%s;top:%s;animation-duration:%s;animation-delay:%s"></span>'
                    % (x, y, dur, delay) for x, y, dur, delay in dots_spec)
+    lights = ""
+    light_spec = [("12%", "-2%", "160px", "0s"), ("42%", "-6%", "190px", "-2.5s"),
+                  ("72%", "-3%", "170px", "-4.5s"), ("95%", "-7%", "150px", "-1.5s")]
+    if mode == "light":
+        light_spec = light_spec[:2]
+    for x, y, h, dl in light_spec:
+        lights += ('<span class="atm-light" style="left:%s;top:%s;height:%s;animation-delay:%s"></span>'
+                   % (x, y, h, dl))
     return ('<div class="stadium-bg" aria-hidden="true">'
             '<span class="atm-lines"></span><span class="atm-circle"></span>'
             '<span class="atm-glow g1"></span><span class="atm-glow g2"></span><span class="atm-glow g3"></span>'
-            + balls + dots + '</div>')
+            + lights + balls + dots + '<span class="atm-pitch"></span>' + '</div>')
 
 
 def base_page(body, active="", page_js="", extra_club=None):
@@ -2279,9 +2448,7 @@ def base_page(body, active="", page_js="", extra_club=None):
     if extra_club:
         gx["club_page"] = extra_club
     gx_json = json_d(gx)
-    font_name = "Poppins" if en else "Cairo"
-    js = BASE_JS.replace("__GX__", gx_json).replace("FONT", font_name)
-    css = CSS.replace("FONT", font_name)
+    js = BASE_JS.replace("__GX__", gx_json)
     head_extra = "<style>" + club_theme_css() + "</style>"
     if extra_club:
         head_extra += '<script>document.documentElement.setAttribute("data-club","%s");</script>' % extra_club
@@ -2319,43 +2486,45 @@ def base_page(body, active="", page_js="", extra_club=None):
                 '<div style="margin-top:14px"><a class="btn pri" href="/home#jerseys">{c}</a></div></div>'
                 ).format(a=d["drop_live"], b=drop.get(en and "en" or "ar", ""), c=d["drop_shop"])
     return """<!DOCTYPE html>
-<html lang="@@LANG@@" dir="@@DIR@@">
+<html lang="LANG" dir="DIR">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>golazox</title>
 <meta name="description" content="golazox — football club jerseys & sports mugs, order on WhatsApp">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-@@CSS@@
-@@HEADEXTRA@@
+<noscript><style>.rv{opacity:1;transform:none}.hero-ball,.stadium-bg{display:none}</style></noscript>
+CSS
+HEADEXTRA
 </head>
 <body>
-@@HEADER@@
-@@PRE@@
-@@BODY@@
-@@FOOTER@@
-@@MODALS@@
+HEADER
+PRE
+BODY
+FOOTER
+MODALS
 <div class="co" id="co" onclick="closeCart()"></div>
-<div class="cd" id="cd"><div class="cd-head"><b>🛒 @@TCART@@</b><button class="mx" onclick="closeCart()">✕</button></div>
+<div class="cd" id="cd"><div class="cd-head"><b>🛒 T_CART</b><button class="mx" onclick="closeCart()">✕</button></div>
 <div class="cd-body" id="cdb"></div><div class="cd-foot" id="cdf"></div></div>
 <div class="lb" id="lb" onclick="closeLB()"><img id="lbimg" alt=""></div>
-<a class="fab" target="_blank" rel="noopener" href="https://wa.me/@@WA@@" title="WhatsApp">💬</a>
-@@PAGEJS@@
-@@BASEJS@@
+<a class="fab" target="_blank" rel="noopener" href="https://wa.me/WA" title="WhatsApp">💬</a>
+PAGEJS
+JS
 </body>
-</html>""".replace("@@LANG@@", "en" if en else "ar") \
-        .replace("@@DIR@@", "ltr" if en else "rtl") \
-        .replace("@@CSS@@", css) \
-        .replace("@@HEADEXTRA@@", head_extra) \
-        .replace("@@HEADER@@", header_html(active)) \
-        .replace("@@PRE@@", pre) \
-        .replace("@@BODY@@", body) \
-        .replace("@@FOOTER@@", footer_html()) \
-        .replace("@@MODALS@@", modals_html()) \
-        .replace("@@TCART@@", d["cart_title"]) \
-        .replace("@@WA@@", cfg.WHATSAPP) \
-        .replace("@@PAGEJS@@", page_js) \
-        .replace("@@BASEJS@@", js)
+</html>""".replace("LANG", "en" if en else "ar") \
+        .replace("DIR", "ltr" if en else "rtl") \
+        .replace("FONT", "Poppins" if en else "Cairo") \
+        .replace("CSS", CSS) \
+        .replace("HEADEXTRA", head_extra) \
+        .replace("HEADER", header_html(active)) \
+        .replace("PRE", pre) \
+        .replace("BODY", body) \
+        .replace("FOOTER", footer_html()) \
+        .replace("MODALS", ads_html("banner") + modals_html()) \
+        .replace("T_CART", d["cart_title"]) \
+        .replace("WA", cfg.WHATSAPP) \
+        .replace("PAGEJS", page_js) \
+        .replace("JS", js)
 
 
 def header_html(active=""):
@@ -2416,18 +2585,17 @@ def footer_html():
             '<p class="ft-desc">{badge}</p>'
             '<div class="ft-social">'
             '<a target="_blank" rel="noopener" href="https://wa.me/{wa}" title="{wa_title}">💬</a>'
-            '<a target="_blank" rel="noopener" href="{tg}" title="{tg_title}">✈️</a>'
             '<a onclick="setLang(\'{other}\')" title="{lang}">{langname}</a>'
             '</div></div>'
             '<div class="ft-col"><h4>{t1}</h4>{col_links}</div>'
             '<div class="ft-col"><h4>{t2}</h4>{club_links}</div>'
             '<div class="ft-col"><h4>{t3}</h4>{col_help}'
-            '<a target="_blank" rel="noopener" href="{tg}" style="margin-top:10px;font-weight:800">{tg_txt} ✈️</a>'
+            '<a target="_blank" rel="noopener" href="https://wa.me/{wa}" style="margin-top:10px;font-weight:800">{wa_txt} 💬</a>'
             '</div></div>'
             '<p class="ft-copy">{copy}</p>'
             '</div></footer>').format(
-        badge=d["badge"], wa=cfg.WHATSAPP, wa_title=d["ft_wa"], tg=cfg.TG_LINK,
-        tg_title=d["ft_tg"], tg_txt=d["order_tg"], other="ar" if en else "en",
+        badge=d["badge"], wa=cfg.WHATSAPP, wa_title=d["ft_wa"], wa_txt=d["order_wa"],
+        other="ar" if en else "en",
         lang=d["lang_name"], langname=d["lang_name"],
         t1=d["ft_links"], col_links=col_links, t2=d["ft_clubs"], club_links=club_links,
         t3=d["ft_help"], col_help=col_help, copy=d["footer_copy"])
@@ -2490,6 +2658,12 @@ def auth_box_html(prefix=""):
             '<div class="auth-actions">'
             '<button class="hbtn" id="{p}au_resendbtn" onclick="authResend(\'{p}\')">🔄 {resend}</button>'
             '<button class="hbtn" onclick="authChangePhone(\'{p}\')">↩ {chg}</button></div></div>'
+            '<div class="auth-step3" id="{p}au_step3" style="display:none">'
+            '<p class="auth-sent">🔐 {aqt}</p>'
+            '<p class="mnote">{aqsub}</p>'
+            '<div class="fld"><label>{aqq}</label><input id="{p}au_ans" autocomplete="off"></div>'
+            '<button class="btn pri big" id="{p}au_abtn" onclick="authAdminCheck(\'{p}\')">{aqb}</button>'
+            '<div class="auth-actions"><button class="hbtn" onclick="authCancelAdmin(\'{p}\')">↩ {chg}</button></div></div>'
             '</div>'
             '<div class="auth-pane" id="{p}auth_pane_pw" style="display:none">'
             '<div class="fld"><label>{em}</label>'
@@ -2501,7 +2675,9 @@ def auth_box_html(prefix=""):
                      em=d["auth_email"], emph=d["auth_email_ph"], ct=d["auth_continue"], sent=d["auth_sent_to"],
                      otp=d["auth_otp_ph"], nm=d["auth_name_ph"], new=d["auth_new"], demo=d["auth_demo_note"],
                      fill=d["auth_demo_fill"], v=d["auth_verify"], resend=d["auth_resend"], chg=d["auth_change_num"],
-                     pw=d["auth_pw_ph"], pb=d["auth_pw_btn"])
+                     pw=d["auth_pw_ph"], pb=d["auth_pw_btn"],
+                     aqt=d["adm_q_title"], aqsub=d["adm_q_sub"], aqq=d["adm_q_q"],
+                     aqb=d["adm_q_btn"])
 
 
 def modals_html():
@@ -2589,6 +2765,7 @@ def modals_html():
                 '<label class="btn pri" style="flex:1;justify-content:center">{cam}<input type="file" accept="image/*" capture="environment" onchange="isHandleFile(this,true)" style="display:none"></label>'
                 '<label class="btn ghost" style="flex:1;justify-content:center">{up}<input type="file" accept="image/*" onchange="isHandleFile(this,false)" style="display:none"></label></div>'
                 '<div class="fld" style="margin-top:12px"><label>{desc}</label><input id="is_desc" placeholder="{ph}"></div>'
+                '<img id="is_preview" style="display:none;max-height:150px;border-radius:14px;margin-top:12px" alt="">'
                 '<p id="is_analyzing" class="mnote" style="margin-top:10px;font-weight:800;display:none">{an}</p>'
                 '<div id="is_resultsBox"></div>'
                 ).format(sub=d["is_sub"], cam=d["is_camera"], up=d["is_upload"],
@@ -2596,22 +2773,42 @@ def modals_html():
 
     points_body = '<div id="ptsBox"></div>'
 
+    try_opts = "".join('<option value="{id}">{name}</option>'.format(
+        id=x["id"], name=x.get("name_ar", x["id"])) for x in cfg.PRODUCTS if x["kind"] == "jersey")
+    try_sizes = "".join('<button class="sz-pill" data-sz="{sz}" onclick="tryPickSize(this,\'{sz}\')">{sz}</button>'.format(sz=s)
+                        for s in cfg.SIZE_ORDER[:5])
     tryit_body = ('<p class="mnote">{sub}</p>'
                   '<div style="display:flex;gap:10px;flex-wrap:wrap">'
                   '<label class="btn pri" style="flex:1;justify-content:center">{cam}<input id="tryfile" type="file" accept="image/*" capture="environment" onchange="tryHandle(this,true)" style="display:none"></label>'
                   '<label class="btn ghost" style="flex:1;justify-content:center">{up}<input type="file" accept="image/*" onchange="tryHandle(this,false)" style="display:none"></label></div>'
+                  '<img id="tryPrev" alt="" style="display:none;max-width:150px;max-height:150px;border-radius:16px;margin-top:10px;border:2px solid var(--ac)">'
                   '<p class="img-search-tip">{hint}</p>'
-                  '<div id="tryCanvasWrap" style="display:none;margin-top:10px">'
-                  '<div class="try-stage"><canvas id="tryCanvas"></canvas><span class="try-ai">{ai}</span></div>'
+                  '<p class="try-err" id="tryErr" style="display:none;margin-top:8px;background:#FEE2E2;border:1px solid #FCA5A5;color:#B91C1C;border-radius:12px;padding:10px 14px;font-weight:800"></p>'
+                  '<div class="fld" style="margin-top:8px"><label>{prod}</label>'
+                  '<select id="try_sel" onchange="trySwitch(this.value)">{opts}</select></div>'
+                  '<div class="sizes-row" id="try_sizes" style="margin-top:8px">{sizes}</div>'
+                  '<div class="try-stage" id="tryStage"><span class="try-ai">{ai}</span>'
+                  '<div class="try-ph" id="tryPh">{ph}</div></div>'
+                  '<p class="try-load" id="tryLoading" style="display:none;margin-top:8px;font-weight:800">⚙️ {loading}</p>'
                   '<div class="mwarning">⚠️ {dis}</div>'
-                  '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">'
+                  '<div id="tryResultWrap" style="display:none;margin-top:12px">'
+                  '<div class="try-result-head">✨ {done}</div>'
+                  '<img id="tryResultImg" alt="' + esc(d["try_result_alt"]) + '" style="display:block;width:100%;max-height:440px;object-fit:contain;border-radius:16px;border:2px solid var(--ac)">'
+                  '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">'
+                  '<button class="btn ghost" style="flex:1" onclick="tryAnother()">{another}</button>'
                   '<button class="btn pri" style="flex:1" onclick="tryAdd()">{add}</button>'
-                  '<button class="btn ghost" style="flex:1" onclick="tryShare()">{sh}</button>'
-                  '<button class="btn ghost" style="flex:1" onclick="tryReset()">{ag}</button></div>'
-                  '<p class="img-search-tip">{priv}</p></div>'
+                  '<button class="btn ghost" style="flex:1" onclick="tryReset()">{redo}</button></div>'
+                  '<p class="img-search-tip">{fine}</p></div>'
+                  '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px" id="tryRunRow">'
+                  '<button class="btn pri" style="flex:1" id="tryRun" onclick="tryRun()">{run}</button>'
+                  '<button class="btn ghost" style="flex:1" onclick="tryShare()">{sh}</button></div>'
+                  '<p class="img-search-tip">{priv}</p>'
                   ).format(sub=d["try_sub"], cam=d["try_cam"], up=d["try_up"], hint=d["try_hint"],
-                           ai=d["try_ai"], dis=d["try_dis"], add=d["try_add"], sh=d["try_share"],
-                           ag=d["try_again"], priv=d["try_priv"])
+                           prod=d["try_product"], opts=try_opts, sizes=try_sizes,
+                           ai=d["try_ai"], ph=d["try_ph"], loading=d["try_loading"],
+                           dis=d["try_dis"], done=d["try_done"], another=d["try_another"],
+                           add=d["try_add"], redo=d["try_again"], fine=d["try_fine"],
+                           run=d["try_run"], sh=d["try_share"], priv=d["try_priv"])
 
     pricedrop_body = ('<p class="mnote">{sub}</p>'
                       '<input type="hidden" id="pd_prod">'
@@ -2710,6 +2907,31 @@ def features_html():
     return '<div class="feat-bar">{rows}</div>'.format(rows=rows)
 
 
+def ads_html(place):
+    """Render active announcement/ads strips for a given placement."""
+    try:
+        ads = db.ads_list(place=place, active_only=True)
+        if not ads:
+            return ""
+    except Exception:
+        return ""
+    en = lang() == "en"
+    items = ""
+    for a in ads:
+        txt = (a.get("text_en") if en else a.get("text_ar")) or a.get("text_ar") or a.get("text_en") or ""
+        if not txt:
+            continue
+        link = a.get("link") or ""
+        inner = '<span class="ads-txt">📢 ' + esc(txt) + '</span>'
+        if link:
+            items += '<a class="ads-item" href="' + esc(link) + '">' + inner + '</a>'
+        else:
+            items += '<div class="ads-item">' + inner + '</div>'
+    if not items:
+        return ""
+    return '<div class="ads-strip">{items}</div>'.format(items=items)
+
+
 def home_body():
     en = lang() == "en"
     d = cfg.L[lang()]
@@ -2748,12 +2970,15 @@ def home_body():
 
     hero = ('<div class="hero">'
             '<span class="hero-tag"><span class="pulse"></span>{tag}</span>'
+            '<div class="hero-brand" aria-hidden="true">GOLAZOX</div>'
             '<h1>{t1}<br><span class="g">{t2}</span></h1><p>{sub}</p>'
             '<div class="hero-btns"><a class="btn pri" href="/products">{cj}</a>'
             '<a class="btn ghost" href="#clubs">{ct}</a></div>'
+            '<div class="hero-price">{pj} · {pm}</div>'
             '<div class="hero-ball"><span class="ring"></span>⚽</div></div>'
             ).format(tag=d["home_section_hero_tag"], t1=d["home_hero_t1"], t2=d["home_hero_t2"],
-                     sub=d["home_hero_sub"], cj=d["home_cta_shop"], ct=d["home_cta_team"])
+                     sub=d["home_hero_sub"], cj=d["home_cta_shop"], ct=d["home_cta_team"],
+                     pj=fmt_cur(cfg.PRICE_JERSEY), pm=fmt_cur(cfg.PRICE_MUG))
 
     clubs_sec = ('<div class="sec rv" id="clubs"><div class="sec-head"><h2><span class="bar"></span>{t}</h2>'
                  '<span class="sec-sub">{s}</span></div>'
@@ -2864,6 +3089,7 @@ def home_body():
     return (atmos_html("full")
             + '<div class="wrap">'
             + hero
+            + ads_html("home")
             + features_html()
             + '<div class="sec rv" id="jerseys"><div class="sec-head"><h2><span class="bar"></span>{sj}</h2><span class="sec-sub">{sj_sub}</span></div>'
             + shop_section_html(jgrid, "gridJ")
@@ -2891,17 +3117,30 @@ def listing_page(kind):
     d = cfg.L[lang()]
     if kind == "mug":
         title, sub = d["mugs_title"], d["mugs_sub"]
+        head_ic = "☕⚽"
     else:
         title, sub = d["prod_title"], d["prod_sub"]
+        head_ic = "👕"
     prods = [p for p in cfg.PRODUCTS if not p.get("hidden") and p["kind"] == kind]
     grid = "".join(product_card(p) for p in prods)
+    search_bar = (
+        '<div class="list-search rv">'
+        '<div class="ls-head"><span class="ls-ic">{ic}</span><div><h1>{t}</h1><p>{s}</p></div></div>'
+        '<div class="ls-box">'
+        '<input id="sq2" placeholder="{ph}" onkeydown="if(event.key===\'Enter\')applyFilters()">'
+        '<button class="btn pri" onclick="applyFilters()">🔍 {go}</button>'
+        '<button class="btn ghost" onclick="openModal(\'m-imgsearch\')">🖼️ {is_}</button>'
+        '</div>'
+        '</div>'
+        ).format(ic=head_ic, t=title, s=sub, ph=d["search_ph"], go=d["search_ph"], is_=d["is_title"])
     body = (atmos_html("light")
             + '<div class="wrap">'
-            '<div class="page-head"><h1>{t}</h1><p>{s}</p></div>'
+            + ads_html("products")
+            + search_bar
             + shop_section_html(grid, "gridL")
             + '<div style="text-align:center;margin-top:26px"><a class="back" href="/home">← {b}</a></div>'
             '</div>'
-            ).format(t=title, s=sub, grid=grid, b=d["back"])
+            ).format(b=d["back"])
     return base_page(body, active=("mugs" if kind == "mug" else "products"))
 
 
@@ -2924,7 +3163,44 @@ def info_page(kind):
         inner = "<ul class='ret'>" + items + "</ul>" + "<div class='mwarning'>⚠️ {w}</div>".format(w=d["ret_warn"])
     else:
         title, sub = d["how_page_title"], d["how_page_sub"]
-        inner = ("<ol class='steps'>" + "".join("<li><b>{n}</b> {x}</li>".format(n=i + 1, x=d["how_" + str(i + 1)]) for i in range(4)) + "</ol>")
+        steps = "".join(
+            ('<div class="hw-step rv">'
+             '<div class="hw-dot">{n}</div>'
+             '<div class="hw-line"></div>'
+             '<div class="hw-ic">{ic}</div>'
+             '<div class="hw-txt"><b>{t}</b><span>{x}</span></div>'
+             '</div>')
+            .format(n=i + 1, ic=("🛒", "📏", "🛍️", "💬", "📦", "⭐")[i],
+                    t=d["how_%d_t" % (i + 1)], x=d["how_" + str(i + 1)])
+            for i in range(6))
+        price_j = fmt_cur(cfg.PRICE_JERSEY)
+        price_m = fmt_cur(cfg.PRICE_MUG)
+        deliv = fmt_cur(cfg.DELIVERY_FEE)
+        price_cards = (
+            '<div class="hw-price-card rv" style="--hwc:var(--ac);--hwc2:var(--ac2)">'
+            '<div class="hwp-ic">👕</div><div class="hwp-t">{jt}</div>'
+            '<div class="hwp-price">{pj}</div><div class="hwp-d">{jd}</div></div>'
+            '<div class="hw-price-card rv" style="--hwc:#16A34A;--hwc2:#22C55E">'
+            '<div class="hwp-ic">☕⚽</div><div class="hwp-t">{mt}</div>'
+            '<div class="hwp-price">{pm}</div><div class="hwp-d">{md}</div></div>'
+            '<div class="hw-price-card rv" style="--hwc:#3B82F6;--hwc2:#60A5FA">'
+            '<div class="hwp-ic">🚚</div><div class="hwp-t">{dt}</div>'
+            '<div class="hwp-price">{dv}</div><div class="hwp-d">{dd}</div></div>'
+            ).format(jt=d["how_sec_jersey"], pj=price_j, jd=d["how_sec_jersey_d"],
+                     mt=d["how_sec_mug"], pm=price_m, md=d["how_sec_mug_d"],
+                     dt=d["how_delivery_t"], dv=deliv, dd=d["how_delivery_d"])
+        ctas = ('<a class="btn pri" href="/products">{cj}</a>'
+                '<a class="btn ghost" href="/mugs">{cm}</a>'
+                '<a class="btn ghost" href="/size-guide">{cs}</a>'
+                '<a class="btn wa" target="_blank" rel="noopener" href="https://wa.me/{wa}">{cw}</a>'
+                ).format(cj=d["how_cta_j"], cm=d["how_cta_m"], cs=d["how_cta_sz"],
+                         cw=d["how_cta_wa"], wa=cfg.WHATSAPP)
+        inner = ('<div class="hw-timeline">{steps}</div>'
+                 '<div class="hw-prices"><h2><span class="bar"></span>{pt}</h2>'
+                 '<p class="hw-sub">{ps}</p><div class="hw-price-grid">{cards}</div></div>'
+                 '<div class="hw-ctas">{ctas}</div>'
+                 ).format(steps=steps, pt=d["how_prices_t"], ps=d["how_prices_sub"],
+                          cards=price_cards, ctas=ctas)
     body = ('<div class="wrap"><div class="page-head"><h1>{t}</h1><p>{s}</p></div>'
             '<div class="content-card">{inner}</div>'
             '<div style="text-align:center;margin-top:26px"><a class="back" href="/home">← {b}</a></div>'
@@ -3022,6 +3298,8 @@ def product_card(p):
     club = cfg.club_of(p)
     club_id = club and p["club_id"] or ""
     clubn = (club and club.get(en and "en" or "ar")) or ""
+    clubn_ar = (club and club.get("ar")) or ""
+    clubn_en = (club and club.get("en")) or ""
     th = club_themes().get(club_id, {}) if club_id else {}
     pc = th.get("ac", "#E11D48"); pc2 = th.get("ac2", "#F97316")
     first = p["imgs"][0]
@@ -3036,8 +3314,17 @@ def product_card(p):
             for sz in cfg.SIZE_ORDER[:5])
         sizes_row = '<div class="sizes-row">{pills}</div>'.format(pills=pills)
     pdots = "".join('<span class="pdot" style="background:%s"></span>' % c for c in p["colors"])
+    searchable = " ".join(filter(None, [
+        p.get("name_ar", ""), p.get("name_en", ""),
+        clubn_ar, clubn_en,
+        p.get("desc_ar", ""), p.get("desc_en", ""),
+        p["id"], p["kind"],
+    ])).replace('"', "&quot;").lower()
+    trybtn = ""
+    if p["kind"] == "jersey":
+        trybtn = '<button class="tryme" onclick="tryOpen(\'{id}\')">📸 {tr}</button>'.format(id=p["id"], tr=d["try_title"])
     return (
-        '<div class="pcard" data-id="{id}" data-kind="{kind}" data-club="{cid}" data-clubn="{cn}" data-stock="{csv}" data-price="{price}" data-name="{name}" data-order="{order}" data-badge="{bcsv}" data-col="{ncol}" style="--pc:{pc};--pc2:{pc2}">'
+        '<div class="pcard" data-id="{id}" data-kind="{kind}" data-club="{cid}" data-clubn="{cn}" data-search="{search}" data-stock="{csv}" data-price="{price}" data-name="{name}" data-order="{order}" data-badge="{bcsv}" data-col="{ncol}" style="--pc:{pc};--pc2:{pc2}">'
         '<div class="badges">{badges}</div>'
         '<button class="heart {on}" onclick="toggleFav(\'{id}\',this)">{h}</button>'
         '<a href="/product/{id}"><div class="pimg" style="background:linear-gradient(135deg,{c1},{c2})">'
@@ -3047,11 +3334,13 @@ def product_card(p):
         '{low}'
         '{sizes_row}'
         '<div class="pcols">{pdots}</div>'
+        '{trybtn}'
         '<div class="pfoot"><b>{pr}</b><a class="pview" href="/product/{id}">{view} ←</a></div></div></div>'
-    ).format(id=p["id"], kind=p["kind"], cid=club_id, cn=clubn.replace('"', "&quot;"), csv=stock_csv,
-             price=eff_price(p), name=name.replace('"', "&quot;"), badges=badges_html, on="on" if fav else "", h="❤" if fav else "🤍",
+    ).format(id=p["id"], kind=p["kind"], cid=club_id, cn=clubn.replace('"', "&quot;"), search=searchable,
+             csv=stock_csv, price=eff_price(p), name=name.replace('"', "&quot;"), badges=badges_html,
+             on="on" if fav else "", h="❤" if fav else "🤍",
              c1=p["colors"][0], c2=p["colors"][1], first=first, cat=cat, pr=pr, view=d["view"], low=low,
-             order=order, bcsv=b_csv, ncol=ncol, sizes_row=sizes_row, pdots=pdots,
+             order=order, bcsv=b_csv, ncol=ncol, sizes_row=sizes_row, pdots=pdots, trybtn=trybtn,
              pc=pc, pc2=pc2)
 
 
@@ -3213,7 +3502,6 @@ def product_body(pid):
         '<div class="qty"><button onclick="chgQ(-1)">−</button><span class="qn" id="qty">1</span><button onclick="chgQ(1)">+</button></div></div>'
         '<button class="btn pri orderbtn" onclick="var q=parseInt(document.getElementById(\'qty\').textContent,10);addCart(\'{id}\',selSize||\'\',q)">🛒 {add}</button>'
         '<button class="btn wa orderbtn" style="margin-top:10px" onclick="orderDirect(\'{id}\')">💬 {ow}</button>'
-        '<button class="btn tg orderbtn" style="margin-top:10px" onclick="orderTG(\'{id}\')">✈️ {ot}</button>'
         '{trybtn}'
         '<button class="btn ghost orderbtn" style="margin-top:10px" onclick="openPriceDrop(\'{id}\')">🔔 {pd}</button>'
         '{notify}'
@@ -3226,7 +3514,7 @@ def product_body(pid):
         '</div>'
     ).format(back=d["back"], first=p["imgs"][0], name=name, gal_nav=gal_nav, thumbs_block=thumbs_block,
              gthumbs=gthumbs, zh=d["zoom_hint"], cat=cat, pr=pr, trust=trust, trust_info=trust_info,
-             sizes=sizes, ql=d["qty_label"], id=p["id"], add=d["add"], ow=d["order_wa"], ot=d["order_tg"],
+             sizes=sizes, ql=d["qty_label"], id=p["id"], add=d["add"], ow=d["order_wa"],
              trybtn=trybtn, pd=d["pd_title"],
              notify=notify, a=d["prod_links_sz"], b=d["prod_links_wash"], c=d["prod_links_ret"],
              ratings=ratings, yml=yml)
@@ -3313,25 +3601,51 @@ def account_page():
     if not orders:
         ord_html = '<p class="mnote">' + d["acc_empty_orders"] + '</p>'
     else:
-        for o in orders:
+        def _order_card(o):
             dta = o["data"]
-            items = "".join(
-                '<div style="font-size:.82rem;color:var(--mut)">• {e} {n} × {q}</div>'.format(
-                    e=esc(it.get("emoji", "⚽")), n=esc(it.get("name", "")), q=it.get("qty", 1))
-                for it in dta.get("items", [])[:4])
-            ord_html += (
-                '<div class="acc-card"><div class="acc-ord">'
-                '<div class="ao"><b>#{c}</b><span>{dt} · {sl} · {pl}</span>{items}</div>'
-                '<div class="ao" style="min-width:90px;text-align:end"><b>{t} {cu}</b></div>'
-                '<div style="display:flex;gap:6px;flex-wrap:wrap">'
-                '<a class="hbtn" href="/ticket?code={c}">{tk}</a>'
-                '<a class="hbtn" href="/track?code={c}">{tr}</a>'
-                '<button class="hbtn" onclick="openReorder(\'{c}\')">{ro}</button>'
-                '</div></div></div>'
-            ).format(c=o["code"], dt=dta.get("date", ""), sl=d.get("st_" + o["status"], o["status"]),
-                     pl=d.get("pay_" + o["payment"], o["payment"]), items=items,
-                     t=fmt_cur(dta.get("total", 0)), cu=cur(),
-                     tk=d["acc_view"], tr=d["tr_title"], ro=d["acc_reorder"])
+            code = o["code"]
+            cancelled = o["status"] == "cancelled"
+            idx = ORDER_FLOW.index(o["status"]) if o["status"] in ORDER_FLOW else -1
+            rows = ""
+            for it in dta.get("items", [])[:6]:
+                p = next((x for x in cfg.PRODUCTS if x["id"] == it.get("id")), None)
+                img = ("/img/" + esc(p["imgs"][0])) if p and p.get("imgs") else ""
+                imgh = ('<img src="' + img + '" alt="" loading="lazy">') if img else ('<span class="acc-oem">' + esc(it.get("emoji", "⚽")) + '</span>')
+                szpart = ""
+                if it.get("kind") != "mug" and it.get("size"):
+                    szpart = d["size_w"] + esc(it.get("size", "")) + " · "
+                rows += ('<div class="acc-oit">' + imgh +
+                         '<div class="aoit"><b>{e} {n}</b><span>{sz}{q} × {pr} {c}</span></div></div>').format(
+                    e=esc(it.get("emoji", "⚽")), n=esc(it.get("name", "")), sz=szpart,
+                    q=it.get("qty", 1), pr=fmt_cur(it.get("price", 0)), c=cur())
+            if cancelled:
+                tl = ('<div class="tl"><div class="dot"></div><div><div class="lt">{lbl}</div></div></div>').format(
+                    lbl=d.get("st_cancelled", "cancelled"))
+            else:
+                inner = ""
+                for i, st in enumerate(ORDER_FLOW):
+                    done = (idx >= 0 and i <= idx)
+                    cls = "done" if done else ("cur" if i == idx else "")
+                    inner += ('<div class="tl {cls}"><div class="dot"></div>'
+                              '<div><div class="lt">{lbl}</div></div></div>').format(
+                        cls=cls, lbl=d.get("st_" + st, st))
+                tl = '<div class="tl">' + inner + '</div>'
+            return ('<div class="acc-card">'
+                    '<div class="acc-ordhead"><div class="ao"><b>#{c}</b><span>{dt}</span></div>'
+                    '<span class="pill">{sl}</span></div>'
+                    '{rows}'
+                    '<div class="row-t total" style="margin-top:12px"><span>{tlabel}</span><b>{t} {cu}</b></div>'
+                    '<button class="hbtn acc-tlbtn" onclick="accTl(\'{c}\')">🚚 {tbtn}</button>'
+                    '<div id="tl-{c}" style="display:none;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)">{tl}</div>'
+                    '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:12px">'
+                    '<a class="hbtn" href="/ticket?code={c}">{tk}</a>'
+                    '<a class="hbtn" href="/track?code={c}">{tr}</a>'
+                    '<button class="hbtn" onclick="openReorder(\'{c}\')">{ro}</button>'
+                    '</div></div>').format(
+                c=code, dt=dta.get("date", ""), sl=d.get("st_" + o["status"], o["status"]),
+                rows=rows, tlabel=d["cart_total"], t=fmt_cur(dta.get("total", 0)), cu=cur(),
+                tbtn=d["acc_track"], tl=tl, tk=d["acc_view"], tr=d["tr_title"], ro=d["acc_reorder"])
+        ord_html = "".join(_order_card(o) for o in orders)
 
     pp_stamps = "".join('<div class="pp-stamp%s" title="%s">%s</div>' % (
         "" if cid in clubs else " lock", esc(c.get(en and "en" or "ar", "")), c.get("emoji", "⚽"))
@@ -3356,11 +3670,13 @@ def account_page():
             rw=((str(r.get("d", 0)) + "% · +" + str(r.get("p", 0))) if (r.get("d") or r.get("p")) else "—"))
     rw_html += '</div>'
 
-    data_html = ('<div class="fld"><label>{n}</label><input id="pd_name" value="{name}"></div>'
+    data_html = ('<div class="fld"><label>{li}</label><input value="{phone}" readonly></div>'
+                 '<div class="fld"><label>{n}</label><input id="pd_name" value="{name}"></div>'
                  '<div class="frow"><div class="fld"><label>{a}</label><input id="pd_area" value="{area}"></div>'
                  '<div class="fld"><label>{ad}</label><input id="pd_addr" value="{addr}"></div></div>'
                  '<button class="btn pri big" onclick="saveAccountData()">{sv}</button>'
-                 ).format(n=d["co_name"], name=esc(u.get("name", "") or ""), a=d["co_area"],
+                 ).format(li=d["acc_login_id"], phone=esc(u.get("phone", "") or ""), n=d["co_name"],
+                          name=esc(u.get("name", "") or ""), a=d["co_area"],
                           area=esc(u.get("area", "") or ""), ad=d["co_address"],
                           addr=esc(u.get("address", "") or ""), sv=d["ok_saved"])
 
@@ -3383,7 +3699,12 @@ def account_page():
     else:
         sizes_html = '<p class="mnote">' + d["acc_sizes_empty"] + '</p>'
 
-    tabs = [("acc-orders", d["acc_orders"]), ("acc-favs", d["acc_favs"]),
+    notifs = db.user_notifs(u["id"])
+    unread = db.user_notif_unread(u["id"])
+
+    tabs = [("acc-orders", d["acc_orders"]),
+            ("acc-notifs", d["acc_notifs"] + (('<span class="acc-badge" id="nbadge">%d</span>' % unread) if unread else "")),
+            ("acc-favs", d["acc_favs"]),
             ("acc-sizes", d["acc_sizes"]), ("acc-alerts", d["acc_alerts"]),
             ("acc-points", d["acc_points"]), ("acc-passport", d["acc_passport"]),
             ("acc-dna", d["acc_dna"]), ("acc-data", d["acc_data"]),
@@ -3391,12 +3712,20 @@ def account_page():
     nav = "".join('<button class="acc-btn%s" data-tab="%s" onclick="accTab(\'%s\')">%s</button>' % (
         " on" if i == 0 else "", sid, sid, lbl) for i, (sid, lbl) in enumerate(tabs))
 
+    if notifs:
+        n_html = "".join('<div class="acc-n{ifirst}"><span class="acc-ndot"></span><p>{txt}</p><span class="acc-ndt">{dt}</span></div>'.format(
+            ifirst=" first" if i == 0 else "", txt=esc(x["text"]), dt=esc(x["created"]))
+            for i, x in enumerate(notifs))
+    else:
+        n_html = '<p class="mnote">' + d["acc_notifs_empty"] + '</p>'
+
     body = (
         '<div class="wrap"><div class="acc-box">'
         '<div class="acc-hero"><h2>{w} {n} 👋</h2><p>{since}: {d} · {sp}: <b>{s} {c}</b></p>'
         '<button class="hbtn" style="position:absolute;top:16px;inset-inline-end:16px;background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.4)" onclick="authOut()">{out}</button></div>'
         '<div class="acc-nav">{nav}</div>'
         '<div class="acc-sec on" id="acc-orders">{orders}</div>'
+        '<div class="acc-sec" id="acc-notifs">{notifs}</div>'
         '<div class="acc-sec" id="acc-favs"><div id="favsBox"></div></div>'
         '<div class="acc-sec" id="acc-sizes">{sizes}</div>'
         '<div class="acc-sec" id="acc-alerts"><div id="alertsBox"></div></div>'
@@ -3408,7 +3737,7 @@ def account_page():
         '</div></div>'
     ).format(w=d["acc_welcome"], n=esc(u.get("name", "") or "👤"), since=d["acc_member_since"],
              d=u.get("created", ""), sp=d["acc_spent"], s=fmt_cur(spent), c=cur(), out=d["ac_logout"],
-             nav=nav, orders=ord_html, sizes=sizes_html, pp=pp_html, rw=rw_html, data=data_html, set=set_html)
+             nav=nav, orders=ord_html, notifs=n_html, sizes=sizes_html, pp=pp_html, rw=rw_html, data=data_html, set=set_html)
     return base_page(body)
 
 
@@ -3981,6 +4310,26 @@ def admin_order(code):
     return admin_order_page(code)
 
 
+@app.route("/admin/notifs")
+def admin_notifs_page():
+    if not admin_auth():
+        if current_user():
+            return blocked_page()
+        return redirect("/admin/login")
+    an = db.admin_notifs(200)
+    rows = ""
+    for x in an:
+        rows += ('<tr class="{un}"><td>{txt}</td><td style="white-space:nowrap">{dt}</td></tr>').format(
+            un="un" if not x["read"] else "", txt=esc(x["text"]), dt=esc(x["created"]))
+    db.admin_notif_read_all()
+    body = ('<div class="adm">'
+            '<div class="hd-in" style="justify-content:space-between;padding:14px 0"><b style="font-size:1.2rem">🔔 مركز الإشعارات</b>'
+            '<a href="/admin" class="hbtn">← لوحة التحكم</a></div>'
+            '<div class="adm-card"><table class="anbox" style="max-height:none;border:0"><tr><th>الإشعار</th><th>التاريخ</th></tr>{rows}</table></div>'
+            '</div>').format(rows=rows if rows else '<tr><td colspan="2"><p class="mnote">لا توجد إشعارات</p></td></tr>')
+    return admin_template(body)
+
+
 @app.route("/health")
 def health():
     return "ok"
@@ -3993,10 +4342,31 @@ def api_order():
     now = datetime.datetime.now()
     data["date"] = now.strftime("%Y-%m-%d")
     data["time"] = now.strftime("%H:%M")
+    items = []
+    for it in data.get("items", []):
+        p = next((x for x in cfg.PRODUCTS if x["id"] == it.get("id")), None)
+        if not p:
+            continue
+        qty = max(1, int(it.get("qty", 1)))
+        items.append({
+            "id": p["id"], "size": it.get("size", "OS"), "qty": qty,
+            "name": it.get("name", p.get("name_ar", p["id"])),
+            "price": eff_price(p), "emoji": p.get("emoji", "⚽"), "kind": p["kind"]})
+    data["items"] = items
+    sub = sum(i["price"] * i["qty"] for i in items)
+    deliv = cfg.DELIVERY_FEE if items else 0
+    disc = min(max(0, float(data.get("discount", 0))), sub)
+    data["delivery"] = deliv
+    data["total"] = max(0, sub + deliv - disc)
     u = current_user()
     if u:
         data["user_id"] = u["id"]
     code = db.order_create(data)
+    try:
+        nm = data.get("name", "")
+        db.admin_notif_add("order", "🛒 طلب جديد %s — %s" % (code, nm))
+    except Exception:
+        pass
     return json_d({"code": code})
 
 
@@ -4012,6 +4382,88 @@ def api_request():
     data = request.get_json(force=True)
     ref = db.request_add(data)
     return json_d({"ref": ref})
+
+
+# ---------- virtual try-on (real AI adapter, privacy-safe) ----------
+import tempfile
+import base64 as _b64
+import uuid as _uuid
+tryon_jobs = {}  # job_id -> {"ts": float, "bytes": result|None, "err": str|None, "done": bool}
+
+
+def _tryon_model_bytes(pid):
+    p = next((x for x in cfg.PRODUCTS if x["id"] == pid), None)
+    if not p:
+        return None
+    imgs = p.get("imgs") or []
+    for im in imgs:
+        for ext in (".jpg", ".jpeg", ".png", ".webp", ".avif"):
+            pth = os.path.join(STATIC_IMG, im + ext)
+            if os.path.exists(pth):
+                with open(pth, "rb") as fh:
+                    return fh.read()
+    return None
+
+
+@app.route("/api/tryon/start", methods=["POST"])
+def api_tryon_start():
+    if not tryon.configured():
+        return json_d({"ok": False, "reason": "not_configured"})
+    photo = request.files.get("photo")
+    if not photo or not photo.filename:
+        return json_d({"ok": False, "reason": "no_photo"})
+    pid = (request.form.get("product", "") or "").strip()
+    model = _tryon_model_bytes(pid)
+    if model is None:
+        return json_d({"ok": False, "reason": "no_model"})
+    raw = photo.read(8 * 1024 * 1024)
+    if not raw:
+        return json_d({"ok": False, "reason": "no_photo"})
+    tmp = None
+    try:
+        fd, tmp = tempfile.mkstemp(suffix=".jpg")
+        os.close(fd)
+        with open(tmp, "wb") as fh:
+            fh.write(raw)
+        job = {"ts": time.time(), "done": False, "bytes": None, "err": None}
+        jid = _uuid.uuid4().hex[:16]
+        tryon_jobs[jid] = job
+        if len(tryon_jobs) > 60:
+            now = time.time()
+            for k in [k for k, v in tryon_jobs.items() if now - v["ts"] > 1200]:
+                tryon_jobs.pop(k, None)
+        try:
+            data = tryon.poll_until_done(tryon.start(raw, model))
+            job["bytes"] = data
+        except tryon.TryOnNotConfigured:
+            job["err"] = "not_configured"
+        except Exception as e:
+            job["err"] = str(e) or "provider_failed"
+        finally:
+            job["done"] = True
+        return json_d({"ok": True, "job": jid})
+    except Exception as e:
+        return json_d({"ok": False, "reason": "start_failed"})
+    finally:
+        if tmp:
+            try:
+                os.remove(tmp)
+            except Exception:
+                pass
+
+
+@app.route("/api/tryon/status", methods=["GET"])
+def api_tryon_status():
+    jid = request.args.get("job", "")
+    job = tryon_jobs.get(jid)
+    if not job:
+        return json_d({"ok": False, "reason": "no_job"})
+    if not job["done"]:
+        return json_d({"ok": False, "pending": True})
+    tryon_jobs.pop(jid, None)
+    if job["bytes"]:
+        return json_d({"ok": True, "img": "data:image/jpeg;base64," + _b64.b64encode(job["bytes"]).decode("ascii")})
+    return json_d({"ok": False, "reason": job["err"] or "provider_failed"})
 
 
 @app.route("/api/vote", methods=["POST"])
@@ -4328,7 +4780,32 @@ def api_auth_verify():
     session.permanent = True
     db.user_touch(u["id"])
     otp_rate_reset(contact)
+    is_admin_mail = (contact.lower() == cfg.ADMIN_EMAIL.lower())
+    if is_admin_mail:
+        session.pop("admin_ok", None)
+        return json_d({"ok": True, "admin_pending": True, "role": u["role"]})
     return json_d({"ok": True, "role": u["role"]})
+
+
+@app.route("/api/auth/admin_verify", methods=["POST"])
+def api_auth_admin_verify():
+    u = current_user()
+    if not u:
+        return json_d({"ok": False, "reason": "noauth"})
+    if u.get("phone", "").lower() != cfg.ADMIN_EMAIL.lower():
+        return json_d({"ok": False, "reason": "noauth"})
+    answer = str(request.get_json(force=True).get("answer", "") or "").strip()
+    expected = cfg.ADMIN_ANSWER.strip()
+    norm = lambda s: "".join(ch for ch in s
+                             .replace("أ", "ا").replace("إ", "ا").replace("آ", "ا")
+                             .replace("ى", "ي").replace("ة", "ه")
+                             .replace("ؤ", "و").replace("ئ", "ي")
+                             if not (ch.isspace() or ch.isdigit()))
+    if norm(answer).lower() == norm(expected).lower():
+        session["admin_ok"] = True
+        session.permanent = True
+        return json_d({"ok": True})
+    return json_d({"ok": False, "reason": "wrong"})
 
 
 @app.route("/api/auth/password", methods=["POST"])
@@ -4348,6 +4825,7 @@ def api_auth_password():
 @app.route("/api/auth/logout")
 def api_auth_logout():
     session.pop("user_id", None)
+    session.pop("admin_ok", None)
     return json_d({"ok": True})
 
 
@@ -4379,6 +4857,15 @@ def api_favs():
     favs = data.get("favs", [])
     valid = [f for f in favs if any(x["id"] == f for x in cfg.PRODUCTS)]
     db.user_favs_set(u["id"], valid)
+    return json_d({"ok": True})
+
+
+@app.route("/api/account/notifs/read", methods=["POST"])
+def api_account_notifs_read():
+    u = current_user()
+    if not u:
+        return json_d({"ok": False})
+    db.user_notif_read_all(u["id"])
     return json_d({"ok": True})
 
 
@@ -4453,12 +4940,16 @@ def api_reorder_get():
         if not p:
             continue
         st = eff_stock(p)
-        sizes = [sz for sz in cfg.SIZE_ORDER if st.get(sz, 0) > 0]
+        want = it.get("size", "OS")
+        sizes = [sz for sz in cfg.SIZE_ORDER if st.get(sz, 0) > 0] if p["kind"] != "mug" else []
+        if p["kind"] == "mug":
+            sizes = ["OS"] if st.get("OS", 0) > 0 else []
+        available = bool(sizes)
         out.append({"id": it["id"], "name": it.get("name", ""),
                     "name_ar": p.get("name_ar", ""), "name_en": p.get("name_en", ""),
                     "emoji": p.get("emoji", "⚽"),
-                    "size": it.get("size", "OS"), "qty": it.get("qty", 1),
-                    "sizes": sizes if p["kind"] != "mug" else []})
+                    "size": want, "qty": it.get("qty", 1),
+                    "sizes": sizes, "stock": available})
     return json_d({"items": out})
 
 
@@ -4525,6 +5016,10 @@ def api_review():
     db.review_add(pid, device, name[:40], design, fabric, quality, fit,
                   str(data.get("fit", "") or "")[:20], str(data.get("text", "") or "")[:500],
                   data.get("photo") or None, db.review_verified(pid, device))
+    try:
+        db.admin_notif_add("review", "⭐ مراجعة جديدة على %s من %s" % (pid, name[:30]))
+    except Exception:
+        pass
     return json_d({"ok": True})
 
 
@@ -4583,6 +5078,28 @@ def admin_auth():
     return bool(u and u.get("role") in ("admin", "super_admin"))
 
 
+def notify_order_status(o, code, new_st):
+    """Send the customer an in-account notification when the order status changes."""
+    try:
+        if not o:
+            return
+        uid = o["data"].get("user_id")
+        old_st = o["status"]
+        if uid and new_st and new_st != old_st:
+            st_names = {
+                "pending": "📝 تم استلام طلبك",
+                "confirmed": "✅ تم تأكيد طلبك",
+                "preparing": "👕 جاري تجهيز طلبك",
+                "delivering": "🚚 طلبك خرج للتوصيل",
+                "delivered": "🏠 تم تسليم طلبك",
+                "cancelled": "❌ تم إلغاء طلبك",
+            }
+            txt = (st_names.get(new_st, "📢 تم تحديث طلبك") + " #" + code)
+            db.user_notif_add(uid, txt)
+    except Exception:
+        pass
+
+
 def admin_login_page(msg=""):
     body = (
         '<div class="wrap"><div style="max-width:400px;margin:60px auto;text-align:center">'
@@ -4613,6 +5130,7 @@ def admin_login():
 @app.route("/admin/logout")
 def admin_logout():
     session.pop("admin_ok", None)
+    session.pop("user_id", None)
     return redirect("/")
 
 
@@ -4627,8 +5145,12 @@ def admin():
     if request.method == "POST":
         act = request.form.get("act", "")
         if act == "order":
-            db.order_update(request.form.get("code", ""), status=request.form.get("status", "pending"),
+            code = request.form.get("code", "")
+            new_st = request.form.get("status", "pending")
+            o = db.order_get(code)
+            db.order_update(code, status=new_st,
                             payment=request.form.get("payment", "pending"))
+            notify_order_status(o, code, new_st)
             return admin_page("<div class='msg'>تم الحفظ</div>")
         if act == "order_save":
             code = request.form.get("code", "")
@@ -4657,8 +5179,10 @@ def admin():
                     items.append(it)
                 dta["items"] = items
                 dta["total"] = total
-                db.order_update(code, data=dta, status=request.form.get("status", o["status"]),
+                new_st = request.form.get("status", o["status"])
+                db.order_update(code, data=dta, status=new_st,
                                 payment=request.form.get("payment", o["payment"]))
+                notify_order_status(o, code, new_st)
             return admin_page("<div class='msg'>💾 تم حفظ الطلب</div>")
         if act == "stock":
             pid = request.form.get("pid", "")
@@ -4720,17 +5244,6 @@ def admin():
                 if t:
                     db.club_theme_set(cid, t)
             return admin_page("<div class='msg'>تم حفظ الثيمات</div>")
-        if act == "price":
-            pid = request.form.get("pid", "")
-            v = request.form.get("price", "")
-            p = next((x for x in cfg.PRODUCTS if x["id"] == pid), None)
-            if p and v != "":
-                db.set_price(pid, float(v))
-            return admin_page("<div class='msg'>تم تحديث السعر</div>")
-        if act == "price_reset":
-            pid = request.form.get("pid", "")
-            db.settings_set("price_" + pid, None)
-            return admin_page("<div class='msg'>تمت إعادة السعر الافتراضي</div>")
         if act == "product_save":
             overrides = db.products_overrides()
             pid = str(request.form.get("pid", "")).strip()
@@ -4756,12 +5269,7 @@ def admin():
                 rec["name_ar"] = na
             if ne:
                 rec["name_en"] = ne
-            pr = request.form.get("price", "").strip()
-            if pr != "":
-                try:
-                    rec["price"] = float(pr)
-                except Exception:
-                    pass
+            rec["price"] = cfg.PRICE_JERSEY if rec["kind"] == "jersey" else cfg.PRICE_MUG
             em = request.form.get("emoji", "").strip()
             if em:
                 rec["emoji"] = em
@@ -4854,12 +5362,50 @@ def admin():
         if act == "admins_toggle":
             db.user_update(int(request.form.get("uid", 0)), role=request.form.get("role", "customer"))
             return admin_page("<div class='msg'>تم الحفظ</div>")
+        if act == "notif_read":
+            db.admin_notif_read_all()
+            return admin_page("<div class='msg'>تم تحديد الكل كمقروء</div>")
+        if act == "ad_save":
+            aid = int(request.form.get("aid", 0) or 0)
+            ta = request.form.get("text_ar", "").strip()
+            te = request.form.get("text_en", "").strip()
+            link = request.form.get("link", "").strip()
+            place = request.form.get("place", "home")
+            if aid:
+                db.ad_update(aid, ta, te, link, place)
+            else:
+                db.ad_add(ta, te, link, place)
+            return admin_page("<div class='msg'>✅ تم حفظ الإعلان</div>")
+        if act == "ad_toggle":
+            db.ad_toggle(int(request.form.get("aid", 0) or 0), request.form.get("active", "1") == "1")
+            return admin_page("<div class='msg'>تم الحفظ</div>")
+        if act == "ad_del":
+            db.ad_delete(int(request.form.get("aid", 0) or 0))
+            return admin_page("<div class='msg'>🗑 تم حذف الإعلان</div>")
     return admin_page("")
 
 
 def reload_stock():
     global STOCK
     STOCK = db.get_stock()
+
+
+@app.route("/api/admin/notifs")
+def api_admin_notifs():
+    if not admin_auth():
+        return json_d({"error": "unauthorized"}), 401
+    return json_d({
+        "unread": db.admin_notif_unread(),
+        "list": db.admin_notifs(60),
+    })
+
+
+@app.route("/api/admin/notifs/read", methods=["POST"])
+def api_admin_notifs_read():
+    if not admin_auth():
+        return json_d({"error": "unauthorized"}), 401
+    db.admin_notif_read_all()
+    return json_d({"ok": True, "unread": 0})
 
 
 def admin_page(msg=""):
@@ -4971,17 +5517,6 @@ def admin_page(msg=""):
                 '<table><tr><th>#</th><th>المنتج</th><th>السعر</th><th>الكمية المطلوبة</th></tr>{top_rows}</table></div>').format(top_rows=top_rows) if top_rows else ""
     n_cust = len(db.users_list())
 
-    price_rows = ""
-    for p in cfg.PRODUCTS:
-        curp = eff_price(p)
-        price_rows += ("<tr><td>{id} {name}</td><td>{cp} {cu}</td><td>"
-                       "<form method='post' style='display:inline'><input type='hidden' name='act' value='price'>"
-                       "<input type='hidden' name='pid' value='{id}'><input class='mini' name='price' value='{cp}'>"
-                       "<button class='hbtn'>حفظ</button></form> "
-                       "<form method='post' style='display:inline'><input type='hidden' name='act' value='price_reset'>"
-                       "<input type='hidden' name='pid' value='{id}'><button class='hbtn'>افتراضي</button></form></td></tr>"
-                       ).format(id=p["id"], name=p.get("name_ar", ""), cp=fmt_cur(curp), cu=cur())
-
     prod_add_form = ('<div class="adm-card"><h3>➕ إضافة منتج</h3>'
                      '<form method="post" style="display:grid;gap:8px;max-width:620px">'
                      '<input type="hidden" name="act" value="product_save">'
@@ -4990,8 +5525,7 @@ def admin_page(msg=""):
                      '<select name="club"><option value="">بدون نادي</option>' + club_opts + '</select></div>'
                      '<div style="display:flex;gap:8px;flex-wrap:wrap"><input name="name_ar" placeholder="الاسم (عربي)" required>'
                      '<input name="name_en" placeholder="الاسم (إنجليزي)"></div>'
-                     '<div style="display:flex;gap:8px;flex-wrap:wrap"><input class="mini" name="price" type="number" step="0.5" value="7">'
-                     '<input class="mini" name="emoji" value="👕"><input class="mini" name="colors" value="#E11D48,#F97316">'
+                     '<div style="display:flex;gap:8px;flex-wrap:wrap"><input class="mini" name="emoji" value="👕"><input class="mini" name="colors" value="#E11D48,#F97316">'
                      '<input class="mini" name="badges" placeholder="badges إضافية (offer)"></div>'
                      '<div style="display:flex;gap:14px;align-items:center">'
                      '<label style="font-size:.82rem">⭐ جديد<input type="checkbox" name="b_new" value="1"></label>'
@@ -5010,8 +5544,7 @@ def admin_page(msg=""):
                       '<input type="hidden" name="act" value="product_save"><input type="hidden" name="pid" value="{id}">'
                       '<div style="display:flex;gap:6px;flex-wrap:wrap"><input name="name_ar" value="{na}" placeholder="عربي">'
                       '<input name="name_en" value="{ne}" placeholder="EN"></div>'
-                      '<div style="display:flex;gap:6px;flex-wrap:wrap"><input class="mini" name="price" value="{pr}">'
-                      '<input class="mini" name="emoji" value="{em}">'
+                      '<div style="display:flex;gap:6px;flex-wrap:wrap"><input class="mini" name="emoji" value="{em}">'
                       '<input class="mini" name="badges" value="{bad}" placeholder="badges">'
                       '<input class="mini" name="stock" value="{st_txt}" placeholder="مخزون"></div>'
                       '<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">'
@@ -5024,7 +5557,7 @@ def admin_page(msg=""):
                       '<button class="hbtn" style="background:#dc2626">حذف</button></form></td></tr>'
                       ).format(id=p["id"], name=p.get("name_ar", ""), kind=d.get("type_jersey") if p["kind"] == "jersey" else d.get("type_mug", ""),
                                price=fmt_cur(eff_price(p)), cu=cur(), hid=" · مخفي" if p.get("hidden") else "",
-                               na=p.get("name_ar", ""), ne=p.get("name_en", ""), pr=eff_price(p),
+                               na=p.get("name_ar", ""), ne=p.get("name_en", ""),
                                em=p.get("emoji", "👕"), bad=bad, st_txt=st_txt, hc=" checked" if p.get("hidden") else "",
                                bnew=" checked" if "new" in p.get("badges", []) else "",
                                bbest=" checked" if "best" in p.get("badges", []) else "")
@@ -5120,6 +5653,48 @@ def admin_page(msg=""):
                     '<button class="hbtn">إضافة مدير</button></form>'
                     '<table><tr><th>الاسم</th><th>الهاتف</th><th>الدور</th><th></th></tr>{adm_rows}</table></div>').format(adm_rows=adm_rows)
 
+    adm_notifs = db.admin_notifs(60)
+    n_unread = db.admin_notif_unread()
+    an_rows = ""
+    for an in adm_notifs:
+        an_rows += ('<tr class="{un}"><td>{txt}</td><td style="white-space:nowrap">{dt}</td></tr>').format(
+            un="un" if not an["read"] else "", txt=esc(an["text"]), dt=esc(an["created"]))
+    an_card = ('<div class="adm-card"><h3>🔔 مركز الإشعارات '
+               '<span class="anbadge" style="display:{show}">{u}</span>'
+               '<a href="/admin/notifs" class="hbtn" style="float:left">عرض الكل</a></h3>'
+               '<div class="anbox">{rows}</div>'
+               '<form method="post" style="margin-top:10px"><input type="hidden" name="act" value="notif_read">'
+               '<button class="hbtn">تحديد الكل كمقروء</button></form></div>').format(
+        show="inline-block" if n_unread else "none", u=n_unread, rows=an_rows if an_rows else '<p class="mnote">لا توجد إشعارات</p>')
+
+    ads = db.ads_list()
+    ad_rows = ""
+    for a in ads:
+        ad_rows += ('<tr><td>{id}</td><td>{ta}<br><small style="color:#64748b">{te}</small></td>'
+                    '<td>{place}</td><td>{st}</td>'
+                    '<td><form method="post" style="display:inline"><input type="hidden" name="act" value="ad_toggle">'
+                    '<input type="hidden" name="aid" value="{id}"><input type="hidden" name="active" value="{newv}">'
+                    '<button class="hbtn">{newl}</button></form> '
+                    '<form method="post" style="display:inline" onsubmit="return confirm(\'حذف الإعلان؟\')">'
+                    '<input type="hidden" name="act" value="ad_del"><input type="hidden" name="aid" value="{id}">'
+                    '<button class="hbtn" style="background:#dc2626">حذف</button></form></td></tr>').format(
+            id=a["id"], ta=esc(a["text_ar"] or ""), te=esc(a["text_en"] or ""),
+            place={"home": "الرئيسية", "products": "المنتجات", "banner": "شريط علوي"}.get(a["place"], a["place"]),
+            st="مفعّل ✓" if a["active"] else "متوقف",
+            newv="0" if a["active"] else "1", newl="إيقاف" if a["active"] else "تفعيل")
+    ad_add_form = ('<h4 style="margin-top:12px">➕ إعلان جديد</h4>'
+                   '<form method="post" style="display:grid;gap:8px;max-width:560px">'
+                   '<input type="hidden" name="act" value="ad_save">'
+                   '<input name="text_ar" placeholder="نص الإعلان (عربي)" required>'
+                   '<input name="text_en" placeholder="Announcement text (EN)">'
+                   '<input name="link" placeholder="الرابط (اختياري)، مثال: /products">'
+                   '<select name="place"><option value="home">الرئيسية</option>'
+                   '<option value="products">صفحة المنتجات</option><option value="banner">شريط علوي</option></select>'
+                   '<button class="hbtn">💾 حفظ الإعلان</button></form>')
+    ad_card = ('<div class="adm-card"><h3>📢 إدارة الإعلانات</h3>'
+               '<table><tr><th>#</th><th>النص</th><th>الموضع</th><th>الحالة</th><th></th></tr>{rows}</table>'
+               + ad_add_form + '</div>').format(rows=ad_rows if ad_rows else '<tr><td colspan="5"><p class="mnote">لا توجد إعلانات</p></td></tr>')
+
     body = ('<div class="adm">'
             '<div class="hd-in" style="justify-content:space-between;padding:14px 0"><b style="font-size:1.2rem">⚙️ لوحة تحكم golazox</b>'
             '<span><a href="/home" class="hbtn">الموقع</a> <a href="/admin/logout" class="hbtn">خروج</a></span></div>'
@@ -5132,10 +5707,11 @@ def admin_page(msg=""):
             '<div class="stat"><b>{rm}</b><span>إيراد الشهر</span></div>'
             '<div class="stat"><b>{top}</b><span>الأكثر مبيعًا</span></div>'
             '<div class="stat"><b>{nc}</b><span>العملاء</span></div>'
-            '<div class="stat"><b>{n3}</b><span>تنبيهات جاهزة</span></div></div>'
+            '<div class="stat"><b>{n3}</b><span>تنبيهات جاهزة</span></div>'
+            '<div class="stat"><b>{np}</b><span>إشعارات غير مقروءة</span></div></div>'
+            + an_card + ad_card +
             '<div class="adm-card"><h3>📦 الطلبات</h3><table><tr><th>الرقم</th><th>العميل</th><th>المنتجات</th><th>الإجمالي</th><th>الحالة</th><th>الدفع</th><th></th></tr>{rows}</table></div>'
             + top_card +
-            '<div class="adm-card"><h3>💰 الأسعار</h3><table><tr><th>المنتج</th><th>السعر الحالي</th><th>تعديل</th></tr>{price_rows}</table></div>'
             '<div class="adm-card"><h3>📦 المخزون</h3><table><tr><th>المنتج</th><th>المقاسات (الكمية)</th><th></th></tr>{stock_rows}</table></div>'
             + prod_card +
             '<div class="adm-card"><h3>⭐ مراجعات العملاء</h3><table><tr><th>المنتج</th><th>الاسم</th><th>التقييم</th><th>النص</th><th>موثق</th><th>الحالة</th></tr>{rev_rows}</table></div>'
@@ -5176,7 +5752,8 @@ def admin_page(msg=""):
             '</div>').format(
         n1=n_orders, n2=len(orders), rev=fmt_cur(rev), cu=cur(), n3=n_ready,
         rt=fmt_cur(rev_today), rm=fmt_cur(rev_month), top=esc(top), nc=n_cust,
-        rows=rows, price_rows=price_rows, stock_rows=stock_rows, rev_rows=rev_rows, al_rows=al_rows,
+        np=n_unread,
+        rows=rows, stock_rows=stock_rows, rev_rows=rev_rows, al_rows=al_rows,
         cust_rows=cust_rows, req_rows=req_rows, notif_rows=notif_rows, poll_rows=poll_rows,
         mk=(m["kickoff"].replace(" ", "T") if m and m.get("kickoff") else ""),
         mr=(m["result"] if m and m.get("result") else ""),
@@ -5211,6 +5788,12 @@ a{text-decoration:none;color:inherit}
 .stat b{font-size:1.5rem;display:block;color:#E11D48}
 .stat span{color:#64748B;font-size:.8rem}
 .msg{background:#ECFDF5;border:1px solid #A7F3D0;color:#065F46;border-radius:12px;padding:10px 14px;margin-bottom:14px}
+.anbadge{background:#E11D48;color:#fff;border-radius:999px;font-size:.7rem;padding:1px 8px;margin-inline-start:6px}
+.anbox{max-height:320px;overflow:auto;border:1px solid #E2E8F0;border-radius:12px}
+.anbox table{width:100%;border-collapse:collapse}
+.anbox tr.un{background:#FFF1F2}
+.anbox td{padding:8px 10px;border-bottom:1px dashed #E2E8F0;font-size:.85rem}
+.anbox tr.un td{font-weight:800}
 </style></head>
 <body><div class="wrap2">BODY</div></body></html>""".replace("BODY", body)
 

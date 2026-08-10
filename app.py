@@ -1921,6 +1921,13 @@ function authSendCode(P){
   });
 }
 function authResend(P){ authSendCode(P); }
+document.addEventListener('keydown', function(ev){
+  if(ev.key!=='Enter') return;
+  var t=ev.target;
+  if(!t||!t.id||t.id.indexOf('au_email')<0) return;
+  ev.preventDefault();
+  authSendCode(t.id.replace('au_email',''));
+});
 function authChangePhone(P){
   var s2=ap(P,'au_step2'); if(s2){ s2.style.display='none'; }
   var s1=ap(P,'au_step1'); if(s1){ s1.style.display='block'; }
@@ -2407,8 +2414,7 @@ def auth_box_html(prefix=""):
             '<div class="auth-pane" id="{p}auth_pane_otp">'
             '<div class="auth-step1" id="{p}au_step1">'
             '<div class="fld"><label>{em}</label>'
-            '<input id="{p}au_email" type="email" inputmode="email" placeholder="{emph}" autocomplete="off" '
-            'onkeydown="if(event.key==\'Enter\'){event.preventDefault();authSendCode(\'{p}\');}"></div>'
+            '<input id="{p}au_email" type="email" inputmode="email" placeholder="{emph}" autocomplete="off"></div>'
             '<button class="btn pri big" id="{p}au_sendbtn" onclick="authSendCode(\'{p}\')">{ct}</button></div>'
             '<div class="auth-step2" id="{p}au_step2">'
             '<p class="auth-sent">📨 {sent} <b id="{p}au_sentto"></b></p>'

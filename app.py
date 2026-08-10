@@ -1371,7 +1371,7 @@ function renderFavPageGuest(){
   favs.forEach(function(id){
     var p=GX.products.find(function(x){return x.id===id;}); if(!p) return;
     html+='<div class="pcard" data-id="'+p.id+'">'
-      +'<button class="heart on" onclick="toggleFav(\''+p.id+'\',this)">❤</button>'
+      +'<button class="heart on" onclick="toggleFav(\\''+p.id+'\\',this)">❤</button>'
       +'<a href="/product/'+p.id+'"><div class="pimg" style="background:linear-gradient(135deg,'+p.colors[0]+','+p.colors[1]+')">'
       +'<img src="/img/'+p.imgs[0]+'" alt=""></div></a>'
       +'<div class="pbody"><span class="pcat">'+(p.kind==='mug'?gxT('cat_mug'):gxT('cat_jersey'))+'</span><h3>'+esc(p[GX.lang==='ar'?'name_ar':'name_en'])+'</h3>'
@@ -1444,8 +1444,8 @@ function renderCart(){
   cart.forEach(function(x){ var p=GX.products.find(function(y){return y.id===x.id;}); if(!p) return;
     html+='<div class="ci"><div class="ci-emoji">'+p.emoji+'</div><div class="ci-tx"><b>'+esc(pname(p,x.size))+'</b>'
       +'<span>'+(p.kind!=='mug'? (gxT('size_w')+x.size+' · ') : '')+gxT('qty_w')+x.qty+'</span></div>'
-      +'<div class="qty2"><button onclick="changeCart(\''+p.id+'\',\''+x.size+'\',-1)">−</button><span class="qn">'+x.qty+'</span>'
-      +'<button onclick="changeCart(\''+p.id+'\',\''+x.size+'\',1)">+</button></div>'
+      +'<div class="qty2"><button onclick="changeCart(\\''+p.id+'\\',\\''+x.size+'\\',-1)">−</button><span class="qn">'+x.qty+'</span>'
+      +'<button onclick="changeCart(\\''+p.id+'\\',\\''+x.size+'\\',1)">+</button></div>'
       +'<b style="color:var(--ac)">'+pmoney(p.price*x.qty)+' '+GX.cur+'</b></div>';
   });
   box.innerHTML=html; fillFoot();
@@ -1462,10 +1462,10 @@ function renderCartPage(){
   cart.forEach(function(x){ var p=GX.products.find(function(y){return y.id===x.id;}); if(!p) return;
     html+='<div class="ci"><div class="ci-emoji">'+p.emoji+'</div><div class="ci-tx"><b>'+esc(pname(p,x.size))+'</b>'
       +'<span>'+(p.kind!=='mug'? (gxT('size_w')+x.size+' · ') : '')+gxT('qty_w')+x.qty+'</span></div>'
-      +'<div class="qty2"><button onclick="changeCart(\''+p.id+'\',\''+x.size+'\',-1)">−</button><span class="qn">'+x.qty+'</span>'
-      +'<button onclick="changeCart(\''+p.id+'\',\''+x.size+'\',1)">+</button></div>'
+      +'<div class="qty2"><button onclick="changeCart(\\''+p.id+'\\',\\''+x.size+'\\',-1)">−</button><span class="qn">'+x.qty+'</span>'
+      +'<button onclick="changeCart(\\''+p.id+'\\',\\''+x.size+'\\',1)">+</button></div>'
       +'<b style="color:var(--ac)">'+pmoney(p.price*x.qty)+' '+GX.cur+'</b>'
-      +'<button class="ci-x" onclick="changeCart(\''+p.id+'\',\''+x.size+'\',-100)">✕</button></div>';
+      +'<button class="ci-x" onclick="changeCart(\\''+p.id+'\\',\\''+x.size+'\\',-100)">✕</button></div>';
   });
   var tot=cartTotals();
   html+='<div class="row-t"><span>'+gxT('cart_subtotal')+'</span><b>'+pmoney(tot.sub)+' '+GX.cur+'</b></div>'
@@ -1587,9 +1587,9 @@ function orderTG(pid){
     items:items,name:'',phone:'',area:'',address:'',notes:'',delivery:GX.delivery,discount:0,total:tot,reward:0,fast:1,device:gxDev()})})
   .then(function(r){return r.json();}).then(function(d){
     if(d.code){
-      var msg=gxT('hello').trim()+':\n'+items[0].emoji+' '+items[0].name;
-      if(sz) msg+='\n'+gxT('size_w')+sz;
-      msg+='\n'+gxT('qty_w')+q+' · '+pmoney(p.price*q)+' '+GX.cur+'\n\n'+gxT('code_w')+d.code;
+      var msg=gxT('hello').trim()+':\\n'+items[0].emoji+' '+items[0].name;
+      if(sz) msg+='\\n'+gxT('size_w')+sz;
+      msg+='\\n'+gxT('qty_w')+q+' · '+pmoney(p.price*q)+' '+GX.cur+'\\n\\n'+gxT('code_w')+d.code;
       window.open(GX.tg+'?text='+encodeURIComponent(msg),'_blank');
       location.href='/order/success?code='+d.code;
     }
@@ -1704,7 +1704,7 @@ function isAnalyze(dataUrl){
     if(top.sc<40){ html+='<p class="mnote">'+gxT('is_notfound')+'</p><p class="mnote">'+gxT('is_near')+'</p>'; }
     else { html+='<h4 class="msec">'+gxT('is_best')+'</h4>' + isCard(top) + '<h4 class="msec" style="margin-top:14px">'+gxT('is_similar')+'</h4>'; }
     scores.slice(1,4).forEach(function(s){ html+=isCard(s); });
-    html+='<div style="text-align:center;margin-top:14px"><button class="btn pri sm" onclick="closeModal(\'m-imgsearch\');openRequest(\''+dataUrl+'\')">'+gxT('is_request')+'</button></div>';
+    html+='<div style="text-align:center;margin-top:14px"><button class="btn pri sm" onclick="closeModal(\\'m-imgsearch\\');openRequest(\\''+dataUrl+'\\')">'+gxT('is_request')+'</button></div>';
     html+='<p class="img-search-tip">'+gxT('is_priv')+'</p>';
     out.innerHTML=html;
   };
@@ -1744,7 +1744,7 @@ function buildReviews(pid){
         +'<p class="rv-meta">'+gxT('rv2_design')+' '+r.design+'★ · '+gxT('rv2_fabric')+' '+r.fabric+'★ · '+gxT('rv2_quality')+' '+r.quality+'★ · '+gxT('rv2_fit')+' '+r.fit_dim+'★'+(r.fit?' · '+esc(r.fit):'')+'</p>'
         +(r.text?'<p class="rv-txt">'+esc(r.text)+'</p>':'')
         +(r.photo?'<div class="rv-photo"><img src="'+r.photo+'" onclick="openLB(this.src)" alt=""></div>':'')
-        +(r.mine?'<button class="rv-report" onclick="reportRev2(\''+r.id+'\')">'+gxT('rat_report')+'</button>':'')
+        +(r.mine?'<button class="rv-report" onclick="reportRev2(\\''+r.id+'\\')">'+gxT('rat_report')+'</button>':'')
         +'</div>';
     });
     box.innerHTML=html;
@@ -1983,7 +1983,7 @@ function openReorder(code){
         +'</select></div>';
     });
     var body='<div id="ro_body">'+html+'</div>'
-      +'<button class="btn pri big" onclick="doReorder(\''+code+'\')">'+gxT('ro_add')+'</button>';
+      +'<button class="btn pri big" onclick="doReorder(\\''+code+'\\')">'+gxT('ro_add')+'</button>';
     openModal('m-reorder'); $('ro_body').innerHTML=body;
   });
 }
@@ -2090,7 +2090,7 @@ function trackView(pid){
 function dnaCard(id){
   var p=findProd(id); if(!p) return '';
   return '<a class="card" href="/product/'+p.id+'" style="text-decoration:none"><div class="pimg" style="background:linear-gradient(135deg,'+(p.colors[0]||'#E2E8F0')+','+(p.colors[1]||'#94A3B8')+')">'
-    +'<img loading="lazy" src="/img/'+p.imgs[0]+'" alt=""><span class="pfav'+(gxGet('gx_favs',[]).indexOf(p.id)>-1?' on':'')+'" onclick="event.preventDefault();event.stopPropagation();toggleFav(\''+p.id+'\')">❤</span></div>'
+    +'<img loading="lazy" src="/img/'+p.imgs[0]+'" alt=""><span class="pfav'+(gxGet('gx_favs',[]).indexOf(p.id)>-1?' on':'')+'" onclick="event.preventDefault();event.stopPropagation();toggleFav(\\''+p.id+'\\')">❤</span></div>'
     +'<div class="pbody"><b class="pname">'+p.name_ar+'</b><span class="pcat">'+gxT('cat_'+(p.kind==='mug'?'mug':'jersey'))+'</span>'
     +'<div class="pprice"><b>'+p.price+' '+GX.cur+'</b></div></div></a>';
 }

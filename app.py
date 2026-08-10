@@ -1852,12 +1852,16 @@ function submitDropRemind(){
 }
 /* ---------- account / auth ---------- */
 function openLogin(){ openModal('m-login'); }
-function authTab(t){
-  document.querySelectorAll('.auth-tabs .atab').forEach(function(x){ x.classList.toggle('on', x.getAttribute('data-tab')===t); });
-  document.querySelectorAll('.auth-pane').forEach(function(x){ x.style.display='none'; });
-  $('auth_pane_'+t).style.display='block';
+function ap(P,id){ return $( (P||'') + id ); }
+function authTab(P,t){
+  var box=ap(P,'abox');
+  if(box){
+    box.querySelectorAll('.atab').forEach(function(x){ x.classList.toggle('on', x.getAttribute('data-tab')===t); });
+    box.querySelectorAll('.auth-pane').forEach(function(x){ x.style.display='none'; });
+  }
+  var pn=ap(P,'auth_pane_'+t); if(pn) pn.style.display='block';
 }
-function authContact(){ return (($('au_email').value||'')||'').trim(); }
+function authContact(P){ var e=ap(P,'au_email'); return ((e&&e.value)||'').trim(); }
 function isEmail(v){
   var r=/^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$/;
   return r.test(v);
@@ -1868,8 +1872,8 @@ function maskEmail(em){
   return em.charAt(0)+'***'+em.substr(at-1);
 }
 var auth_timer=null;
-function authTimer(secs){
-  var b=$('au_resendbtn');
+function authTimer(P,secs){
+  var b=ap(P,'au_resendbtn');
   if(!b) return;
   if(auth_timer) clearInterval(auth_timer);
   var t=secs;
@@ -1885,10 +1889,10 @@ function authTimer(secs){
   tick();
   auth_timer=setInterval(tick,1000);
 }
-function authSendCode(){
-  var full=authContact();
+function authSendCode(P){
+  var full=authContact(P);
   if(!isEmail(full)){ toast(gxT('auth_bad_phone')); return; }
-  var btn=$('au_sendbtn');
+  var btn=ap(P,'au_sendbtn');
   if(btn){ btn.disabled=true; btn.textContent=gxT('auth_loading'); }
   fetch('/api/auth/otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:full})})
   .then(function(r){return r.json();}).then(function(d){
@@ -1898,34 +1902,34 @@ function authSendCode(){
       toast(em);
       return;
     }
-    $('au_step1').style.display='none'; $('au_step2').style.display='block';
-    var st=$('au_sentto'); if(st) st.textContent=maskEmail(full);
-    $('au_demo').style.display= d.demo?'block':'none';
+    ap(P,'au_step1').style.display='none'; ap(P,'au_step2').style.display='block';
+    var st=ap(P,'au_sentto'); if(st) st.textContent=maskEmail(full);
+    var dm=ap(P,'au_demo'); if(dm) dm.style.display= d.demo?'block':'none';
     if(d.demo){
-      $('au_democode').textContent=d.otp;
-      if($('au_code')) $('au_code').value=d.otp;
-      var dl=$('au_demo_note'); if(dl) dl.style.display='block';
+      ap(P,'au_democode').textContent=d.otp;
+      var ac=ap(P,'au_code'); if(ac) ac.value=d.otp;
+      var dl=ap(P,'au_demo_note'); if(dl) dl.style.display='block';
     }
-    $('au_newbox').style.display= d.registered?'none':'block';
+    var nb=ap(P,'au_newbox'); if(nb) nb.style.display= d.registered?'none':'block';
     toast(gxT('auth_sent_ok'));
-    authTimer(30);
+    authTimer(P,30);
   }).catch(function(){
     toast(gxT('auth_otp_fail'));
   }).then(function(){
     if(btn){ btn.disabled=false; btn.textContent=gxT('auth_continue'); }
   });
 }
-function authResend(){ authSendCode(); }
-function authChangePhone(){
-  var s2=$('au_step2'); if(s2){ s2.style.display='none'; }
-  var s1=$('au_step1'); if(s1){ s1.style.display='block'; }
-  var ac=$('au_code'); if(ac) ac.value='';
+function authResend(P){ authSendCode(P); }
+function authChangePhone(P){
+  var s2=ap(P,'au_step2'); if(s2){ s2.style.display='none'; }
+  var s1=ap(P,'au_step1'); if(s1){ s1.style.display='block'; }
+  var ac=ap(P,'au_code'); if(ac) ac.value='';
 }
-function authVerify(){
-  var em=authContact(), code=($('au_code').value||'').trim();
-  var name=($('au_name').value||'').trim();
+function authVerify(P){
+  var em=authContact(P), code=(ap(P,'au_code').value||'').trim();
+  var name=(ap(P,'au_name').value||'').trim();
   if(code.length<4){ toast(gxT('auth_otp_short')); return; }
-  var btn=$('au_vbtn');
+  var btn=ap(P,'au_vbtn');
   if(btn){ btn.disabled=true; btn.textContent=gxT('auth_verifying'); }
   fetch('/api/auth/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:em,code:code,name:name})})
   .then(function(r){return r.json();}).then(function(d){
@@ -1940,8 +1944,9 @@ function authVerify(){
     if(btn){ btn.disabled=false; btn.textContent=gxT('auth_verify'); }
   });
 }
-function authPwLogin(){
-  var em=(($('pw_email').value||'')||'').trim(), pw=($('pw_pass').value||'').trim();
+function authPwLogin(P){
+  var ee=ap(P,'pw_email'), pp=ap(P,'pw_pass');
+  var em=((ee&&ee.value)||'').trim(), pw=((pp&&pp.value)||'').trim();
   if(!isEmail(em)||!pw){ toast(gxT('auth_bad_phone')); return; }
   fetch('/api/auth/password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:em,password:pw})})
   .then(function(r){return r.json();}).then(function(d){
@@ -2391,37 +2396,37 @@ def size_diagram():
 </svg>""".replace("CHEST", chest).replace("LEN", length)
 
 
-def auth_box_html():
+def auth_box_html(prefix=""):
     d = cfg.L[lang()]
-    return ('<div class="auth-box">'
+    return ('<div class="auth-box" id="{p}abox">'
             '<p class="mnote">{sub}</p>'
             '<div class="auth-tabs">'
-            '<button class="atab on" data-tab="otp" onclick="authTab(\'otp\')">{t1}</button>'
-            '<button class="atab" data-tab="pw" onclick="authTab(\'pw\')">{t2}</button></div>'
-            '<div class="auth-pane" id="auth_pane_otp">'
-            '<div class="auth-step1" id="au_step1">'
+            '<button class="atab on" data-tab="otp" onclick="authTab(\'{p}\',\'otp\')">{t1}</button>'
+            '<button class="atab" data-tab="pw" onclick="authTab(\'{p}\',\'pw\')">{t2}</button></div>'
+            '<div class="auth-pane" id="{p}auth_pane_otp">'
+            '<div class="auth-step1" id="{p}au_step1">'
             '<div class="fld"><label>{em}</label>'
-            '<input id="au_email" type="email" inputmode="email" placeholder="{emph}" autocomplete="off"></div>'
-            '<button class="btn pri big" id="au_sendbtn" onclick="authSendCode()">{ct}</button></div>'
-            '<div class="auth-step2" id="au_step2">'
-            '<p class="auth-sent">📨 {sent} <b id="au_sentto"></b></p>'
-            '<div class="fld"><label>{otp}</label><input id="au_code" inputmode="numeric" maxlength="6"></div>'
-            '<div class="fld" id="au_newbox"><label>{nm}</label><input id="au_name"></div>'
-            '<div class="auth-new" id="au_new">{new}</div>'
-            '<div class="auth-demo" id="au_demo">{demo} <b id="au_democode"></b>'
-            '<div id="au_demo_note" style="display:none;margin-top:6px;font-weight:800">✅ {fill}</div></div>'
-            '<button class="btn pri big" id="au_vbtn" onclick="authVerify()">{v}</button>'
+            '<input id="{p}au_email" type="email" inputmode="email" placeholder="{emph}" autocomplete="off"></div>'
+            '<button class="btn pri big" id="{p}au_sendbtn" onclick="authSendCode(\'{p}\')">{ct}</button></div>'
+            '<div class="auth-step2" id="{p}au_step2">'
+            '<p class="auth-sent">📨 {sent} <b id="{p}au_sentto"></b></p>'
+            '<div class="fld"><label>{otp}</label><input id="{p}au_code" inputmode="numeric" maxlength="6"></div>'
+            '<div class="fld" id="{p}au_newbox"><label>{nm}</label><input id="{p}au_name"></div>'
+            '<div class="auth-new" id="{p}au_new">{new}</div>'
+            '<div class="auth-demo" id="{p}au_demo">{demo} <b id="{p}au_democode"></b>'
+            '<div id="{p}au_demo_note" style="display:none;margin-top:6px;font-weight:800">✅ {fill}</div></div>'
+            '<button class="btn pri big" id="{p}au_vbtn" onclick="authVerify(\'{p}\')">{v}</button>'
             '<div class="auth-actions">'
-            '<button class="hbtn" id="au_resendbtn" onclick="authResend()">🔄 {resend}</button>'
-            '<button class="hbtn" onclick="authChangePhone()">↩ {chg}</button></div></div>'
+            '<button class="hbtn" id="{p}au_resendbtn" onclick="authResend(\'{p}\')">🔄 {resend}</button>'
+            '<button class="hbtn" onclick="authChangePhone(\'{p}\')">↩ {chg}</button></div></div>'
             '</div>'
-            '<div class="auth-pane" id="auth_pane_pw" style="display:none">'
+            '<div class="auth-pane" id="{p}auth_pane_pw" style="display:none">'
             '<div class="fld"><label>{em}</label>'
-            '<input id="pw_email" type="email" inputmode="email" placeholder="{emph}" autocomplete="off"></div>'
-            '<div class="fld"><label>{pw}</label><input id="pw_pass" type="password"></div>'
-            '<button class="btn pri big" onclick="authPwLogin()">{pb}</button></div>'
+            '<input id="{p}pw_email" type="email" inputmode="email" placeholder="{emph}" autocomplete="off"></div>'
+            '<div class="fld"><label>{pw}</label><input id="{p}pw_pass" type="password"></div>'
+            '<button class="btn pri big" onclick="authPwLogin(\'{p}\')">{pb}</button></div>'
             '</div>'
-            ).format(sub=d["auth_sub"], t1=d["auth_tab_otp"], t2=d["auth_tab_pw"],
+            ).format(p=prefix, sub=d["auth_sub"], t1=d["auth_tab_otp"], t2=d["auth_tab_pw"],
                      em=d["auth_email"], emph=d["auth_email_ph"], ct=d["auth_continue"], sent=d["auth_sent_to"],
                      otp=d["auth_otp_ph"], nm=d["auth_name_ph"], new=d["auth_new"], demo=d["auth_demo_note"],
                      fill=d["auth_demo_fill"], v=d["auth_verify"], resend=d["auth_resend"], chg=d["auth_change_num"],
@@ -3213,7 +3218,7 @@ def login_page():
     d = cfg.L[lang()]
     body = ('<div class="wrap" style="max-width:500px;margin:0 auto;padding-top:46px">'
             '<div class="page-head" style="text-align:center"><h1>👤 {t}</h1><p>{g}</p></div>'
-            + auth_box_html() +
+            + auth_box_html("lp_") +
             '<p style="text-align:center;margin-top:20px"><a class="back" href="/home">← {b}</a></p>'
             '</div>'
             ).format(t=d["auth_title"], g=d["acc_guest"], b=d["back"])

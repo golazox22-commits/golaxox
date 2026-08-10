@@ -4064,7 +4064,8 @@ def send_email(to, subject, text, html=None):
         req = Request(os.environ.get("RESEND_ENDPOINT", "") or "https://api.resend.com/emails",
                       data=data,
                       headers={"Authorization": "Bearer %s" % key,
-                               "Content-Type": "application/json"})
+                               "Content-Type": "application/json",
+                               "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36"})
         sms_log("[EMAIL OTP] Resend request started")
         resp = urlopen(req, timeout=30)
         body = resp.read().decode("utf-8", "replace")
@@ -4073,10 +4074,10 @@ def send_email(to, subject, text, html=None):
         return (True, body)
     except HTTPError as e:
         try:
-            detail = e.read().decode("utf-8", "replace")[:400]
+            detail = e.read().decode("utf-8", "replace")[:600]
         except Exception:
             detail = str(e)
-        sms_log("[EMAIL OTP] Resend ERROR: HTTP %s: %s" % (e.code, detail))
+        sms_log("[EMAIL OTP] Resend ERROR: HTTP %s status, body: %s" % (e.code, detail))
         return (False, "provider")
     except Exception as e:
         sms_log("[EMAIL OTP] Resend ERROR: %r" % e)

@@ -832,6 +832,20 @@ html[data-theme="dark"] .mwarning { background:#3B1D0B; border-color:#7C2D12; co
 .acc-hero { background:linear-gradient(120deg,var(--ac),var(--ac2)); color:#fff; border-radius:22px; padding:22px; margin-bottom:18px; position:relative; overflow:hidden; }
 .acc-hero h2 { font-size:1.5rem; font-weight:900; }
 .acc-hero p { opacity:.92; font-size:.85rem; margin-top:6px; }
+.acc-ordhead { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+.acc-ordhead .ao b { font-size:1rem; }
+.acc-ordhead .ao span { font-size:.78rem; color:var(--mut); }
+.acc-oit { display:flex; align-items:center; gap:12px; padding:8px 0; border-bottom:1px dashed var(--line); }
+.acc-oit:last-of-type { border-bottom:none; }
+.acc-oit img { width:52px; height:52px; border-radius:12px; object-fit:cover; flex:none; border:1px solid var(--line); }
+.acc-oem { width:52px; height:52px; border-radius:12px; background:var(--card2); display:flex; align-items:center; justify-content:center; font-size:1.4rem; flex:none; }
+.acc-oit .aoit { flex:1; min-width:0; }
+.acc-oit .aoit b { font-size:.9rem; }
+.acc-oit .aoit span { font-size:.76rem; color:var(--mut); }
+.acc-tlbtn { width:100%; justify-content:center; margin-top:10px; }
+.acc-badge { background:var(--ac); color:#fff; border-radius:999px; font-size:.68rem; font-weight:900; padding:2px 8px; margin-inline-start:6px; vertical-align:middle; }
+.ro-out b { color:var(--err); }
+.ro-out span { color:var(--err); font-weight:800; }
 /* passport */
 .pp-card { background:linear-gradient(135deg,#0B0F19,#1E3A5F); color:#fff; border-radius:20px; padding:22px; position:relative; overflow:hidden; }
 .pp-card::after { content:'⚽'; position:absolute; font-size:7rem; opacity:.08; inset-inline-end:12px; bottom:-14px; }
@@ -2145,11 +2159,17 @@ function openReorder(code){
   fetch('/api/reorder?code='+encodeURIComponent(code)).then(function(r){return r.json();}).then(function(d){
     var html='';
     d.items.forEach(function(it){
+      if(!it.stock){
+        html+='<div class="ro-item ro-out"><b>'+it.emoji+' '+it.name+'</b><span>'+gxT('ro_out_msg')+'</span></div>';
+        return;
+      }
       var alts=it.sizes||[];
+      var opts=alts.slice();
+      if(it.size&&opts.indexOf(it.size)===-1) opts.unshift(it.size);
+      var optsHtml=opts.map(function(s){ return '<option value="'+s+'"'+(s===it.size?' selected':'')+'>'+s+'</option>'; }).join('');
       html+='<div class="ro-item"><b>'+it.emoji+' '+it.name+'</b><span>'+gxT('size_w')+it.size+'</span></div>'
         +'<div class="fld" style="margin-bottom:12px"><label>'+gxT('ro_alt')+'</label><select data-ro="'+it.id+'">'
-        +'<option value="'+it.size+'">'+it.size+'</option>'
-        +alts.map(function(s){ return '<option value="'+s+'">'+s+'</option>'; }).join('')
+        +optsHtml
         +'</select></div>';
     });
     var body='<div id="ro_body">'+html+'</div>'
@@ -2252,6 +2272,14 @@ function accTab(id){
   document.querySelectorAll('.acc-btn').forEach(function(b){ b.classList.remove('on'); });
   var el=$(id); if(el) el.classList.add('on');
   var bt=document.querySelector('.acc-btn[data-tab="'+id+'"]'); if(bt) bt.classList.add('on');
+  if(id==='acc-notifs'){
+    var b=$('nbadge'); if(b) b.style.display='none';
+    fetch('/api/account/notifs/read',{method:'POST'}).catch(function(){});
+  }
+}
+function accTl(code){
+  var el=$('tl-'+code); if(!el) return;
+  el.style.display = (el.style.display==='none'||el.style.display==='') ? 'block' : 'none';
 }
 /* ---------- football dna ---------- */
 function trackView(pid){
@@ -3548,25 +3576,51 @@ def account_page():
     if not orders:
         ord_html = '<p class="mnote">' + d["acc_empty_orders"] + '</p>'
     else:
-        for o in orders:
+        def _order_card(o):
             dta = o["data"]
-            items = "".join(
-                '<div style="font-size:.82rem;color:var(--mut)">• {e} {n} × {q}</div>'.format(
-                    e=esc(it.get("emoji", "⚽")), n=esc(it.get("name", "")), q=it.get("qty", 1))
-                for it in dta.get("items", [])[:4])
-            ord_html += (
-                '<div class="acc-card"><div class="acc-ord">'
-                '<div class="ao"><b>#{c}</b><span>{dt} · {sl} · {pl}</span>{items}</div>'
-                '<div class="ao" style="min-width:90px;text-align:end"><b>{t} {cu}</b></div>'
-                '<div style="display:flex;gap:6px;flex-wrap:wrap">'
-                '<a class="hbtn" href="/ticket?code={c}">{tk}</a>'
-                '<a class="hbtn" href="/track?code={c}">{tr}</a>'
-                '<button class="hbtn" onclick="openReorder(\'{c}\')">{ro}</button>'
-                '</div></div></div>'
-            ).format(c=o["code"], dt=dta.get("date", ""), sl=d.get("st_" + o["status"], o["status"]),
-                     pl=d.get("pay_" + o["payment"], o["payment"]), items=items,
-                     t=fmt_cur(dta.get("total", 0)), cu=cur(),
-                     tk=d["acc_view"], tr=d["tr_title"], ro=d["acc_reorder"])
+            code = o["code"]
+            cancelled = o["status"] == "cancelled"
+            idx = ORDER_FLOW.index(o["status"]) if o["status"] in ORDER_FLOW else -1
+            rows = ""
+            for it in dta.get("items", [])[:6]:
+                p = next((x for x in cfg.PRODUCTS if x["id"] == it.get("id")), None)
+                img = ("/img/" + esc(p["imgs"][0])) if p and p.get("imgs") else ""
+                imgh = ('<img src="' + img + '" alt="" loading="lazy">') if img else ('<span class="acc-oem">' + esc(it.get("emoji", "⚽")) + '</span>')
+                szpart = ""
+                if it.get("kind") != "mug" and it.get("size"):
+                    szpart = d["size_w"] + esc(it.get("size", "")) + " · "
+                rows += ('<div class="acc-oit">' + imgh +
+                         '<div class="aoit"><b>{e} {n}</b><span>{sz}{q} × {pr} {c}</span></div></div>').format(
+                    e=esc(it.get("emoji", "⚽")), n=esc(it.get("name", "")), sz=szpart,
+                    q=it.get("qty", 1), pr=fmt_cur(it.get("price", 0)), c=cur())
+            if cancelled:
+                tl = ('<div class="tl"><div class="dot"></div><div><div class="lt">{lbl}</div></div></div>').format(
+                    lbl=d.get("st_cancelled", "cancelled"))
+            else:
+                inner = ""
+                for i, st in enumerate(ORDER_FLOW):
+                    done = (idx >= 0 and i <= idx)
+                    cls = "done" if done else ("cur" if i == idx else "")
+                    inner += ('<div class="tl {cls}"><div class="dot"></div>'
+                              '<div><div class="lt">{lbl}</div></div></div>').format(
+                        cls=cls, lbl=d.get("st_" + st, st))
+                tl = '<div class="tl">' + inner + '</div>'
+            return ('<div class="acc-card">'
+                    '<div class="acc-ordhead"><div class="ao"><b>#{c}</b><span>{dt}</span></div>'
+                    '<span class="pill">{sl}</span></div>'
+                    '{rows}'
+                    '<div class="row-t total" style="margin-top:12px"><span>{tlabel}</span><b>{t} {cu}</b></div>'
+                    '<button class="hbtn acc-tlbtn" onclick="accTl(\'{c}\')">🚚 {tbtn}</button>'
+                    '<div id="tl-{c}" style="display:none;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)">{tl}</div>'
+                    '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:12px">'
+                    '<a class="hbtn" href="/ticket?code={c}">{tk}</a>'
+                    '<a class="hbtn" href="/track?code={c}">{tr}</a>'
+                    '<button class="hbtn" onclick="openReorder(\'{c}\')">{ro}</button>'
+                    '</div></div>').format(
+                c=code, dt=dta.get("date", ""), sl=d.get("st_" + o["status"], o["status"]),
+                rows=rows, tlabel=d["cart_total"], t=fmt_cur(dta.get("total", 0)), cu=cur(),
+                tbtn=d["acc_track"], tl=tl, tk=d["acc_view"], tr=d["tr_title"], ro=d["acc_reorder"])
+        ord_html = "".join(_order_card(o) for o in orders)
 
     pp_stamps = "".join('<div class="pp-stamp%s" title="%s">%s</div>' % (
         "" if cid in clubs else " lock", esc(c.get(en and "en" or "ar", "")), c.get("emoji", "⚽"))
@@ -3591,11 +3645,13 @@ def account_page():
             rw=((str(r.get("d", 0)) + "% · +" + str(r.get("p", 0))) if (r.get("d") or r.get("p")) else "—"))
     rw_html += '</div>'
 
-    data_html = ('<div class="fld"><label>{n}</label><input id="pd_name" value="{name}"></div>'
+    data_html = ('<div class="fld"><label>{li}</label><input value="{phone}" readonly></div>'
+                 '<div class="fld"><label>{n}</label><input id="pd_name" value="{name}"></div>'
                  '<div class="frow"><div class="fld"><label>{a}</label><input id="pd_area" value="{area}"></div>'
                  '<div class="fld"><label>{ad}</label><input id="pd_addr" value="{addr}"></div></div>'
                  '<button class="btn pri big" onclick="saveAccountData()">{sv}</button>'
-                 ).format(n=d["co_name"], name=esc(u.get("name", "") or ""), a=d["co_area"],
+                 ).format(li=d["acc_login_id"], phone=esc(u.get("phone", "") or ""), n=d["co_name"],
+                          name=esc(u.get("name", "") or ""), a=d["co_area"],
                           area=esc(u.get("area", "") or ""), ad=d["co_address"],
                           addr=esc(u.get("address", "") or ""), sv=d["ok_saved"])
 
@@ -3618,7 +3674,11 @@ def account_page():
     else:
         sizes_html = '<p class="mnote">' + d["acc_sizes_empty"] + '</p>'
 
-    tabs = [("acc-orders", d["acc_orders"]), ("acc-notifs", d["acc_notifs"]),
+    notifs = db.user_notifs(u["id"])
+    unread = db.user_notif_unread(u["id"])
+
+    tabs = [("acc-orders", d["acc_orders"]),
+            ("acc-notifs", d["acc_notifs"] + (('<span class="acc-badge" id="nbadge">%d</span>' % unread) if unread else "")),
             ("acc-favs", d["acc_favs"]),
             ("acc-sizes", d["acc_sizes"]), ("acc-alerts", d["acc_alerts"]),
             ("acc-points", d["acc_points"]), ("acc-passport", d["acc_passport"]),
@@ -3627,8 +3687,6 @@ def account_page():
     nav = "".join('<button class="acc-btn%s" data-tab="%s" onclick="accTab(\'%s\')">%s</button>' % (
         " on" if i == 0 else "", sid, sid, lbl) for i, (sid, lbl) in enumerate(tabs))
 
-    notifs = db.user_notifs(u["id"])
-    db.user_notif_read_all(u["id"])
     if notifs:
         n_html = "".join('<div class="acc-n{ifirst}"><span class="acc-ndot"></span><p>{txt}</p><span class="acc-ndt">{dt}</span></div>'.format(
             ifirst=" first" if i == 0 else "", txt=esc(x["text"]), dt=esc(x["created"]))
@@ -4777,6 +4835,15 @@ def api_favs():
     return json_d({"ok": True})
 
 
+@app.route("/api/account/notifs/read", methods=["POST"])
+def api_account_notifs_read():
+    u = current_user()
+    if not u:
+        return json_d({"ok": False})
+    db.user_notif_read_all(u["id"])
+    return json_d({"ok": True})
+
+
 @app.route("/api/size/save", methods=["POST"])
 def api_size_save():
     u = current_user()
@@ -4848,12 +4915,16 @@ def api_reorder_get():
         if not p:
             continue
         st = eff_stock(p)
-        sizes = [sz for sz in cfg.SIZE_ORDER if st.get(sz, 0) > 0]
+        want = it.get("size", "OS")
+        sizes = [sz for sz in cfg.SIZE_ORDER if st.get(sz, 0) > 0] if p["kind"] != "mug" else []
+        if p["kind"] == "mug":
+            sizes = ["OS"] if st.get("OS", 0) > 0 else []
+        available = bool(sizes)
         out.append({"id": it["id"], "name": it.get("name", ""),
                     "name_ar": p.get("name_ar", ""), "name_en": p.get("name_en", ""),
                     "emoji": p.get("emoji", "⚽"),
-                    "size": it.get("size", "OS"), "qty": it.get("qty", 1),
-                    "sizes": sizes if p["kind"] != "mug" else []})
+                    "size": want, "qty": it.get("qty", 1),
+                    "sizes": sizes, "stock": available})
     return json_d({"items": out})
 
 

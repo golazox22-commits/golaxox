@@ -230,7 +230,7 @@ def admin_role():
 
 
 def seed_super_admin():
-    phone = os.environ.get("SUPER_ADMIN_PHONE", cfg.WHATSAPP)
+    phone = os.environ.get("SUPER_ADMIN_PHONE") or os.environ.get("ADMIN_PHONE") or cfg.WHATSAPP
     name = os.environ.get("SUPER_ADMIN_NAME", "Owner")
     u = db.user_by_phone(phone)
     if not u:
@@ -1843,16 +1843,47 @@ function authTab(t){
   $('auth_pane_'+t).style.display='block';
 }
 function authPhone(){ return (($('au_cc')||{}).value||'+973')+''+ (($('au_phone').value||'').trim()); }
+function maskPhone(full){
+  var d=(full||'').replace(/\\D/g,'');
+  if(d.length<7) return full;
+  var head=full.indexOf('+')===0 ? '+'+d.substr(0,3) : d.substr(0,3);
+  var tail=d.substr(-4);
+  return head+' *****'+tail;
+}
+var auth_timer=null;
+function authTimer(secs){
+  var b=$('au_resendbtn');
+  if(!b) return;
+  if(auth_timer) clearInterval(auth_timer);
+  var t=secs;
+  b.disabled=true;
+  function tick(){
+    b.textContent='🔄 '+gxT('auth_resend_in').replace('{s}',t);
+    t--;
+    if(t<0){
+      clearInterval(auth_timer);
+      if(b){ b.disabled=false; b.textContent='🔄 '+gxT('auth_resend'); }
+    }
+  }
+  tick();
+  auth_timer=setInterval(tick,1000);
+}
 function authSendCode(){
   var full=authPhone();
   var digits=(($('au_phone').value||'').trim()).replace(/\\D/g,'');
   if(digits.length<8){ toast(gxT('auth_bad_phone')); return; }
   var btn=$('au_sendbtn');
   if(btn){ btn.disabled=true; btn.textContent=gxT('auth_loading'); }
-  $('au_step1').style.display='none'; $('au_step2').style.display='block';
-  var st=$('au_sentto'); if(st) st.textContent=full;
   fetch('/api/auth/otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:full})})
   .then(function(r){return r.json();}).then(function(d){
+    if(d.ok===false){
+      var em = d.error==='sms_notcfg'?gxT('auth_sms_notcfg') :
+               (d.error==='rate_limit'||d.error==='rate_gap')?gxT('auth_rate_limit') : gxT('auth_sms_fail');
+      toast(em);
+      return;
+    }
+    $('au_step1').style.display='none'; $('au_step2').style.display='block';
+    var st=$('au_sentto'); if(st) st.textContent=maskPhone(full);
     $('au_demo').style.display= d.demo?'block':'none';
     if(d.demo){
       $('au_democode').textContent=d.otp;
@@ -1861,9 +1892,8 @@ function authSendCode(){
     }
     $('au_newbox').style.display= d.registered?'none':'block';
     toast(gxT('auth_sent_ok'));
+    authTimer(30);
   }).catch(function(){
-    var s2=$('au_step2'); if(s2){ s2.style.display='none'; }
-    var s1=$('au_step1'); if(s1){ s1.style.display='block'; }
     toast(gxT('auth_otp_fail'));
   }).then(function(){
     if(btn){ btn.disabled=false; btn.textContent=gxT('auth_continue'); }
@@ -1884,8 +1914,10 @@ function authVerify(){
   fetch('/api/auth/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:ph,code:code,name:name})})
   .then(function(r){return r.json();}).then(function(d){
     if(d.ok){ afterLogin(); return; }
-    if(d.reason==='blocked'){ toast(gxT('auth_blocked')); }
-    else { toast(gxT('auth_wrong')); }
+    var rm = d.reason==='blocked'?gxT('auth_blocked') :
+             d.reason==='expired'?gxT('auth_expired') :
+             d.reason==='rate'?gxT('auth_rate_limit') : gxT('auth_wrong');
+    toast(rm);
     if(btn){ btn.disabled=false; btn.textContent=gxT('auth_verify'); }
   }).catch(function(){
     toast(gxT('auth_otp_fail'));
@@ -3903,17 +3935,151 @@ def api_vote():
     return json_d({"ok": ok})
 
 
+# ---------- SMS ----------
+import time as _t
+import urllib.request as _ur
+import urllib.parse as _up
+import base64 as _b64
+
+
+def sms_log(msg):
+    import sys
+    try:
+        sys.stderr.write("[SMS] %s\n" % msg)
+        sys.stderr.flush()
+    except Exception:
+        pass
+
+
+def send_sms(phone, text):
+    provider = (os.environ.get("SMS_PROVIDER", "") or "").strip().lower()
+    if provider == "taqnyat":
+        return sms_taqnyat(phone, text)
+    if provider == "twilio":
+        return sms_twilio(phone, text)
+    sms_log("SMS_PROVIDER not set or unknown (%r) - no real SMS sent" % provider)
+    return (False, "notcfg")
+
+
+def sms_taqnyat(phone, text):
+    token = (os.environ.get("TAQNYAT_TOKEN", "") or "").strip()
+    sender = (os.environ.get("TAQNYAT_SENDER", "") or "GOLAZOX").strip()
+    if not token:
+        sms_log("TAQNYAT_TOKEN missing")
+        return (False, "config")
+    try:
+        payload = json.dumps({"recipients": [phone], "body": text, "sender": sender}).encode("utf-8")
+        req = _ur.Request("https://api.taqnyat.sa/v1/messages", data=payload,
+                          headers={"Authorization": "Bearer " + token,
+                                   "Content-Type": "application/json"})
+        with _ur.urlopen(req, timeout=25) as r:
+            raw = r.read().decode("utf-8", "replace")
+        sms_log("taqnyat ok phone=%s -> %s" % (phone, raw[:200]))
+        return (True, raw)
+    except Exception as e:
+        sms_log("taqnyat error phone=%s: %r" % (phone, e))
+        return (False, "provider")
+
+
+def sms_twilio(phone, text):
+    sid = (os.environ.get("TWILIO_SID", "") or "").strip()
+    tok = (os.environ.get("TWILIO_AUTH_TOKEN", "") or "").strip()
+    frm = (os.environ.get("TWILIO_FROM", "") or "").strip()
+    if not (sid and tok and frm):
+        sms_log("TWILIO_SID / TWILIO_AUTH_TOKEN / TWILIO_FROM missing")
+        return (False, "config")
+    try:
+        data = _up.urlencode({"To": phone, "From": frm, "Body": text}).encode("utf-8")
+        url = "https://api.twilio.com/2010-04-01/Accounts/%s/Messages.json" % sid
+        auth = _b64.b64encode(("%s:%s" % (sid, tok)).encode()).decode("ascii")
+        req = _ur.Request(url, data=data,
+                          headers={"Authorization": "Basic " + auth,
+                                   "Content-Type": "application/x-www-form-urlencoded"})
+        with _ur.urlopen(req, timeout=25) as r:
+            raw = r.read().decode("utf-8", "replace")
+        sms_log("twilio ok phone=%s -> %s" % (phone, raw[:200]))
+        return (True, raw)
+    except Exception as e:
+        sms_log("twilio error phone=%s: %r" % (phone, e))
+        return (False, "provider")
+
+
+def otp_sms_text(code):
+    tpl = (os.environ.get("OTP_SMS_TEXT", "") or "").strip()
+    if not tpl:
+        tpl = "GOLAZOX: رمزك {code}"
+    return tpl.replace("{code}", code)
+
+
 # ---------- auth ----------
+RATE_SEND_MAX = 5
+RATE_SEND_WINDOW = 600
+RATE_SEND_GAP = 30
+RATE_VERIFY_MAX = 5
+RATE_BLOCK = 600
+_otp_rate = {}
+
+
+def otp_rate_blocked(phone):
+    r = _otp_rate.get(phone)
+    if r and r.get("block_until") and _t.time() < r["block_until"]:
+        return r["block_until"]
+    return None
+
+
+def otp_rate_allow_send(phone):
+    now = _t.time()
+    r = _otp_rate.setdefault(phone, {"sends": [], "fails": []})
+    r["sends"] = [t for t in r["sends"] if now - t < RATE_SEND_WINDOW]
+    if len(r["sends"]) >= RATE_SEND_MAX:
+        return False
+    if r["sends"] and now - r["sends"][-1] < RATE_SEND_GAP:
+        return "gap"
+    r["sends"].append(now)
+    return True
+
+
+def otp_rate_fail(phone):
+    now = _t.time()
+    r = _otp_rate.setdefault(phone, {"sends": [], "fails": []})
+    r["fails"] = [t for t in r["fails"] if now - t < RATE_VERIFY_MAX * 60]
+    r["fails"].append(now)
+    if len(r["fails"]) >= RATE_VERIFY_MAX:
+        r["block_until"] = now + RATE_BLOCK
+        return True
+    return False
+
+
+def otp_rate_reset(phone):
+    _otp_rate.pop(phone, None)
+
+
 @app.route("/api/auth/otp", methods=["POST"])
 def api_auth_otp():
     data = request.get_json(force=True)
     ph = normal_phone(data.get("phone", ""))
-    if len(ph) < 6:
-        return json_d({"error": "bad"})
+    digits = "".join(ch for ch in ph if ch.isdigit())
+    if not (ph.startswith("+") and 8 <= len(digits) <= 15):
+        return json_d({"ok": False, "error": "bad"})
+    if otp_rate_blocked(ph):
+        return json_d({"ok": False, "error": "rate_limit"})
+    allow = otp_rate_allow_send(ph)
+    if allow is False:
+        return json_d({"ok": False, "error": "rate_limit"})
+    if allow == "gap":
+        return json_d({"ok": False, "error": "rate_gap"})
     code = db.otp_new(ph)
-    demo = True
-    return json_d({"demo": demo, "otp": code if demo else None,
-                   "registered": db.user_by_phone(ph) is not None})
+    registered = db.user_by_phone(ph) is not None
+    provider = (os.environ.get("SMS_PROVIDER", "") or "").strip().lower()
+    if not provider:
+        if os.environ.get("DEMO_OTP", "0") == "1":
+            return json_d({"ok": True, "demo": True, "otp": code, "registered": registered})
+        sms_log("OTP blocked: SMS_PROVIDER not set on the server (set DEMO_OTP=1 only for local dev)")
+        return json_d({"ok": False, "error": "sms_notcfg", "registered": registered})
+    ok, detail = send_sms(ph, otp_sms_text(code))
+    if not ok:
+        return json_d({"ok": False, "error": "sms_fail", "registered": registered})
+    return json_d({"ok": True, "demo": False, "registered": registered})
 
 
 @app.route("/api/auth/verify", methods=["POST"])
@@ -3921,8 +4087,15 @@ def api_auth_verify():
     data = request.get_json(force=True)
     ph = normal_phone(data.get("phone", ""))
     code = str(data.get("code", "")).strip()
-    if not db.otp_verify(ph, code):
-        return json_d({"ok": False, "reason": "code"})
+    if otp_rate_blocked(ph):
+        return json_d({"ok": False, "reason": "rate"})
+    state, oid = db.otp_state(ph, code)
+    if state != "ok":
+        if otp_rate_fail(ph):
+            return json_d({"ok": False, "reason": "rate"})
+        reason = "expired" if state == "expired" else "code"
+        return json_d({"ok": False, "reason": reason})
+    db.otp_consume(oid)
     u = db.user_by_phone(ph)
     if not u:
         uid = db.user_create(ph, str(data.get("name", "") or "").strip(), "customer", lang())
@@ -3935,6 +4108,7 @@ def api_auth_verify():
     session["user_id"] = u["id"]
     session.permanent = True
     db.user_touch(u["id"])
+    otp_rate_reset(ph)
     return json_d({"ok": True, "role": u["role"]})
 
 

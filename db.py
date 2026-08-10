@@ -684,3 +684,30 @@ def otp_verify(phone, code):
     conn.commit()
     conn.close()
     return True
+
+
+def otp_state(phone, code):
+    """Return (state, otp_id): ok / expired / wrong / used."""
+    conn = _conn()
+    r = conn.execute(
+        "SELECT id, expires, used FROM otps WHERE phone=? AND code=? ORDER BY id DESC LIMIT 1",
+        (phone, str(code))).fetchone()
+    conn.close()
+    if not r:
+        return ("wrong", None)
+    try:
+        exp = datetime.datetime.strptime(r["expires"], "%Y-%m-%d %H:%M")
+    except Exception:
+        exp = datetime.datetime.now() - datetime.timedelta(minutes=1)
+    if r["used"]:
+        return ("used", None)
+    if exp < datetime.datetime.now():
+        return ("expired", None)
+    return ("ok", r["id"])
+
+
+def otp_consume(oid):
+    conn = _conn()
+    conn.execute("UPDATE otps SET used=1 WHERE id=?", (oid,))
+    conn.commit()
+    conn.close()

@@ -4022,47 +4022,68 @@ def otp_sms_text(code):
 
 
 def otp_email_subject():
-    return "GOLAZOX - رمز التحقق / Verification code"
+    tpl = (os.environ.get("OTP_EMAIL_SUBJECT", "") or "").strip()
+    return tpl or "رمز التحقق لتسجيل الدخول إلى GOLAZOX"
 
 
 def otp_email_text(code):
     tpl = (os.environ.get("OTP_EMAIL_TEXT", "") or "").strip()
     if not tpl:
-        tpl = ("GOLAZOX\nرمز التحقق الخاص بك: {code} (صالح لمدة 10 دقائق)\n"
-               "Your verification code: {code} (valid 10 minutes)")
+        tpl = ("مرحبًا،\n\nرمز التحقق الخاص بك هو:\n\n{code}\n\n"
+               "الرمز صالح لمدة 10 دقائق.\n"
+               "إذا لم تطلب تسجيل الدخول، يمكنك تجاهل هذه الرسالة.\n\nGOLAZOX")
     return tpl.replace("{code}", code)
 
 
-def send_email(to, subject, text):
+def otp_email_html(code):
+    return ("<div style='font-family:Arial,Helvetica,sans-serif;background:#f4f4f4;padding:24px'>"
+            "<div style='max-width:480px;margin:auto;background:#ffffff;border-radius:14px;padding:28px;text-align:center'>"
+            "<div style='font-size:24px;font-weight:900;color:#0B0F19'>GOLAZOX</div>"
+            "<p style='color:#555;margin:18px 0 22px'>رمز التحقق لتسجيل الدخول</p>"
+            "<div style='font-size:36px;letter-spacing:10px;font-weight:900;color:#0B0F19'>%s</div>"
+            "<p style='color:#888;font-size:13px;margin-top:22px'>الرمز صالح لمدة 10 دقائق.<br>"
+            "إذا لم تطلب تسجيل الدخول، يمكنك تجاهل هذه الرسالة.</p></div></div>" % code)
+
+
+def send_email(to, subject, text, html=None):
     host = (os.environ.get("SMTP_HOST", "") or "").strip()
     port_s = (os.environ.get("SMTP_PORT", "") or "").strip()
     port = int(port_s) if port_s.isdigit() else 587
     user = (os.environ.get("SMTP_USER", "") or "").strip()
     pwd = os.environ.get("SMTP_PASS", "") or ""
     frm = (os.environ.get("EMAIL_FROM", "") or user).strip()
-    if not (host and user):
-        sms_log("SMTP not configured (SMTP_HOST/SMTP_USER missing)")
+    sms_log("[EMAIL OTP] send requested to %s" % to)
+    sms_log("[EMAIL OTP] config host=%s user=%s pass=%s from=%s port=%d"
+            % (bool(host), bool(user), bool(pwd), bool(frm), port))
+    if not (host and user and pwd and frm):
+        sms_log("[EMAIL OTP] SMTP ERROR: config missing (host/user/pass/from)")
         return (False, "notcfg")
     try:
         import smtplib
         from email.mime.text import MIMEText
         from email.mime.multipart import MIMEMultipart
-        msg = MIMEMultipart()
+        msg = MIMEMultipart("alternative")
         msg["From"] = frm
         msg["To"] = to
         msg["Subject"] = subject
         msg.attach(MIMEText(text, "plain", "utf-8"))
+        if html:
+            msg.attach(MIMEText(html, "html", "utf-8"))
+        sms_log("[EMAIL OTP] connecting to %s:%d" % (host, port))
         s = smtplib.SMTP(host, port, timeout=25)
         s.ehlo()
         if port in (587, 465):
             s.starttls()
+            s.ehlo()
+        sms_log("[EMAIL OTP] connected, TLS ok")
         s.login(user, pwd)
+        sms_log("[EMAIL OTP] login ok")
         s.sendmail(frm, [to], msg.as_string())
         s.quit()
-        sms_log("email ok -> %s" % to)
+        sms_log("[EMAIL OTP] email sent ok to %s" % to)
         return (True, "sent")
     except Exception as e:
-        sms_log("email error: %r" % e)
+        sms_log("[EMAIL OTP] SMTP ERROR: %r" % e)
         return (False, "provider")
 
 
@@ -4145,9 +4166,9 @@ def api_auth_otp():
                 return json_d({"ok": True, "demo": True, "otp": code, "registered": registered})
             sms_log("email OTP blocked: SMTP_HOST not set on the server (set DEMO_OTP=1 only for local dev)")
             return json_d({"ok": False, "error": "sms_notcfg", "registered": registered})
-        ok, detail = send_email(contact, otp_email_subject(), otp_email_text(code))
+        ok, detail = send_email(contact, otp_email_subject(), otp_email_text(code), otp_email_html(code))
         if not ok:
-            return json_d({"ok": False, "error": "sms_fail", "registered": registered})
+            return json_d({"ok": False, "error": "email_send_failed", "registered": registered})
         return json_d({"ok": True, "demo": False, "registered": registered})
     provider = (os.environ.get("SMS_PROVIDER", "") or "").strip().lower()
     if not provider:
@@ -5082,5 +5103,11 @@ a{text-decoration:none;color:inherit}
 
 if __name__ == "__main__":
     seed_super_admin()
+    sms_log("[EMAIL OTP] startup smtp host=%s user=%s pass=%s from=%s port=%s"
+            % (bool((os.environ.get("SMTP_HOST", "") or "").strip()),
+               bool((os.environ.get("SMTP_USER", "") or "").strip()),
+               bool(os.environ.get("SMTP_PASS", "")),
+               bool((os.environ.get("EMAIL_FROM", "") or "").strip()),
+               (os.environ.get("SMTP_PORT", "") or "587").strip()))
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)

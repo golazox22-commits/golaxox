@@ -4071,7 +4071,7 @@ def _log_resend_error(code, raw):
 
 def send_email(to, subject, text, html=None):
     key = (os.environ.get("RESEND_API_KEY", "") or "").strip()
-    frm = (os.environ.get("RESEND_FROM", "") or os.environ.get("EMAIL_FROM", "") or "onboarding@resend.dev").strip()
+    frm = (os.environ.get("RESEND_FROM", "") or "onboarding@resend.dev").strip()
     sms_log("[EMAIL OTP] send requested to %s" % to)
     sms_log("[EMAIL OTP] config resend_key=%s from=%s" % (bool(key), bool(frm)))
     if not (key and frm):
@@ -4288,10 +4288,7 @@ def api_me():
 def api_diag():
     return json_d({
         "resend_key": bool((os.environ.get("RESEND_API_KEY", "") or "").strip()),
-        "resend_from": bool((os.environ.get("RESEND_FROM", "") or os.environ.get("EMAIL_FROM", "") or "").strip()),
-        "smtp_host": bool((os.environ.get("SMTP_HOST", "") or "").strip()),
-        "smtp_port": (os.environ.get("SMTP_PORT", "") or "").strip(),
-        "email_from": bool((os.environ.get("EMAIL_FROM", "") or "").strip()),
+        "resend_from": bool((os.environ.get("RESEND_FROM", "") or "").strip()),
         "sms_provider": (os.environ.get("SMS_PROVIDER", "") or "").strip(),
         "demo_otp": (os.environ.get("DEMO_OTP", "") or "").strip(),
     })

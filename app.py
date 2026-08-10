@@ -5143,6 +5143,6 @@ if __name__ == "__main__":
     seed_super_admin()
     sms_log("[EMAIL OTP] startup resend_key=%s resend_from=%s"
             % (bool((os.environ.get("RESEND_API_KEY", "") or "").strip()),
-               bool((os.environ.get("RESEND_FROM", "") or os.environ.get("EMAIL_FROM", "") or "").strip())))
+               bool((os.environ.get("RESEND_FROM", "") or "").strip())))
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)

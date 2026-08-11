@@ -1,1 +1,4 @@
-flask>=2.3
+flask>=3.0
+pillow>=10.0
+gunicorn>=21.0
+git+https://github.com/fashn-AI/fashn-vton-1.5.git

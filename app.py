@@ -5717,6 +5717,19 @@ def _tryon_backend_url():
     return (os.environ.get("TRYON_BACKEND_URL", "") or "").strip().rstrip("/")
 
 
+@app.route("/api/tryon/debug")
+def api_tryon_debug():
+    hf = _hf_token()
+    backend = _tryon_backend_url()
+    gc = False
+    try:
+        from gradio_client import Client
+        gc = True
+    except Exception as e:
+        gc = str(e)[:80]
+    return json_d({"hf_token": bool(hf), "hf_len": len(hf), "backend": bool(backend), "gradio_client": gc})
+
+
 def _replicate_token():
     return (os.environ.get("REPLICATE_API_TOKEN", "") or "").strip()
 
@@ -5760,6 +5773,8 @@ def _tryon_idm_vton(person_bytes, garment_bytes, garment_photo_type="flat-lay"):
             except Exception:
                 pass
     except Exception as e:
+        import sys
+        sys.stderr.write("[TRYON] idm-vton exception: %s\n" % repr(e)[:300])
         return None, str(e)[:120]
 
 

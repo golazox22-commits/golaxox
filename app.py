@@ -1895,7 +1895,7 @@ function submitPriceDrop(){
   });
 }
 /* ---------- try it on (free, in-browser: pose detection + canvas compositing) ---------- */
-var TRY={img:null,pid:null,size:'',result:null,poseModelPromise:null};
+var TRY={img:null,pid:null,size:'',result:null,poseModelPromise:null,shirtCache:{}};
 function tryOpen(pid){ TRY.pid=pid; TRY.size=''; TRY.result=null;
   var sel=$('try_sel'); if(sel){ sel.value=pid; }
   var prev=$('tryPrev'); if(prev){ prev.style.display='none'; prev.src=''; }
@@ -1913,7 +1913,7 @@ function tryPickSize(el,sz){ TRY.size=sz;
 function trySwitch(pid){ TRY.pid=pid; }
 function tryHandle(input,cam){
   var f=input.files[0]; if(!f) return;
-  if(!/^image\//.test(f.type)){ toast(gxT('is_bad_photo')); input.value=''; return; }
+  if(!/^image\\//.test(f.type)){ toast(gxT('is_bad_photo')); input.value=''; return; }
   var fr=new FileReader(); fr.onload=function(){
     var img=new Image(); img.onload=function(){ TRY.img=img; tryPreview(); }; img.src=fr.result;
   };
@@ -1933,17 +1933,13 @@ function tryCheckFace(){
   var cx=cv.width/2, cy=cv.height/2, rx=Math.max(60,cv.width*0.22), ry=Math.max(60,cv.height*0.22);
   var x0=Math.max(0,Math.floor(cx-rx)), x1=Math.min(cv.width,Math.ceil(cx+rx));
   var y0=Math.max(0,Math.floor(cy-ry)), y1=Math.min(cv.height,Math.ceil(cy+ry));
-  var n=0, bright=0, skin=0;
+  var n=0, bright=0;
   for(var y=y0;y<y1;y++){ for(var x=x0;x<x1;x++){
-    var i=(y*cv.width+x)*4; var r=d[i],g=d[i+1],b=d[i+2];
-    bright+= (0.299*r+0.587*g+0.114*b)/255;
-    if(r>80 && r>g && g>=b && (r-g)>18 && (r-b)>28){ skin++; }
-    n++;
+    var i=(y*cv.width+x)*4; bright+= (0.299*d[i]+0.587*d[i+1]+0.114*d[i+2])/255; n++;
   }}
   if(n===0) return false;
   var avg=bright/n;
-  if(avg<0.12 || avg>0.94) return false;
-  if(skin/n < 0.035) return false;
+  if(avg<0.06 || avg>0.97) return false;
   return true;
 }
 function tryLoadScript(src){
@@ -1963,81 +1959,278 @@ function tryLoadPoseModel(){
     });
   return TRY.poseModelPromise;
 }
-function tryDefaultFit(W,H){
-  return {x:(W-W*0.66)/2, y:H*0.28, tw:W*0.66, th:H*0.34, angle:0};
+function tryToPixels(kp,W,H){
+  var mx=0,i;
+  for(i=0;i<kp.length;i++){
+    var ax=Math.abs(kp[i].x), ay=Math.abs(kp[i].y);
+    if(ax>mx) mx=ax; if(ay>mx) mx=ay;
+  }
+  var sX=(mx>1.5)?1:W, sY=(mx>1.5)?1:H;
+  var out={};
+  for(i=0;i<kp.length;i++){
+    var k=kp[i];
+    out[k.name]={x:k.x*sX, y:k.y*sY, score:k.score||0};
+  }
+  return out;
 }
-function tryFitFromPose(cv,W,H){
+function tryDetectFit(cv,W,H){
   return tryLoadPoseModel().then(function(det){
     return det.estimatePoses(cv,{flipHorizontal:false});
   }).then(function(poses){
     var kp=poses && poses[0] && poses[0].keypoints;
-    if(!kp) throw new Error('no_pose');
-    var byName={}; kp.forEach(function(k){ byName[k.name]=k; });
-    var ls=byName.left_shoulder, rs=byName.right_shoulder;
-    var lh=byName.left_hip, rh=byName.right_hip;
-    if(!ls||!rs||(ls.score||0)<0.4||(rs.score||0)<0.4) throw new Error('low_confidence');
+    if(!kp || kp.length<10) throw new Error('no_pose');
+    var p=tryToPixels(kp,W,H);
+    var ls=p.left_shoulder, rs=p.right_shoulder;
+    var lh=p.left_hip, rh=p.right_hip;
+    var le=p.left_elbow, re=p.right_elbow;
+    var lw=p.left_wrist, rw=p.right_wrist;
+    var nose=p.nose, lear=p.left_ear, rear=p.right_ear;
+    if(!ls || !rs || ls.score<0.4 || rs.score<0.4) throw new Error('low_confidence');
     var shW=Math.hypot(rs.x-ls.x, rs.y-ls.y);
-    if(shW<W*0.08 || shW>W*0.9) throw new Error('bad_scale');
-    var shoulderY=(ls.y+rs.y)/2;
-    var hipsOk = lh && rh && (lh.score||0)>0.3 && (rh.score||0)>0.3;
-    var hipY = hipsOk ? (lh.y+rh.y)/2 : null;
-    if(hipsOk && (hipY-shoulderY) < shW*0.4) throw new Error('bad_geometry');
-    if(!hipsOk && (H-shoulderY) < shW*0.5) throw new Error('not_enough_room');
-    var midx=(ls.x+rs.x)/2, midy=shoulderY;
-    var tw=Math.min(shW*2.05, W*0.94), th=tw*0.6;
-    return {x:midx-tw/2, y:midy-th*0.12, tw:tw, th:th, angle:Math.atan2(rs.y-ls.y, rs.x-ls.x)};
+    if(shW<W*0.08 || shW>W*0.95) throw new Error('bad_scale');
+    var shY=(ls.y+rs.y)/2;
+    var headY = nose ? nose.y : ((lear&&rear)? (lear.y+rear.y)/2 : shY-1);
+    if(headY > shY + H*0.03) throw new Error('upside_down');
+    var hipsOk = lh && rh && lh.score>=0.3 && rh.score>=0.3;
+    var hipY, botL, botR;
+    if(hipsOk){
+      hipY=(lh.y+rh.y)/2;
+      botL={x:lh.x,y:lh.y}; botR={x:rh.x,y:rh.y};
+    } else {
+      hipY=shY+shW*1.12;
+      var midx=(ls.x+rs.x)/2;
+      botL={x:midx-shW*0.46, y:hipY}; botR={x:midx+shW*0.46, y:hipY};
+    }
+    var torsoH=hipY-shY;
+    if(torsoH < shW*0.4) throw new Error('bad_geometry');
+    if(shY > H*0.92 || hipY > H*1.05) throw new Error('not_enough_room');
+    var arms=[];
+    if(le && lw && le.score>=0.3 && lw.score>=0.3) arms.push([ls,le,lw]);
+    if(re && rw && re.score>=0.3 && rw.score>=0.3) arms.push([rs,re,rw]);
+    var head=null;
+    if(nose) head={cx:nose.x, cy:nose.y-shW*0.06, rx:shW*0.30, ry:shW*0.38};
+    return {topL:{x:ls.x,y:ls.y}, topR:{x:rs.x,y:rs.y}, botL:botL, botR:botR,
+            shW:shW, shY:shY, torsoH:torsoH, arms:arms, head:head};
   });
 }
-function drawJersey(ctx,fit){
-  var prod=TRY.pid? GX.products.find(function(x){return x.id===TRY.pid;}):null;
-  if(!prod) return;
-  var ji=new Image();
-  ji.onload=function(){
+function tryGetShirtCanvas(prod){
+  if(TRY.shirtCache[prod.id]) return Promise.resolve(TRY.shirtCache[prod.id]);
+  return new Promise(function(resolve,reject){
+    var ji=new Image();
+    ji.onload=function(){
+      var maxS=620;
+      var s=Math.min(1, maxS/Math.max(ji.width||1,ji.height||1));
+      var w=Math.max(1,Math.round((ji.width||1)*s)), h=Math.max(1,Math.round((ji.height||1)*s));
+      var c=document.createElement('canvas'); c.width=w; c.height=h;
+      c.getContext('2d').drawImage(ji,0,0,w,h);
+      tryChromaKey(c);
+      TRY.shirtCache[prod.id]=c;
+      resolve(c);
+    };
+    ji.onerror=function(){ reject(new Error('shirt_load_failed')); };
+    ji.src='/img/'+prod.imgs[0];
+  });
+}
+function tryChromaKey(c){
+  var x=c.getContext('2d'); var W=c.width, H=c.height;
+  var id=x.getImageData(0,0,W,H), d=id.data;
+  var b=Math.max(3,Math.round(Math.min(W,H)*0.02));
+  var cs=[[0,0],[W-b,0],[0,H-b],[W-b,H-b]];
+  var ra=[];
+  var ci,cj,y,px,i;
+  for(ci=0;ci<4;ci++){
+    var ox=cs[ci][0], oy=cs[ci][1];
+    var r=0,g=0,bl=0,n=0,rs=0,gs=0,bs=0,aa=0;
+    for(y=oy;y<oy+b;y++){ for(px=ox;px<ox+b;px++){
+      i=(y*W+px)*4;
+      r+=d[i]; g+=d[i+1]; bl+=d[i+2];
+      rs+=d[i]*d[i]; gs+=d[i+1]*d[i+1]; bs+=d[i+2]*d[i+2];
+      aa+=d[i+3]; n++;
+    }}
+    if(n<Math.max(4,b*b*0.3)) continue;
+    r/=n; g/=n; bl/=n; aa/=n;
+    var std=(Math.sqrt(Math.max(0,rs/n-r*r))+Math.sqrt(Math.max(0,gs/n-g*g))+Math.sqrt(Math.max(0,bs/n-bl*bl)))/3;
+    ra.push({r:r,g:g,bl:bl,std:std,aa:aa});
+  }
+  var bg=null, cnt=0;
+  for(ci=0;ci<ra.length;ci++){
+    if(ra[ci].aa<200 || ra[ci].std>26) continue;
+    var m=0;
+    for(cj=0;cj<ra.length;cj++){
+      if(ra[cj].aa<200 || ra[cj].std>26) continue;
+      if(Math.abs(ra[cj].r-ra[ci].r)+Math.abs(ra[cj].g-ra[ci].g)+Math.abs(ra[cj].bl-ra[ci].bl)<80) m++;
+    }
+    if(m>cnt){ cnt=m; bg=ra[ci]; }
+  }
+  if(!bg || cnt<2) return;
+  var cx0=Math.floor(W*0.34), cx1=Math.floor(W*0.66), cy0=Math.floor(H*0.34), cy1=Math.floor(H*0.66);
+  var cr=0,cg=0,cb=0,cn=0;
+  for(y=cy0;y<cy1;y+=2){ for(px=cx0;px<cx1;px+=2){
+    i=(y*W+px)*4; cr+=d[i]; cg+=d[i+1]; cb+=d[i+2]; cn++;
+  }}
+  if(cn===0) return;
+  cr/=cn; cg/=cn; cb/=cn;
+  var centerDist=Math.abs(cr-bg.r)+Math.abs(cg-bg.g)+Math.abs(cb-bg.bl);
+  if(centerDist<60) return;
+  var t0 = Math.max(26, bg.std*2.6);
+  var t1 = Math.max(52, t0*2);
+  function nearBg(j){ return Math.abs(d[j]-bg.r)+Math.abs(d[j+1]-bg.g)+Math.abs(d[j+2]-bg.bl) < t0; }
+  var seen=new Uint8Array(W*H);
+  var q=[];
+  function pushQ(px,y){
+    if(px<0||px>=W||y<0||y>=H) return;
+    var j=y*W+px;
+    if(seen[j]||d[j*4+3]===0) return;
+    if(!nearBg(j*4)) return;
+    seen[j]=1; q.push(j);
+  }
+  for(px=0;px<W;px++){ pushQ(px,0); pushQ(px,H-1); }
+  for(y=0;y<H;y++){ pushQ(0,y); pushQ(W-1,y); }
+  var head=0;
+  while(head<q.length){
+    var j=q[head++];
+    var yy=(j/W)|0, xx=j%W;
+    d[j*4+3]=0;
+    pushQ(xx+1,yy); pushQ(xx-1,yy); pushQ(xx,yy+1); pushQ(xx,yy-1);
+  }
+  function touchesRemoved(y,px){
+    var dy2,dx2;
+    for(dy2=-1;dy2<=1;dy2++){ for(dx2=-1;dx2<=1;dx2++){
+      if(dy2===0&&dx2===0) continue;
+      var j2=((y+dy2)*W+(px+dx2))*4;
+      if(d[j2+3]===0) return true;
+    }}
+    return false;
+  }
+  for(y=1;y<H-1;y++){ for(px=1;px<W-1;px++){
+    i=(y*W+px)*4;
+    if(d[i+3]!==255) continue;
+    var dist=Math.abs(d[i]-bg.r)+Math.abs(d[i+1]-bg.g)+Math.abs(d[i+2]-bg.bl);
+    if(dist<t0||dist>=t1) continue;
+    if(touchesRemoved(y,px)){ d[i+3]=Math.round(255*(dist-t0)/(t1-t0)); }
+  }}
+  x.putImageData(id,0,0);
+}
+function tryWarpShirt(ctx,shirtCv,fit){
+  var sw=shirtCv.width, sh=shirtCv.height;
+  var tl={x:fit.topL.x,y:fit.topL.y}, tr={x:fit.topR.x,y:fit.topR.y};
+  var bl=fit.botL, br=fit.botR;
+  var vx=tr.x-tl.x, vy=tr.y-tl.y;
+  var len=Math.sqrt(vx*vx+vy*vy)||1;
+  var ux=vx/len, uy=vy/len;
+  var shW=fit.shW||len;
+  var ins=shW*0.08;
+  tl.x+=ux*ins; tl.y+=uy*ins;
+  tr.x-=ux*ins; tr.y-=uy*ins;
+  var dy=Math.max(3,(bl.y-tl.y)*0.03);
+  tl.y-=dy; tr.y-=dy;
+  var taper=0.07*shW;
+  var strips=Math.max(28,Math.round(sh/12));
+  var i;
+  function toward(px,py,mx,my,off){
+    var dx=mx-px, dy=my-py, L=Math.sqrt(dx*dx+dy*dy)||1;
+    return {x:px+dx/L*off, y:py+dy/L*off};
+  }
+  for(i=0;i<strips;i++){
+    var u0=i/strips, u1=(i+1)/strips;
+    var lx0=tl.x+(bl.x-tl.x)*u0, ly0=tl.y+(bl.y-tl.y)*u0;
+    var rx0=tr.x+(br.x-tr.x)*u0, ry0=tr.y+(br.y-tr.y)*u0;
+    var lx1=tl.x+(bl.x-tl.x)*u1, ly1=tl.y+(bl.y-tl.y)*u1;
+    var rx1=tr.x+(br.x-tr.x)*u1, ry1=tr.y+(br.y-tr.y)*u1;
+    var mid0x=(lx0+rx0)/2, mid0y=(ly0+ry0)/2;
+    var mid1x=(lx1+rx1)/2, mid1y=(ly1+ry1)/2;
+    var o0=Math.sin(Math.PI*u0)*taper, o1=Math.sin(Math.PI*u1)*taper;
+    var a=toward(lx0,ly0,mid0x,mid0y,o0);
+    var b=toward(rx0,ry0,mid0x,mid0y,o0);
+    var c=toward(lx1,ly1,mid1x,mid1y,o1);
+    var dd=toward(rx1,ry1,mid1x,mid1y,o1);
+    var sy0=Math.floor(sh*u0), sy1=Math.max(sy0+1,Math.floor(sh*u1));
+    var shh=sy1-sy0;
+    var A={x:b.x-a.x, y:b.y-a.y}, B={x:c.x-a.x, y:c.y-a.y};
     ctx.save();
-    ctx.globalAlpha=.92;
-    ctx.translate(fit.x+fit.tw/2, fit.y+fit.th/2);
-    ctx.rotate(fit.angle);
-    var x=-fit.tw/2, y=-fit.th/2, tw=fit.tw, th=fit.th;
+    ctx.setTransform(A.x/sw, A.y/sw, B.x/shh, B.y/shh, a.x, a.y);
+    ctx.drawImage(shirtCv,0,sy0,sw,shh,0,0,sw,shh);
+    ctx.restore();
+  }
+}
+function tryMaskShirt(ctx,fit){
+  ctx.save();
+  ctx.globalCompositeOperation='destination-out';
+  ctx.lineCap='round'; ctx.lineJoin='round';
+  var i;
+  for(i=0;i<fit.arms.length;i++){
+    var arm=fit.arms[i], sh=arm[0], el=arm[1], wr=arm[2];
+    var wSh=Math.hypot(el.x-sh.x,el.y-sh.y)*0.32;
+    var wEl=Math.hypot(wr.x-el.x,wr.y-el.y)*0.24;
+    var wWr=Math.max(5,wEl*0.55);
+    ctx.strokeStyle='#000';
+    ctx.lineWidth=wSh;
+    ctx.beginPath(); ctx.moveTo(sh.x,sh.y); ctx.lineTo(el.x,el.y); ctx.stroke();
+    ctx.lineWidth=wEl;
+    ctx.beginPath(); ctx.moveTo(el.x,el.y); ctx.lineTo(wr.x,wr.y); ctx.stroke();
+    ctx.fillStyle='#000';
+    ctx.beginPath(); ctx.arc(wr.x,wr.y,wWr,0,Math.PI*2); ctx.fill();
+  }
+  if(fit.head){
+    ctx.fillStyle='#000';
     ctx.beginPath();
-    ctx.moveTo(x+tw*0.12,y); ctx.lineTo(x+tw*0.88,y);
-    ctx.lineTo(x+tw*0.72,y+th); ctx.lineTo(x+tw*0.28,y+th); ctx.closePath();
-    ctx.clip();
-    ctx.drawImage(ji,x,y,tw,th);
-    ctx.restore();
-    ctx.save();
-    ctx.translate(fit.x+fit.tw/2, fit.y+fit.th/2); ctx.rotate(fit.angle);
-    ctx.strokeStyle='rgba(255,255,255,.6)'; ctx.lineWidth=2;
-    ctx.beginPath(); ctx.moveTo(x+tw*0.12,y); ctx.lineTo(x+tw*0.88,y); ctx.lineTo(x+tw*0.72,y+th); ctx.lineTo(x+tw*0.28,y+th); ctx.closePath(); ctx.stroke();
-    ctx.restore();
-    var out=document.createElement('canvas'); out.width=ctx.canvas.width; out.height=ctx.canvas.height;
-    out.getContext('2d').drawImage(ctx.canvas,0,0);
-    tryDone(out.toDataURL('image/jpeg',0.92));
-  };
-  ji.onerror=function(){ tryFail('try_error'); };
-  ji.src='/img/'+prod.imgs[0];
+    ctx.ellipse(fit.head.cx,fit.head.cy,fit.head.rx,fit.head.ry,0,0,Math.PI*2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+function tryShade(layer,photo,W,H){
+  var sh=document.createElement('canvas'); sh.width=W; sh.height=H;
+  var sx=sh.getContext('2d'); sx.drawImage(photo,0,0);
+  var sid=sx.getImageData(0,0,W,H), sdd=sid.data;
+  var i;
+  for(i=0;i<sdd.length;i+=4){
+    var g=(sdd[i]*0.299+sdd[i+1]*0.587+sdd[i+2]*0.114);
+    sdd[i]=g; sdd[i+1]=g; sdd[i+2]=g;
+  }
+  sx.putImageData(sid,0,0);
+  layer.save();
+  layer.globalCompositeOperation='multiply';
+  layer.globalAlpha=0.5;
+  layer.drawImage(sh,0,0);
+  layer.restore();
+}
+function tryCompose(prod){
+  return new Promise(function(resolve,reject){
+    tryGetShirtCanvas(prod).then(function(shirtCv){
+      var iw=TRY.img.width||1, ih=TRY.img.height||1;
+      var scale=Math.min(1, 760/Math.max(iw,ih));
+      var W=Math.max(1,Math.round(iw*scale)), H=Math.max(1,Math.round(ih*scale));
+      var cv=document.createElement('canvas'); cv.width=W; cv.height=H;
+      var ctx=cv.getContext('2d'); ctx.drawImage(TRY.img,0,0,W,H);
+      tryDetectFit(cv,W,H).then(function(fit){
+        var layer=document.createElement('canvas'); layer.width=W; layer.height=H;
+        var lx=layer.getContext('2d');
+        tryWarpShirt(lx,shirtCv,fit);
+        tryMaskShirt(lx,fit);
+        tryShade(lx,cv,W,H);
+        ctx.drawImage(layer,0,0);
+        resolve(cv.toDataURL('image/jpeg',0.92));
+      }, reject);
+    }, reject);
+  });
 }
 function tryRun(){
   if(!TRY.img){ toast(gxT('try_up')); return; }
   if(!TRY.pid){ toast(gxT('try_product')); return; }
   if(!tryCheckFace()){ var err=$('tryErr'); if(err){ err.style.display='block'; err.textContent=gxT('try_badface'); } return; }
+  var prod=null, i;
+  for(i=0;i<GX.products.length;i++){ if(GX.products[i].id===TRY.pid){ prod=GX.products[i]; break; } }
+  if(!prod){ toast(gxT('try_product')); return; }
   var run=$('tryRun'), load=$('tryLoading'); if(run) run.disabled=true;
   if(load) load.style.display='block';
-  var iw=TRY.img.width||1, ih=TRY.img.height||1;
-  var scale=Math.min(1, 460/Math.max(iw,ih));
-  var W=Math.max(1,Math.round(iw*scale)), H=Math.max(1,Math.round(ih*scale));
-  var cv=document.createElement('canvas'); cv.width=W; cv.height=H;
-  var ctx=cv.getContext('2d'); ctx.fillStyle='#0F172A'; ctx.fillRect(0,0,W,H);
-  ctx.drawImage(TRY.img,0,0,W,H);
-  tryFitFromPose(cv,W,H).then(function(fit){
-    drawJersey(ctx,fit);
-  }).catch(function(err){
+  tryCompose(prod).then(function(dataUrl){
+    tryDone(dataUrl);
+  }, function(err){
     var reason=(err&&err.message)||'';
-    var noBodyReasons={no_pose:1,low_confidence:1,bad_scale:1,bad_geometry:1,not_enough_room:1};
-    if(noBodyReasons[reason]){
-      tryFail('try_badface');
-    } else {
-      drawJersey(ctx,tryDefaultFit(W,H));
-    }
+    var bodyReasons={no_pose:1,low_confidence:1,bad_scale:1,bad_geometry:1,not_enough_room:1,upside_down:1};
+    if(bodyReasons[reason]) tryFail('try_badpose');
+    else tryFail('try_error');
   });
 }
 function tryFail(msgKey){

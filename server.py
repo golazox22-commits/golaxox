@@ -34,7 +34,10 @@ import logging
 from pathlib import Path
 
 from flask import Flask, request, jsonify, send_from_directory
-from PIL import Image
+try:
+    from PIL import Image
+except ImportError:
+    Image = None
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO, format="[%(asctime)s] %(levelname)s %(message)s")
@@ -102,6 +105,26 @@ def _dev_result(person_img):
     return out
 
 
+def _dev_result_bytes(person_path):
+    import io
+    with open(person_path, "rb") as f:
+        raw = f.read()
+    if Image is None:
+        return raw
+    import tempfile
+    tmp = tempfile.NamedTemporaryFile(suffix=".jpg", delete=False)
+    tmp.write(raw)
+    tmp.close()
+    try:
+        img = Image.open(tmp.name).convert("RGB")
+        result = _dev_result(img)
+        buf = io.BytesIO()
+        result.save(buf, format="JPEG", quality=90)
+        return buf.getvalue()
+    finally:
+        os.remove(tmp.name)
+
+
 def _image_to_base64(img):
     import io
     buf = io.BytesIO()
@@ -126,21 +149,27 @@ def _worker():
         try:
             person_path = job["person_path"]
             garment_path = job["garment_path"]
-            person_img = Image.open(person_path).convert("RGB")
-            garment_img = Image.open(garment_path).convert("RGB")
             log.info("Job %s: starting inference", job_id[:8])
-            with pipeline_lock:
-                result_img = _run_inference(
-                    person_img, garment_img,
-                    job["category"], job["garment_photo_type"],
-                    job["num_samples"], job["num_timesteps"],
-                    job["guidance_scale"], job["seed"], job["segmentation_free"]
-                )
+            if TRYON_DEV and Image is None:
+                result_bytes = _dev_result_bytes(person_path)
+                with jobs_lock:
+                    jobs[job_id]["status"] = "done"
+                    jobs[job_id]["result"] = base64.b64encode(result_bytes).decode("ascii")
+            else:
+                person_img = Image.open(person_path).convert("RGB")
+                garment_img = Image.open(garment_path).convert("RGB")
+                with pipeline_lock:
+                    result_img = _run_inference(
+                        person_img, garment_img,
+                        job["category"], job["garment_photo_type"],
+                        job["num_samples"], job["num_timesteps"],
+                        job["guidance_scale"], job["seed"], job["segmentation_free"]
+                    )
+                with jobs_lock:
+                    jobs[job_id]["status"] = "done"
+                    jobs[job_id]["result"] = _image_to_base64(result_img)
             elapsed = time.time() - start_t
             log.info("Job %s: done in %.1fs", job_id[:8], elapsed)
-            with jobs_lock:
-                jobs[job_id]["status"] = "done"
-                jobs[job_id]["result"] = _image_to_base64(result_img)
         except Exception as e:
             log.error("Job %s: error %s", job_id[:8], e)
             with jobs_lock:

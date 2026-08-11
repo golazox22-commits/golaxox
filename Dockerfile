@@ -1,21 +1,37 @@
-FROM nvidia/cuda:12.1.1-runtime-ubuntu22.04
+FROM python:3.11-slim
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3 python3-pip python3-venv git wget \
+    git wget curl \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
+
 COPY requirements.txt .
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+RUN git clone --depth 1 https://github.com/fashn-AI/fashn-vton-1.5.git /tmp/fashn-repo 2>&1 || true
+RUN if [ -d /tmp/fashn-repo ]; then \
+        cd /tmp/fashn-repo && pip install --no-cache-dir -e . 2>&1 || \
+        pip install --no-cache-dir fashn-vton 2>&1 || true; \
+        rm -rf /tmp/fashn-repo; \
+    fi
 
 RUN mkdir -p /app/weights
-RUN python3 -c "from fashn_vton.scripts.download_weights import main; main()" || \
-    (echo "Run: python scripts/download_weights.py --weights-dir /app/weights" && true)
 
 COPY server.py .
 
 ENV FASHN_HOME=/app/weights
 ENV PORT=7860
+ENV TRYON_DEV=0
 EXPOSE 7860
 
-CMD ["gunicorn", "-w", "1", "-b", "0.0.0.0:7860", "--timeout", "600", "server:app"]
+CMD if [ "$TRYON_DEV" = "1" ]; then \
+        echo "Starting in DEV mode" && \
+        python3 -m flask --app server run --host 0.0.0.0 --port 7860; \
+    else \
+        echo "Starting with gunicorn" && \
+        exec gunicorn -w 1 -b 0.0.0.0:7860 --timeout 600 "server:app"; \
+    fi

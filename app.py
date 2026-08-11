@@ -1092,8 +1092,9 @@ html[data-theme="dark"] .pitch-sec { background:radial-gradient(130% 150% at 50%
 .ft-copy { border-top:1px solid var(--line); margin-top:26px; padding-top:18px; text-align:center; }
 html[dir="ltr"] .ft-in, html[dir="ltr"] .ft-grid, html[dir="ltr"] .ft-col { text-align:left; }
 /* ============================== REVEAL + RESPONSIVE ============================== */
-.rv { opacity:0; transform:translateY(22px); transition:opacity .6s ease, transform .6s ease; }
-.rv.in { opacity:1; transform:none; }
+.rv { opacity:1; transform:none; }
+html.js .rv { opacity:0; transform:translateY(22px); transition:opacity .6s ease, transform .6s ease; }
+html.js .rv.in { opacity:1; transform:none; }
 @media (max-width:900px) {
   .ft-grid { grid-template-columns:1fr 1fr; }
 }
@@ -1357,9 +1358,13 @@ window.addEventListener('scroll', onScrollHeader, {passive:true});
 onScrollHeader();
 function initReveal(){
   var els=document.querySelectorAll('.rv');
-  if(!('IntersectionObserver' in window)){ els.forEach(function(el){ el.classList.add('in'); }); return; }
-  var io=new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } }); }, {threshold:.08});
-  els.forEach(function(el){ io.observe(el); });
+  function showAll(){ els.forEach(function(el){ el.classList.add('in'); }); }
+  if(!('IntersectionObserver' in window)){ showAll(); return; }
+  try{
+    var io=new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } }); }, {threshold:.08});
+    els.forEach(function(el){ io.observe(el); });
+  }catch(err){ showAll(); return; }
+  setTimeout(showAll, 2500);
 }
 document.addEventListener('DOMContentLoaded', initReveal);
 /* ---------- loyalty test ---------- */
@@ -2493,6 +2498,7 @@ def base_page(body, active="", page_js="", extra_club=None):
 <meta name="description" content="golazox — football club jerseys & sports mugs, order on WhatsApp">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<script>document.documentElement.classList.add('js');</script>
 <noscript><style>.rv{opacity:1;transform:none}.hero-ball,.stadium-bg{display:none}</style></noscript>
 CSS
 HEADEXTRA

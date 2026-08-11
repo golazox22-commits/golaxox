@@ -1948,6 +1948,7 @@ function tryRun(){
     body:JSON.stringify({pid:TRY.pid,img:TRY.img.src||''})
   }).then(function(r){return r.json();}).then(function(d){
     if(!d.ok){ tryFail(d.error==='unavailable'?'try_not_configured':'try_error'); return; }
+    if(d.result&&d.result.image){ tryDone('data:image/jpeg;base64,'+d.result.image); return; }
     TRY.jobId=d.job_id;
     TRY.pollTimer=setInterval(function(){ tryPoll(); },2500);
   },function(){ tryFail('try_error'); });
@@ -5716,10 +5717,58 @@ def _tryon_backend_url():
     return (os.environ.get("TRYON_BACKEND_URL", "") or "").strip().rstrip("/")
 
 
+def _replicate_token():
+    return (os.environ.get("REPLICATE_API_TOKEN", "") or "").strip()
+
+
+def _hf_token():
+    return (os.environ.get("HF_TOKEN", "") or "").strip()
+
+
+def _tryon_idm_vton(person_bytes, garment_bytes, garment_photo_type="flat-lay"):
+    hf_token = _hf_token()
+    try:
+        from gradio_client import Client
+        client = Client("yisol/IDM-VTON", hf_token=hf_token or None)
+        import tempfile, os
+        with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as pf:
+            pf.write(person_bytes)
+            person_path = pf.name
+        with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as gf:
+            gf.write(garment_bytes)
+            garment_path = gf.name
+        try:
+            result = client.predict(
+                dict={"background": open(person_path, "rb"), "layers": [], "composite": None},
+                garm_img=open(garment_path, "rb"),
+                garment_des="football jersey",
+                is_checked=True,
+                is_checked_crop=False,
+                denoise_steps=30,
+                seed=42,
+                api_name="/tryon",
+            )
+            if isinstance(result, tuple):
+                result = result[0]
+            if isinstance(result, dict):
+                result = result.get("path", result.get("url", ""))
+            return result, None
+        finally:
+            try:
+                os.unlink(person_path)
+                os.unlink(garment_path)
+            except Exception:
+                pass
+    except Exception as e:
+        return None, str(e)[:120]
+
+
 @app.route("/api/tryon/run", methods=["POST"])
 def api_tryon_run():
     backend = _tryon_backend_url()
-    if not backend:
+    replicate_token = _replicate_token()
+    hf_token = _hf_token()
+    if not backend and not replicate_token and not hf_token:
         return json_d({"ok": False, "error": "unavailable"})
     data = request.get_json(force=True)
     pid = data.get("pid", "")
@@ -5742,6 +5791,31 @@ def api_tryon_run():
     try:
         with open(garment_path, "rb") as gf:
             garment_bytes = gf.read()
+        if hf_token or not backend:
+            result_image, err = _tryon_idm_vton(person_bytes, garment_bytes, garment_photo_type)
+            if err:
+                import sys
+                sys.stderr.write("[TRYON] idm-vton error: %s\n" % err[:200])
+                return json_d({"ok": False, "error": "backend_error"})
+            import base64 as _b64_out
+            if isinstance(result_image, str) and result_image.startswith("http"):
+                import urllib.request as _dl
+                with _dl.urlopen(result_image, timeout=30) as resp:
+                    img_bytes = resp.read()
+                img_b64 = _b64_out.b64encode(img_bytes).decode()
+            elif isinstance(result_image, str) and os.path.exists(result_image):
+                with open(result_image, "rb") as f:
+                    img_b64 = _b64_out.b64encode(f.read()).decode()
+            elif isinstance(result_image, str) and "base64" in result_image:
+                img_b64 = result_image.split(",", 1)[1] if "," in result_image else result_image
+            else:
+                return json_d({"ok": False, "error": "backend_error"})
+            return json_d({"ok": True, "result": {"image": img_b64}})
+        if replicate_token:
+            job_id, status = _tryon_replicate(person_bytes, garment_bytes, garment_photo_type)
+            if not job_id:
+                return json_d({"ok": False, "error": "backend_error"})
+            return json_d({"ok": True, "job_id": job_id})
         import urllib.request as _tryon_ur
         boundary = "----GOLAZOX" + str(int(time.time()))
         body_parts = []
@@ -5773,11 +5847,14 @@ def api_tryon_run():
 @app.route("/api/tryon/status")
 def api_tryon_status():
     backend = _tryon_backend_url()
-    if not backend:
+    replicate_token = _replicate_token()
+    if not backend and not replicate_token:
         return json_d({"status": "error", "error": {"code": "unavailable"}})
     job_id = request.args.get("job", "")
     if not job_id:
         return json_d({"status": "error", "error": {"code": "no_job"}})
+    if replicate_token:
+        return json_d(_tryon_replicate_poll(job_id))
     try:
         import urllib.request as _tryon_ur
         req = _tryon_ur.Request(backend + "/tryon/jobs/" + job_id, method="GET")

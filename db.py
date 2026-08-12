@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS pts_log(
   id INTEGER PRIMARY KEY AUTOINCREMENT, device TEXT, delta INTEGER, label TEXT, created TEXT);
 CREATE TABLE IF NOT EXISTS users(
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  phone TEXT UNIQUE, name TEXT DEFAULT '', role TEXT DEFAULT 'customer',
+  phone TEXT UNIQUE, email TEXT DEFAULT '', name TEXT DEFAULT '', role TEXT DEFAULT 'customer',
   status TEXT DEFAULT 'active', lang TEXT DEFAULT 'ar', theme TEXT DEFAULT 'light',
   font TEXT DEFAULT 'b', area TEXT DEFAULT '', address TEXT DEFAULT '',
   password TEXT DEFAULT '', favs TEXT DEFAULT '[]', sizes TEXT DEFAULT '{}',
@@ -84,6 +84,8 @@ def init_db(products, prefix="GOAL"):
     cols = [r["name"] for r in conn.execute("PRAGMA table_info(users)").fetchall()]
     if "password" not in cols:
         conn.execute("ALTER TABLE users ADD COLUMN password TEXT DEFAULT ''")
+    if "email" not in cols:
+        conn.execute("ALTER TABLE users ADD COLUMN email TEXT DEFAULT ''")
     if "favs" not in cols:
         conn.execute("ALTER TABLE users ADD COLUMN favs TEXT DEFAULT '[]'")
     if "sizes" not in cols:
@@ -670,14 +672,14 @@ def review_verified(product, device):
 
 
 # ---- users & auth ----
-def user_create(phone, name="", role="customer", lang="ar"):
+def user_create(phone, name="", role="customer", lang="ar", email=""):
     conn = _conn()
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
     try:
         cur = conn.execute(
-            "INSERT INTO users(phone,name,role,status,lang,theme,font,created,last_login) "
-            "VALUES(?,?,?,?,?,?,?,?,?)",
-            (phone, name, role, "active", lang, "light", "b", now, now))
+            "INSERT INTO users(phone,email,name,role,status,lang,theme,font,created,last_login) "
+            "VALUES(?,?,?,?,?,?,?,?,?,?)",
+            (phone, email, name, role, "active", lang, "dark", "b", now, now))
         conn.commit()
         uid = cur.lastrowid
     except Exception:
@@ -703,7 +705,7 @@ def user_by_id(uid):
 
 
 def user_update(uid, **kw):
-    allowed = ("name", "role", "status", "lang", "theme", "font", "area", "address", "password", "favs", "sizes", "phone")
+    allowed = ("name", "email", "role", "status", "lang", "theme", "font", "area", "address", "password", "favs", "sizes", "phone")
     fields = {k: v for k, v in kw.items() if k in allowed}
     if not fields:
         return

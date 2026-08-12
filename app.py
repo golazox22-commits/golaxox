@@ -659,8 +659,8 @@ html[data-theme="light"] .gmain .gmain-ref { background:linear-gradient(180deg, 
   background:rgba(5,6,7,.6); color:#fff; border:none; font-size:18px; z-index:2; transition:background .2s ease; }
 .gar:hover { background:var(--ac); }
 .gar.r { inset-inline-end:12px; } .gar.l { inset-inline-start:12px; }
-.gthumb { display:flex; gap:10px; margin-top:12px; }
-.gthumb img { width:72px; height:72px; object-fit:cover; border-radius:12px; border:2px solid var(--line); cursor:pointer; opacity:.75; }
+.gthumb { display:flex; gap:10px; margin-top:12px; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:thin; padding-bottom:2px; }
+.gthumb img { width:72px; height:72px; min-width:72px; object-fit:cover; border-radius:12px; border:2px solid var(--line); cursor:pointer; opacity:.75; }
 .gthumb img.on { border-color:var(--ac); opacity:1; }
 .gcount { position:absolute; bottom:10px; inset-inline-start:10px; background:rgba(5,6,7,.75); color:#fff; font-size:.72rem;
   font-weight:700; padding:4px 10px; border-radius:999px; }
@@ -858,9 +858,36 @@ html[data-theme="light"] .poll-opt { background:var(--card2); border-color:var(-
 .poll-win { text-align:center; padding:20px; }
 .poll-win .big { font-size:2rem; font-weight:900; }
 /* lightbox */
-.lb { position:fixed; inset:0; background:rgba(5,6,7,.96); z-index:500; display:none; align-items:center; justify-content:center; cursor:zoom-out; }
+.lb { position:fixed; inset:0; background:rgba(5,6,7,.94); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+  z-index:500; display:none; align-items:center; justify-content:center; overflow:hidden; touch-action:none; }
 .lb.open { display:flex; }
-.lb img { max-width:92vw; max-height:92vh; border-radius:12px; }
+.lb-stage { position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+.lb img { max-width:92vw; max-height:80vh; border-radius:10px; user-select:none; -webkit-user-select:none;
+  touch-action:none; transition:transform .15s ease; cursor:grab; will-change:transform; }
+.lb img.dragging { transition:none; cursor:grabbing; }
+.lb-btn { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14); color:#fff; width:42px; height:42px;
+  border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.1rem; cursor:pointer;
+  backdrop-filter:blur(10px); transition:background .2s ease, border-color .2s ease, transform .2s ease; }
+.lb-btn:hover { background:rgba(24,232,117,.18); border-color:rgba(24,232,117,.45); transform:translateY(-1px); }
+.lb-close { position:absolute; top:16px; inset-inline-end:16px; z-index:3; }
+.lb-nav { position:absolute; top:50%; transform:translateY(-50%); z-index:3; }
+.lb-prev { inset-inline-start:16px; }
+.lb-next { inset-inline-end:16px; }
+.lb-zoombar { position:absolute; bottom:20px; left:50%; transform:translateX(-50%); z-index:3; display:flex;
+  align-items:center; gap:6px; background:rgba(5,6,7,.7); border:1px solid rgba(255,255,255,.1); border-radius:999px;
+  padding:6px 8px; backdrop-filter:blur(10px); }
+.lb-zoombar .lb-btn { width:34px; height:34px; font-size:.95rem; }
+.lb-zoompct { color:#F5F7F5; font-size:.8rem; font-weight:800; min-width:46px; text-align:center; }
+.lb-count { position:absolute; top:18px; inset-inline-start:18px; z-index:3; color:#F5F7F5; font-size:.78rem;
+  font-weight:800; background:rgba(5,6,7,.6); border:1px solid rgba(255,255,255,.1); border-radius:999px; padding:5px 12px; }
+@media (max-width:640px) {
+  .lb-btn { width:36px; height:36px; font-size:1rem; }
+  .lb-nav { top:auto; bottom:76px; transform:none; }
+  .lb-prev { inset-inline-start:12px; } .lb-next { inset-inline-end:12px; }
+  .lb-close { top:12px; inset-inline-end:12px; }
+  .lb-zoombar { bottom:14px; }
+  .lb img { max-height:70vh; }
+}
 /* welcome */
 .welc { min-height:100vh; min-height:100dvh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
   padding:30px 20px; position:relative; overflow:hidden; background:var(--bg);
@@ -2721,8 +2748,86 @@ function setGal(i,arr){ gi=i; gN=arr.length; var img=$('gmain'); if(!img) return
   var g1=$('garr'); if(g1) g1.style.display=gN>1?'':'none'; var g2=$('garr2'); if(g2) g2.style.display=gN>1?'':'none';
 }
 function movGal(d){ if(!gN) return; setGal((gi+d+gN)%gN,GARR); }
-function openLB(src){ var img=$('lbimg'); img.src=src; $('lb').classList.add('open'); }
-function closeLB(){ $('lb').classList.remove('open'); }
+/* ---------- lightbox: zoom / pan / pinch / keyboard ---------- */
+var lbIndex=0, lbZoomLv=1, lbPanX=0, lbPanY=0, lbDrag=null, lbPinchD=0, lbPinchZ=1;
+function lbApply(){
+  var img=$('lbimg'); if(!img) return;
+  img.style.transform='translate('+lbPanX+'px,'+lbPanY+'px) scale('+lbZoomLv+')';
+  img.style.cursor=lbZoomLv>1?'grab':'zoom-in';
+  var p=$('lbPct'); if(p) p.textContent=Math.round(lbZoomLv*100)+'%';
+}
+function lbClampPan(){
+  var max=140*(lbZoomLv-1); if(max<0) max=0;
+  if(lbPanX>max) lbPanX=max; if(lbPanX<-max) lbPanX=-max;
+  if(lbPanY>max) lbPanY=max; if(lbPanY<-max) lbPanY=-max;
+}
+function openLB(i){
+  var img=$('lbimg');
+  if(typeof i==='string'){
+    // standalone image (e.g. review photo) — no gallery navigation
+    gN=0; img.src=i; lbZoomLv=1; lbPanX=0; lbPanY=0; lbApply();
+    var cnt0=$('lbCount'); if(cnt0) cnt0.style.display='none';
+    var pv0=$('lbPrev'), nx0=$('lbNext'); if(pv0) pv0.style.display='none'; if(nx0) nx0.style.display='none';
+    $('lb').classList.add('open'); document.body.style.overflow='hidden'; return;
+  }
+  var arr=(typeof GARR!=='undefined'&&GARR&&GARR.length)?GARR:[$('gmain')?$('gmain').src.split('/img/')[1]:''];
+  lbIndex=(typeof i==='number')?i:(gi||0); gN=arr.length;
+  img.src='/img/'+(arr[lbIndex]||arr[0]);
+  lbZoomLv=1; lbPanX=0; lbPanY=0; lbApply();
+  var cnt=$('lbCount'); if(cnt){ if(gN>1){ cnt.style.display=''; cnt.textContent=(lbIndex+1)+' '+gxT('img_of')+' '+gN; } else cnt.style.display='none'; }
+  var pv=$('lbPrev'), nx=$('lbNext'); if(pv) pv.style.display=gN>1?'':'none'; if(nx) nx.style.display=gN>1?'':'none';
+  $('lb').classList.add('open'); document.body.style.overflow='hidden';
+}
+function closeLB(){ $('lb').classList.remove('open'); document.body.style.overflow=''; }
+function lbNav(d){
+  var arr=(typeof GARR!=='undefined'&&GARR)?GARR:[]; if(!arr.length) return;
+  lbIndex=(lbIndex+d+arr.length)%arr.length; $('lbimg').src='/img/'+arr[lbIndex];
+  lbZoomLv=1; lbPanX=0; lbPanY=0; lbApply();
+  var cnt=$('lbCount'); if(cnt) cnt.textContent=(lbIndex+1)+' '+gxT('img_of')+' '+arr.length;
+}
+function lbZoom(dir,step){
+  step=step||.25; lbZoomLv=Math.min(3,Math.max(.5,lbZoomLv+dir*step));
+  if(lbZoomLv<=1){ lbPanX=0; lbPanY=0; } lbClampPan(); lbApply();
+}
+function lbReset(){ lbZoomLv=1; lbPanX=0; lbPanY=0; lbApply(); }
+document.addEventListener('DOMContentLoaded',function(){
+  var lb=$('lb'), stage=$('lbStage'), img=$('lbimg'); if(!lb||!img) return;
+  stage.addEventListener('click',function(e){ if(e.target===stage) closeLB(); });
+  lb.addEventListener('wheel',function(e){ if(!lb.classList.contains('open')) return; e.preventDefault();
+    lbZoom(e.deltaY<0?1:-1,.15); }, {passive:false});
+  img.addEventListener('mousedown',function(e){ if(lbZoomLv<=1) return; e.preventDefault();
+    lbDrag={x:e.clientX,y:e.clientY,px:lbPanX,py:lbPanY}; img.classList.add('dragging'); });
+  window.addEventListener('mousemove',function(e){ if(!lbDrag) return;
+    lbPanX=lbDrag.px+(e.clientX-lbDrag.x); lbPanY=lbDrag.py+(e.clientY-lbDrag.y); lbClampPan(); lbApply(); });
+  window.addEventListener('mouseup',function(){ if(lbDrag){ lbDrag=null; img.classList.remove('dragging'); } });
+  img.addEventListener('touchstart',function(e){
+    if(e.touches.length===2){
+      lbPinchD=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+      lbPinchZ=lbZoomLv;
+    } else if(e.touches.length===1 && lbZoomLv>1){
+      lbDrag={x:e.touches[0].clientX,y:e.touches[0].clientY,px:lbPanX,py:lbPanY};
+    }
+  }, {passive:true});
+  img.addEventListener('touchmove',function(e){
+    if(e.touches.length===2 && lbPinchD){ e.preventDefault();
+      var d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+      lbZoomLv=Math.min(3,Math.max(.5,lbPinchZ*(d/lbPinchD))); if(lbZoomLv<=1){lbPanX=0;lbPanY=0;} lbClampPan(); lbApply();
+    } else if(e.touches.length===1 && lbDrag){ e.preventDefault();
+      lbPanX=lbDrag.px+(e.touches[0].clientX-lbDrag.x); lbPanY=lbDrag.py+(e.touches[0].clientY-lbDrag.y);
+      lbClampPan(); lbApply();
+    }
+  }, {passive:false});
+  img.addEventListener('touchend',function(e){ if(e.touches.length<2) lbPinchD=0; if(e.touches.length<1) lbDrag=null; }, {passive:true});
+  document.addEventListener('keydown',function(e){
+    if(!lb.classList.contains('open')) return;
+    if(e.key==='Escape') closeLB();
+    else if(e.key==='ArrowLeft') lbNav(GX.lang==='ar'?1:-1);
+    else if(e.key==='ArrowRight') lbNav(GX.lang==='ar'?-1:1);
+    else if(e.key==='+'||e.key==='=') lbZoom(1);
+    else if(e.key==='-'||e.key==='_') lbZoom(-1);
+    else if(e.key==='0') lbReset();
+  });
+});
 /* ---------- product page: size, stock, cart ---------- */
 var selSize=null;
 function stockOf(pid){ var p=GX.products.find(function(x){return x.id===pid;}); return p?p.stock:{}; }
@@ -3522,6 +3627,11 @@ function syncServerFavs(){
 }
 document.addEventListener('DOMContentLoaded',function(){
   applyPrefs(); syncPrefs(); gxDev(); renderFavs(); syncServerFavs();
+  setTimeout(function(){
+    document.querySelectorAll('.pg .gmain, .pg .pinfo, .rv, body').forEach(function(el){
+      if(getComputedStyle(el).opacity < 0.5){ el.style.opacity='1'; el.style.transform='none'; el.style.animation='none'; }
+    });
+  }, 900);
   if($('sq')){ $('sq').addEventListener('input',applyFilters); }
   if($('sq2')){ $('sq2').addEventListener('input',applyFilters); }
   if($('prod_id')){ trackView($('prod_id').value); }
@@ -3790,7 +3900,7 @@ def base_page(body, active="", page_js="", extra_club=None):
 CSS
 HEADEXTRA
 </head>
-<body class="gx-page-in">
+<body>
 <div class="gx-intro" id="gxIntro" aria-hidden="true"><div class="intro-pitch"></div><div class="intro-light"></div><div class="intro-light"></div><div class="intro-light"></div><div class="intro-ball">⚽</div><div class="intro-logo">GOLAZOX</div></div>
 <div class="gx-football" id="gxFootball" aria-hidden="true">⚽</div>
 HEADER
@@ -3808,7 +3918,19 @@ MODALS
 <div class="co" id="co" onclick="closeCart()"></div>
 <div class="cd" id="cd"><div class="cd-head"><b>🛒 T_CART</b><button class="mx" onclick="closeCart()">✕</button></div>
 <div class="cd-body" id="cdb"></div><div class="cd-foot" id="cdf"></div></div>
-<div class="lb" id="lb" onclick="closeLB()"><img id="lbimg" alt=""></div>
+<div class="lb" id="lb">
+  <div class="lb-count" id="lbCount" style="display:none"></div>
+  <button class="lb-btn lb-close" onclick="closeLB()" aria-label="close">✕</button>
+  <button class="lb-btn lb-nav lb-prev" id="lbPrev" onclick="lbNav(-1)" style="display:none" aria-label="prev">←</button>
+  <button class="lb-btn lb-nav lb-next" id="lbNext" onclick="lbNav(1)" style="display:none" aria-label="next">→</button>
+  <div class="lb-stage" id="lbStage"><img id="lbimg" alt=""></div>
+  <div class="lb-zoombar">
+    <button class="lb-btn" onclick="lbZoom(-1)" aria-label="zoom out">−</button>
+    <span class="lb-zoompct" id="lbPct">100%</span>
+    <button class="lb-btn" onclick="lbZoom(1)" aria-label="zoom in">+</button>
+    <button class="lb-btn" onclick="lbReset()" aria-label="reset" title="reset">↺</button>
+  </div>
+</div>
 <div class="gx-goal-fx" id="gxGoalFx"><div class="goal-txt">⚽ GOAL!</div></div>
 <div class="mkmode-toggle" id="mkModeToggle" onclick="mkModeToggle()" title="Matchday Mode"><span class="mkmode-ic">⚽</span><span class="mkmode-lbl">MATCHDAY</span></div>
 <div class="mkmode-pitch"></div>
@@ -5160,9 +5282,9 @@ def product_body(pid):
         '{live_drop}'
         '<a class="back" href="/home">← {back}</a>'
         '<div class="pg">'
-        '<div class="gal"><div class="gmain" onclick="openLB(document.getElementById(\'gmain\').src)">'
+        '<div class="gal"><div class="gmain" onclick="openLB(gi)">'
         '<div class="gmain-ref"></div>'
-        '<img id="gmain" src="/img/{first}" alt="{name}">'
+        '<img id="gmain" src="/img/{first}" alt="{name}" onerror="this.onerror=null;this.style.display=\'none\';var f=document.createElement(\'div\');f.className=\'pimg-fallback\';f.textContent=\'⚽\';this.parentElement.appendChild(f)">'
         '{gal_nav}</div>'
         '{thumbs_block}'
         '<p class="zoom-hint">🔍 {zh}</p></div>'

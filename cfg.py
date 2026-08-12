@@ -536,6 +536,9 @@ L = {
         "dna_club": "فريقك المفضل", "dna_size": "مقاسك الأكثر اختيارًا", "dna_level": "مستوى الجواز",
         "dna_pick": "🛒 مختار لك", "dna_empty": "تصفح المزيد وسيظهر تحليلك هنا.",
         "dna_ratio": "من مشاهداتك ومفضلاتك ومشترياتك",
+        "outfit_title": "🎯 ابني لوك الماتش", "outfit_shorts": "الشورت", "outfit_socks": "الجوارب",
+        "outfit_na": "غير متوفر حاليًا", "outfit_total": "إجمالي اللوك",
+        "outfit_tag": "في اللوك", "outfit_size": "المقاس", "outfit_size_def": "اختر مقاس",
     },
     "en": {
         "nav_home": "Home", "nav_jerseys": "Club Jerseys", "nav_mugs": "Mugs",
@@ -889,6 +892,9 @@ L = {
         "dna_club": "Your favourite club", "dna_size": "Most chosen size", "dna_level": "Passport level",
         "dna_pick": "🛒 Picked for you", "dna_empty": "Browse more and your analysis will appear here.",
         "dna_ratio": "from your views, favorites and purchases",
+        "outfit_title": "BUILD YOUR MATCHDAY LOOK", "outfit_shorts": "Shorts", "outfit_socks": "Socks",
+        "outfit_na": "Coming soon", "outfit_total": "LOOK TOTAL",
+        "outfit_tag": "IN LOOK", "outfit_size": "SIZE", "outfit_size_def": "Select size",
     },
 }
 

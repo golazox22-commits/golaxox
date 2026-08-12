@@ -1473,6 +1473,101 @@ html[data-theme="light"] .sec-stadium::before { background:radial-gradient(ellip
 .gx-page-in { animation:gxPageIn .35s ease both; }
 @keyframes gxPageIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:none; } }
 @media (prefers-reduced-motion: reduce) { .gx-page-in { animation:none; } }
+/* ============================== ADMIN LOGIN ============================== */
+.adm-login-card {
+  background: var(--glass); border: 1px solid var(--glass-border); border-radius: 28px;
+  padding: 44px 32px 36px; backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 28px 60px rgba(0,0,0,.45);
+  background-image: radial-gradient(ellipse 120% 100% at 50% 0%, rgba(25,195,125,.08), transparent 55%);
+}
+html[data-theme="light"] .adm-login-card {
+  background: var(--card); border-color: var(--line); backdrop-filter: none;
+  box-shadow: var(--sh2); background-image: none;
+}
+.adm-login-icon {
+  font-size: 3.4rem; margin-bottom: 8px; filter: drop-shadow(0 8px 20px rgba(25,195,125,.35));
+  animation: admIconFloat 4s ease-in-out infinite;
+}
+@keyframes admIconFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+.adm-login-brand {
+  font-family: 'Poppins','Cairo',sans-serif; font-size: 1.8rem; font-weight: 900; letter-spacing: 5px;
+  background: linear-gradient(90deg, var(--ac), var(--ac2)); -webkit-background-clip: text;
+  background-clip: text; color: transparent; filter: drop-shadow(0 4px 14px rgba(25,195,125,.28));
+}
+.adm-login-title { font-size: 1.15rem; font-weight: 900; margin-top: 10px; }
+.adm-login-sub { color: var(--mut); font-size: .86rem; margin-top: 6px; }
+.adm-field { text-align: right; }
+html[dir="ltr"] .adm-field { text-align: left; }
+.adm-label { display: block; font-size: .78rem; font-weight: 800; color: var(--mut); margin-bottom: 6px; letter-spacing: .5px; }
+.adm-input {
+  width: 100%; padding: 13px 16px; border-radius: 14px; border: 1.5px solid var(--glass-border);
+  background: rgba(11,33,24,.5); color: var(--txt); font-size: .92rem; font-family: inherit;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+html[data-theme="light"] .adm-input { background: var(--card2); border-color: var(--line); }
+.adm-input:focus { outline: none; border-color: var(--ac); box-shadow: 0 0 0 3px rgba(25,195,125,.15); }
+.adm-msg { border-radius: 12px; padding: 11px 14px; margin-bottom: 14px; font-size: .88rem; font-weight: 700; }
+.adm-msg.err { background: rgba(220,38,38,.12); border: 1px solid rgba(220,38,38,.3); color: #FCA5A5; }
+html[data-theme="light"] .adm-msg.err { color: #DC2626; }
+/* ============================== CART GOAL ANIMATION ============================== */
+.gx-ball-fly {
+  position: fixed; font-size: 32px; z-index: 500; pointer-events: none;
+  transition: all .7s cubic-bezier(.25,.7,.25,1); filter: drop-shadow(0 6px 14px rgba(0,0,0,.35));
+}
+.gx-ball-fly.go { opacity: 0; transform: scale(.4); }
+.gx-goal-fx {
+  position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+  z-index: 600; background: rgba(2,6,23,.6); pointer-events: none;
+}
+.gx-goal-fx.show { display: flex; }
+.gx-goal-fx .goal-txt {
+  font-size: 3.4rem; font-weight: 900; color: var(--ac);
+  text-shadow: 0 8px 40px rgba(25,195,125,.45);
+  animation: goalPulse .6s ease;
+}
+@keyframes goalPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
+/* ============================== PLAYER CARD ============================== */
+.pcard-id {
+  background: linear-gradient(135deg, #0B0F19 0%, #1E3A5F 50%, #0B2118 100%);
+  color: #fff; border-radius: 22px; padding: 28px 24px; position: relative; overflow: hidden;
+  box-shadow: 0 22px 50px rgba(0,0,0,.35); margin-bottom: 18px;
+}
+.pcard-id::after { content: '⚽'; position: absolute; font-size: 8rem; opacity: .06; inset-inline-end: 14px; bottom: -18px; }
+.pcard-id .pid-logo { font-size: 1.6rem; font-weight: 900; letter-spacing: 3px; color: #F7D033; }
+.pcard-id .pid-name { font-size: 1.5rem; font-weight: 900; margin-top: 8px; }
+.pcard-id .pid-meta { font-size: .82rem; color: rgba(255,255,255,.7); margin-top: 6px; }
+.pcard-id .pid-level {
+  display: inline-block; background: linear-gradient(90deg, var(--ac), var(--ac2));
+  color: #050807; border-radius: 999px; padding: 5px 16px; font-size: .78rem; font-weight: 900; margin-top: 12px;
+}
+.pcard-id .pid-emoji { font-size: 3.8rem; position: absolute; top: 16px; inset-inline-end: 20px; opacity: .2; }
+/* ============================== JERSEY OF THE DAY ============================== */
+.spotlight-card {
+  background: var(--glass); border: 1px solid var(--glass-border); border-radius: 24px;
+  padding: 22px; display: flex; gap: 22px; align-items: center; position: relative; overflow: hidden;
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 18px 44px rgba(0,0,0,.25);
+  background-image: radial-gradient(ellipse 120% 100% at 20% 0%, rgba(25,195,125,.08), transparent 50%);
+  transition: transform .22s ease, box-shadow .24s ease;
+}
+html[data-theme="light"] .spotlight-card { background: var(--card); border-color: var(--line); backdrop-filter: none; box-shadow: var(--sh); }
+.spotlight-card:hover { transform: translateY(-4px); box-shadow: 0 24px 54px rgba(0,0,0,.35); }
+.spotlight-img { width: 160px; height: 160px; border-radius: 18px; object-fit: cover; flex: none;
+  border: 2px solid var(--glass-border); box-shadow: 0 12px 28px rgba(0,0,0,.3); }
+.spotlight-info { flex: 1; }
+.spotlight-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: linear-gradient(90deg, var(--ac), var(--ac2)); color: #050807;
+  border-radius: 999px; padding: 5px 14px; font-size: .7rem; font-weight: 900; letter-spacing: 1px;
+}
+.spotlight-info h3 { font-size: 1.2rem; font-weight: 900; margin-top: 10px; }
+.spotlight-info p { color: var(--mut); font-size: .86rem; margin-top: 6px; line-height: 1.7; }
+.spotlight-price { font-size: 1.4rem; font-weight: 900; color: var(--ac); margin-top: 12px; }
+@media (max-width: 640px) {
+  .spotlight-card { flex-direction: column; text-align: center; }
+  .spotlight-img { width: 100%; height: 200px; }
+  .adm-login-card { padding: 32px 20px 28px; }
+}
 </style>"""
 
 BASE_JS = """<script>
@@ -1689,7 +1784,36 @@ function addCart(id,size,qty){
   if(GX.user) saveSize(id,size);
   var cart=gxGet('gx_cart',[]); var f=cart.find(function(x){return x.id===id&&x.size===size;});
   if(f){ f.qty+=qty; } else { cart.push({id:id,size:size,qty:qty}); }
-  gxSet('gx_cart',cart); renderCart(); toast(gxT('add')+' ✓');
+  gxSet('gx_cart',cart); renderCart();
+  /* Ball fly goal animation */
+  try{
+    var btn=document.querySelector('.pcard[data-id="'+id+'"] .pview, .pdetail-add');
+    var cartIcon=document.querySelector('.hicon');
+    if(btn && cartIcon){
+      var btnR=btn.getBoundingClientRect();
+      var cartR=cartIcon.getBoundingClientRect();
+      var ball=document.createElement('div');
+      ball.className='gx-ball-fly';
+      ball.textContent='⚽';
+      ball.style.left=btnR.left+btnR.width/2-16+'px';
+      ball.style.top=btnR.top-10+'px';
+      document.body.appendChild(ball);
+      requestAnimationFrame(function(){
+        requestAnimationFrame(function(){
+          ball.style.left=cartR.left+cartR.width/2-16+'px';
+          ball.style.top=cartR.top+'px';
+          ball.classList.add('go');
+        });
+      });
+      setTimeout(function(){ ball.remove(); },800);
+      /* Show GOAL overlay */
+      setTimeout(function(){
+        var fx=document.getElementById('gxGoalFx');
+        if(fx){ fx.classList.add('show'); setTimeout(function(){ fx.classList.remove('show'); },900); }
+      },600);
+    }
+  }catch(e){}
+  toast(gxT('add')+' ✓');
 }
 function saveSize(pid,sz){
   fetch('/api/size/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({product:pid,size:sz})})
@@ -2452,6 +2576,32 @@ document.addEventListener('DOMContentLoaded',function(){
       b.classList.add('gx-press');
     });
   }catch(e){}
+  /* Premium 3D card tilt */
+  try{
+    document.querySelectorAll('.pcard').forEach(function(card){
+      card.addEventListener('mousemove',function(e){
+        var rect=this.getBoundingClientRect();
+        var x=e.clientX-rect.left, y=e.clientY-rect.top;
+        var cx=rect.width/2, cy=rect.height/2;
+        var rx=(y-cy)/cy*5, ry=(cx-x)/cx*5;
+        this.style.transform='perspective(600px) rotateX('+rx+'deg) rotateY('+ry+'deg) translateY(-6px)';
+      });
+      card.addEventListener('mouseleave',function(){
+        this.style.transform='';
+      });
+    });
+  }catch(e){}
+  /* Cart Goal Animation: flying ball */
+  try{
+    window._gxGoalQueue=[];
+    window._gxGoalRunning=false;
+    window._gxRunGoal=function(){
+      if(window._gxGoalRunning||!window._gxGoalQueue.length) return;
+      window._gxGoalRunning=true;
+      var fn=window._gxGoalQueue.shift();
+      fn();
+    };
+  }catch(e){}
 });
 </script>"""
 
@@ -2996,6 +3146,39 @@ def ads_html(place):
     return '<div class="ads-strip">{items}</div>'.format(items=items)
 
 
+def spotlight_html(prods):
+    """Jersey of the Day / Product Spotlight section."""
+    en = lang() == "en"
+    d = cfg.L[lang()]
+    import hashlib, datetime
+    today = datetime.date.today().isoformat()
+    idx = int(hashlib.md5(today.encode()).hexdigest(), 16) % len(prods) if prods else 0
+    p = prods[idx] if prods else None
+    if not p:
+        return ""
+    name = p.get("name_en") if en else p.get("name_ar")
+    desc = p.get("desc_en") if en else p.get("desc_ar")
+    pr = fmt_cur(eff_price(p))
+    img = "/img/" + p["imgs"][0] if p.get("imgs") else ""
+    club = cfg.club_of(p)
+    club_name = (club.get(en and "en" or "ar", "")) if club else ""
+    badge_label = d.get("spotlight_badge", "JERSEY OF THE DAY") if en else "تيشيرت اليوم"
+    return (
+        '<div class="sec rv"><div class="sec-head"><h2><span class="bar"></span>{t}</h2></div>'
+        '<a href="/product/{pid}" class="spotlight-card">'
+        '<img class="spotlight-img" src="{img}" alt="{name}" loading="lazy">'
+        '<div class="spotlight-info">'
+        '<span class="spotlight-badge">⚽ {badge}</span>'
+        '<h3>{name}</h3>'
+        '<p>{desc}</p>'
+        '<div class="spotlight-price">{pr} {cur}</div>'
+        '<span style="display:inline-block;margin-top:10px;font-size:.86rem;font-weight:800;color:var(--ac)">{view} ←</span>'
+        '</div></a></div>'
+    ).format(t=d.get("spotlight_title", "Jersey of the Day") if en else "تيشيرت اليوم",
+             pid=p["id"], img=img, name=esc(name), badge=badge_label,
+             desc=esc(desc or ""), pr=pr, cur=cur(), view=d["view"])
+
+
 def home_body():
     en = lang() == "en"
     d = cfg.L[lang()]
@@ -3155,6 +3338,7 @@ def home_body():
             + hero
             + ads_html("home")
             + features_html()
+            + spotlight_html(prods)
             + '<div class="sec rv" id="jerseys"><div class="sec-head"><h2><span class="bar"></span>{sj}</h2><span class="sec-sub">{sj_sub}</span></div>'
             + shop_section_html(jgrid, "gridJ")
             + best_sec
@@ -3774,10 +3958,36 @@ def account_page():
     else:
         n_html = '<p class="mnote">' + d["acc_notifs_empty"] + '</p>'
 
+    # Player Card
+    fav_clubs = db.user_favs(u["id"])
+    fav_names = []
+    for fc in fav_clubs:
+        c = cfg.CLUBS.get(fc, {})
+        if c:
+            fav_names.append(c.get("emoji", "⚽") + " " + c.get(en and "en" or "ar", ""))
+    fav_str = " · ".join(fav_names[:5]) if fav_names else (d.get("acc_empty_orders", "—"))
+    player_card = (
+        '<div class="pcard-id">'
+        '<span class="pid-emoji">{emoji}</span>'
+        '<div class="pid-logo">⚽ GOLAZOX</div>'
+        '<div class="pid-name">{name}</div>'
+        '<div class="pid-meta">GX-FAN-{uid} · {orders} {orders_lbl} · {spent_lbl} {spent} {cur}</div>'
+        '<span class="pid-level">{lvl}</span>'
+        '<div style="margin-top:10px;font-size:.8rem;color:rgba(255,255,255,.7)">{fav_lbl}: {favs}</div>'
+        '</div>'
+    ).format(
+        emoji="⚽", name=esc(u.get("name", "") or "Player"),
+        uid=u["id"], orders=len(orders), orders_lbl=d.get("acc_orders", "orders"),
+        spent_lbl=d.get("acc_spent", "spent"), spent=fmt_cur(spent), cur=cur(),
+        lvl=d.get("lv_" + str(lvl), "Fan"), fav_lbl="Club" if en else "النادي",
+        favs=esc(fav_str)
+    )
+
     body = (
         '<div class="wrap"><div class="acc-box">'
         '<div class="acc-hero"><h2>{w} {n} 👋</h2><p>{since}: {d} · {sp}: <b>{s} {c}</b></p>'
         '<button class="hbtn" style="position:absolute;top:16px;inset-inline-end:16px;background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.4)" onclick="authOut()">{out}</button></div>'
+        '{player_card}'
         '<div class="acc-nav">{nav}</div>'
         '<div class="acc-sec on" id="acc-orders">{orders}</div>'
         '<div class="acc-sec" id="acc-notifs">{notifs}</div>'
@@ -3792,7 +4002,8 @@ def account_page():
         '</div></div>'
     ).format(w=d["acc_welcome"], n=esc(u.get("name", "") or "👤"), since=d["acc_member_since"],
              d=u.get("created", ""), sp=d["acc_spent"], s=fmt_cur(spent), c=cur(), out=d["ac_logout"],
-             nav=nav, orders=ord_html, notifs=n_html, sizes=sizes_html, pp=pp_html, rw=rw_html, data=data_html, set=set_html)
+             nav=nav, orders=ord_html, notifs=n_html, sizes=sizes_html, pp=pp_html, rw=rw_html, data=data_html, set=set_html,
+             player_card=player_card)
     return base_page(body)
 
 
@@ -4074,13 +4285,19 @@ def ticket_page(code):
     idx = ORDER_FLOW.index(status) if status in ORDER_FLOW else -1
     tj = ""
     if status != "cancelled":
-        tj_steps = [("tstage_ok", "✓"), ("tstage_pay", "💳"), ("tstage_prep", "🧵"),
-                    ("tstage_way", "🚚"), ("tstage_done", "⚽")]
+        tj_steps = [("tstage_ok", "⚽"), ("tstage_pay", "💳"), ("tstage_prep", "🧵"),
+                    ("tstage_way", "🚚"), ("tstage_done", "🏆")]
         tj_inner = "".join(
             '<div class="tj-step {cls}"><div class="tj-dot">{ic}</div><b>{lbl}</b></div>'.format(
                 cls="done" if i <= idx else ("cur" if i == idx else ""), ic=ic, lbl=d[k])
             for i, (k, ic) in enumerate(tj_steps))
-        tj = '<div class="tj">{inner}</div>'.format(inner=tj_inner)
+        pct = int(idx / 4 * 100) if idx >= 0 else 0
+        tj = ('<div style="margin-top:18px">'
+              '<div style="text-align:center;font-weight:900;font-size:.9rem;margin-bottom:12px">⚽ Match Journey</div>'
+              '<div class="tj">{inner}</div>'
+              '<div style="height:6px;border-radius:999px;background:rgba(25,195,125,.12);margin-top:14px;overflow:hidden">'
+              '<div style="height:100%;width:{pct}%;background:linear-gradient(90deg,var(--ac),var(--ac2));border-radius:999px;transition:width 1s ease"></div></div>'
+              '</div>').format(inner=tj_inner, pct=pct)
     body = (
         '<div class="wrap ticket">'
         '<div class="tk"><div class="tk-top"><span class="tlogo">⚽ GOLAZOX</span><span>{store}</span></div>'
@@ -5080,14 +5297,25 @@ def notify_order_status(o, code, new_st):
 
 def admin_login_page(msg=""):
     body = (
-        '<div class="wrap"><div style="max-width:400px;margin:60px auto;text-align:center">'
-        '<div style="font-size:3rem">🔐</div><h2 style="margin-top:8px">لوحة تحكم golazox</h2>'
-        '<p class="mnote">أدخل كلمة المرور للمتابعة</p>'
+        '<div class="wrap"><div style="max-width:420px;margin:0 auto;text-align:center;padding-top:60px">'
+        '<div class="adm-login-card">'
+        '<div class="adm-login-icon">⚽</div>'
+        '<div class="adm-login-brand">GOLAZOX</div>'
+        '<h2 class="adm-login-title">لوحة التحكم</h2>'
+        '<p class="adm-login-sub">أدخل بيانات المدير للمتابعة</p>'
         + msg +
-        '<form method="post" action="/admin/login" style="display:grid;gap:10px;margin-top:18px">'
-        '<input class="sel" type="password" name="pw" placeholder="كلمة المرور" autofocus>'
-        '<button class="btn pri">دخول</button></form>'
-        '<p style="margin-top:16px"><a class="back" href="/home">← العودة للموقع</a></p>'
+        '<form method="post" action="/admin/login" style="display:grid;gap:12px;margin-top:20px">'
+        '<div class="adm-field">'
+        '<label class="adm-label">البريد الإلكتروني</label>'
+        '<input class="adm-input" type="email" name="email" placeholder="admin@golazox.com" autofocus required>'
+        '</div>'
+        '<div class="adm-field">'
+        '<label class="adm-label">كلمة المرور</label>'
+        '<input class="adm-input" type="password" name="pw" placeholder="••••••••" required>'
+        '</div>'
+        '<button class="btn pri big" type="submit">دخول لوحة التحكم</button>'
+        '</form>'
+        '<p style="margin-top:20px"><a class="back" href="/home">← العودة للموقع</a></p>'
         '</div></div>')
     return base_page(body)
 
@@ -5095,11 +5323,12 @@ def admin_login_page(msg=""):
 @app.route("/admin/login", methods=["GET", "POST"])
 def admin_login():
     if request.method == "POST":
+        email = request.form.get("email", "").strip().lower()
         pw = request.form.get("pw", "")
-        if pw == cfg.ADMIN_PASS:
-            session["admin_ok"] = True
-            return redirect("/admin")
-        return admin_login_page("<div class='msg err'>كلمة المرور غير صحيحة</div>")
+        if email != cfg.ADMIN_EMAIL.lower() or pw != cfg.ADMIN_PASS:
+            return admin_login_page("<div class='adm-msg err'>البريد الإلكتروني أو كلمة المرور غير صحيحة</div>")
+        session["admin_ok"] = True
+        return redirect("/admin")
     if admin_auth():
         return redirect("/admin")
     return admin_login_page("")

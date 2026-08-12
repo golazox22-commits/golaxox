@@ -2609,6 +2609,24 @@ html[data-theme="light"] .mtk-jstep.done b, html[data-theme="light"] .mtk-jstep.
   .pfoot b { font-size:.82rem; }
   .btn { min-height:46px; }
 }
+
+/* ==============================
+   GOLAZOX CART - FINAL COMPACT SPACING
+   ============================== */
+#cartPage .ci { padding: 6px 0 !important; margin: 0 !important; min-height: 0 !important; }
+#cartPage .row-t { margin: 2px 0 !important; min-height: 0 !important; height: auto !important; }
+#cartPage .row-t.total { margin-top: 4px !important; padding-top: 4px !important; border-top: 1px solid var(--glass-border); }
+#cartPage .cart-page-actions { margin-top: 6px !important; gap: 6px !important; }
+#cartPage .cart-penalty { margin-top: 8px !important; padding: 12px !important; }
+#cartPage .cart-penalty-pitch { height: 200px !important; }
+@media (max-width: 768px) {
+  #cartPage .ci { padding: 4px 0 !important; }
+  #cartPage .row-t { margin: 1px 0 !important; }
+  #cartPage .cart-page-actions { margin-top: 5px !important; gap: 5px !important; }
+  #cartPage .cart-penalty { margin-top: 7px !important; }
+  #cartPage .cart-penalty-pitch { height: 180px !important; }
+}
+
 </style>"""
 
 BASE_JS = """<script>

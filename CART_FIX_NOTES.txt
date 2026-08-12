@@ -1,0 +1,1 @@
+Final compact cart spacing overrides applied to app.py only. Python syntax check passed.

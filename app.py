@@ -396,6 +396,25 @@ html[data-club] .hd { border-bottom:1px solid var(--line); }
 html[data-club] .hd::after { content:''; display:block; height:3px;
   background:linear-gradient(90deg, var(--ac), var(--ac2)); }
 .wrap { max-width:1120px; margin:0 auto; padding:22px 18px 100px; }
+/* CART PAGE: content must stay tightly stacked; never stretch the cart area */
+.cart-wrap { display:block !important; height:auto !important; min-height:0 !important; }
+.cart-page-shell { display:block !important; height:auto !important; min-height:0 !important; margin:0 !important; padding:0 !important; }
+#cartPage.cart-page-list { display:block !important; height:auto !important; min-height:0 !important; max-height:none !important; margin:0 !important; padding:0 !important; }
+#cartPage.cart-page-list > .ci { flex:none !important; height:auto !important; min-height:0 !important; margin:0 !important; }
+#cartPage.cart-page-list > .row-t { height:auto !important; min-height:0 !important; margin-top:8px; }
+#cartPage.cart-page-list > .cart-actions { display:flex !important; flex:none !important; height:auto !important; min-height:0 !important; margin:12px 0 0 !important; padding:0 !important; gap:8px; }
+#cartPage.cart-page-list > .cart-actions .btn { flex:1 1 0 !important; min-height:48px; }
+@media (max-width:768px) {
+  .cart-wrap { padding:10px 10px calc(90px + env(safe-area-inset-bottom)) !important; }
+  .cart-wrap .page-head { margin-bottom:12px !important; }
+  .cart-page-shell, #cartPage.cart-page-list { display:block !important; height:auto !important; min-height:0 !important; }
+  #cartPage.cart-page-list > .ci { display:flex !important; align-items:center !important; }
+  #cartPage.cart-page-list > .cart-actions { display:flex !important; flex-direction:column !important; gap:8px !important; }
+  #cartPage.cart-page-list > .cart-actions .btn { width:100% !important; flex:none !important; }
+  #cartPage.cart-page-list .row-t { margin-bottom:6px !important; }
+  #cartPage.cart-page-list .row-t:first-of-type { margin-top:14px !important; }
+}
+
 html[data-theme="light"] .wrap { padding-bottom:80px; }
 .hd { position:sticky; top:0; z-index:95; background:rgba(5,6,7,.78); backdrop-filter:blur(22px) saturate(1.8);
   -webkit-backdrop-filter:blur(22px) saturate(1.8); border-bottom:1px solid rgba(255,255,255,.08);
@@ -784,24 +803,6 @@ html[data-theme="light"] .fld input, html[data-theme="light"] .fld select, html[
 html[data-theme="light"] .radio { background:var(--card); border-color:var(--line); }
 .radio.on { background:var(--ac); border-color:transparent; color:var(--bg); }
 /* cart */
-/* Dedicated cart-page layout: compact and stable on mobile; never reserve a huge empty viewport. */
-#cartPage { width:100%; max-width:900px; margin:0 auto !important; min-height:0 !important; height:auto !important; display:flex !important; flex-direction:column !important; align-items:stretch !important; justify-content:flex-start !important; align-content:flex-start !important; position:relative; gap:0 !important; flex:none !important; }
-#cartPage > * { flex:none !important; flex-grow:0 !important; flex-shrink:0 !important; min-height:0 !important; }
-#cartPage .ci { display:grid !important; width:100%; grid-template-columns:auto minmax(0,1fr) auto auto; gap:10px; min-height:0 !important; height:auto !important; max-height:none !important; flex:none !important; align-items:center; background:rgba(255,255,255,.025); border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:12px 14px; margin:0 0 8px !important; }
-#cartPage .cart-page-summary { display:block !important; width:100%; min-height:0 !important; height:auto !important; margin:4px 0 0 !important; padding:14px; border:1px solid rgba(24,232,117,.10); border-radius:18px; background:rgba(11,23,18,.72); flex:none !important; }
-#cartPage .cart-page-actions { display:flex; gap:10px; flex-wrap:wrap; margin:12px 0 0 !important; }
-#cartPage .cart-page-actions .btn { flex:1 1 180px; justify-content:center; min-height:48px; }
-#cartPage + * { margin-top:12px !important; }
-@media (max-width:768px) {
-  #cartPage { min-height:0 !important; height:auto !important; max-height:none !important; margin:0 !important; display:flex !important; flex-direction:column !important; justify-content:flex-start !important; align-content:flex-start !important; gap:0 !important; }
-  #cartPage .ci { display:grid !important; grid-template-columns:auto minmax(0,1fr) auto; gap:8px; align-items:center; padding:11px 10px; margin:0 0 7px !important; min-height:0 !important; height:auto !important; max-height:none !important; }
-  #cartPage .ci > b[style*="color:var(--ac)"] { grid-column:2 / 4; justify-self:end; font-size:.92rem; }
-  #cartPage .ci-x { grid-column:3; grid-row:1; }
-  #cartPage .cart-page-summary { margin:2px 0 0 !important; padding:13px; border-radius:16px; min-height:0 !important; height:auto !important; max-height:none !important; }
-  #cartPage .cart-page-actions { flex-direction:column; gap:7px; margin-top:10px !important; }
-  #cartPage .cart-page-actions .btn { width:100%; flex:0 0 auto; min-height:46px; }
-  #cartPage + * { margin-top:10px !important; }
-}
 .co { position:fixed; inset:0; background:rgba(5,10,7,.6); backdrop-filter:blur(4px); z-index:350; display:none; }
 html[data-theme="light"] .co { background:rgba(15,23,42,.5); backdrop-filter:none; }
 .co.open { display:block; }
@@ -2563,7 +2564,7 @@ function gxSet(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){}
 function gxDev(){ var d=gxGet('gx_device',null); if(!d){ d='d'+Math.random().toString(36).slice(2)+Date.now().toString(36); gxSet('gx_device',d); } return d; }
 /* ---------- theme & font ---------- */
 function applyPrefs(){
-  var th='dark'; gxSet('gx_theme','dark'); document.documentElement.setAttribute('data-theme','dark');
+  var th=gxGet('gx_theme','light'); document.documentElement.setAttribute('data-theme',th);
   var fs=gxGet('gx_font','b'); document.documentElement.setAttribute('data-font',fs);
   var club=gxGet('gx_club',null); if(club) document.documentElement.setAttribute('data-club',club);
 }
@@ -2571,7 +2572,7 @@ function setTheme(t){ gxSet('gx_theme',t); applyPrefs(); syncPrefs(); }
 function setFont(f){ gxSet('gx_font',f); applyPrefs(); syncPrefs(); }
 function setMyClub(cid){ gxSet('gx_club',cid); applyPrefs(); syncPrefs(); if(cid) toast(gxT('md_choice_ok')); }
 function syncPrefs(){
-  var th='dark', fs=gxGet('gx_font','b'), club=gxGet('gx_club',null); gxSet('gx_theme','dark');
+  var th=gxGet('gx_theme','light'), fs=gxGet('gx_font','b'), club=gxGet('gx_club',null);
   var rows=document.querySelectorAll('.seg[data-seg]');
   rows.forEach(function(row){
     var name=row.getAttribute('data-seg'); var val = name==='theme'?th:(name==='font'?fs:club);
@@ -2848,31 +2849,17 @@ function renderCartPage(){
       +'<button class="ci-x" onclick="changeCart(\\''+p.id+'\\',\\''+x.size+'\\',-100)">✕</button></div>';
   });
   var tot=cartTotals();
-  html+='<div class="cart-page-summary">'
-    +'<div class="row-t"><span>'+gxT('cart_subtotal')+'</span><b>'+pmoney(tot.sub)+' '+GX.cur+'</b></div>'
+  html+='<div class="row-t"><span>'+gxT('cart_subtotal')+'</span><b>'+pmoney(tot.sub)+' '+GX.cur+'</b></div>'
     +'<div class="row-t"><span>'+gxT('cart_delivery')+'</span><b>'+pmoney(tot.delivery)+' '+GX.cur+'</b></div>'
     +'<div class="row-t total"><span>'+gxT('cart_total')+'</span><b>'+pmoney(tot.total)+' '+GX.cur+'</b></div>'
-    +'<div class="cart-page-actions">'
+    +'<div class="cart-actions">'
     +'<button class="btn wa" onclick="openCheckout()">'+gxT('cart_checkout')+'</button>'
-    +'<button class="btn wa" onclick="orderCartTG()">💬 '+gxT('order_wa')+'</button>'
-    +'<button class="btn ghost" onclick="clearCart()">🗑 '+gxT('cart_clear')+'</button></div></div>';
+    +'<button class="btn tg" onclick="orderCartTG()">💬 '+gxT('order_wa')+'</button>'
+    +'<button class="btn ghost" onclick="clearCart()">🗑 '+gxT('cart_clear')+'</button></div>';
   box.innerHTML=html;
-  // Hard reset of the cart layout on mobile: prevent any inherited flex/grid sizing from creating a huge gap.
-  box.style.setProperty("height","auto","important");
-  box.style.setProperty("min-height","0","important");
-  box.style.setProperty("max-height","none","important");
-  box.style.setProperty("display","flex","important");
-  box.style.setProperty("flex-direction","column","important");
-  box.style.setProperty("justify-content","flex-start","important");
-  box.style.setProperty("align-content","flex-start","important");
-  box.style.setProperty("gap","0","important");
-  Array.prototype.forEach.call(box.children,function(el){
-    el.style.setProperty("flex-grow","0","important");
-    el.style.setProperty("flex-shrink","0","important");
-    el.style.setProperty("min-height","0","important");
-    el.style.setProperty("height","auto","important");
-  });
-  try { history.scrollRestoration="manual"; window.scrollTo({top:0,left:0,behavior:"instant"}); } catch(e) { window.scrollTo(0,0); }
+  /* Hard reset the cart page layout after rendering: no spacer, no flex stretching. */
+  box.style.display='block'; box.style.height='auto'; box.style.minHeight='0'; box.style.maxHeight='none'; box.style.padding='0'; box.style.margin='0';
+  Array.prototype.forEach.call(box.children,function(el){ el.style.flex='none'; el.style.height='auto'; el.style.minHeight='0'; });
 }
 var rewardSel=null;
 function fillFoot(){
@@ -2893,7 +2880,7 @@ function fillFoot(){
     }
   }
   html+='<button class="btn wa block" '+(cart.length?'':'disabled style="opacity:.5"')+' onclick="openCheckout()">'+gxT('cart_checkout')+'</button>'
-    +'<button class="btn wa block" '+(cart.length?'':'disabled style="opacity:.5"')+' onclick="orderCartTG()" style="margin-top:8px">💬 '+gxT('order_wa')+'</button>'
+    +'<button class="btn tg block" '+(cart.length?'':'disabled style="opacity:.5"')+' onclick="orderCartTG()" style="margin-top:8px">💬 '+gxT('order_wa')+'</button>'
     +'<div style="text-align:center;margin-top:8px"><button class="hbtn" onclick="clearCart()">🗑 '+gxT('cart_clear')+'</button></div>';
   ft.innerHTML=html;
 }
@@ -4723,11 +4710,11 @@ def info_page(kind):
 
 def cart_page():
     d = cfg.L[lang()]
-    body = ('<div class="wrap"><div class="page-head"><h1>{t}</h1><p>{s}</p></div>'
-            '<div id="cartPage"></div>'
-            '<div style="text-align:center;margin-top:26px"><a class="back" href="/home">← {b}</a></div>'
+    body = ('<div class="wrap cart-wrap"><div class="page-head"><h1>{t}</h1><p>{s}</p></div>'
+            '<div class="cart-page-shell"><div id="cartPage" class="cart-page-list"></div></div>'
+            '<div style="text-align:center;margin-top:18px"><a class="back" href="/home">← {b}</a></div>'
             '</div>').format(t=d["cart_page_title"], s=d["cart_page_sub"], b=d["back"])
-    js = "<script>document.addEventListener('DOMContentLoaded',function(){ try{history.scrollRestoration='manual';window.scrollTo(0,0);}catch(e){} renderCartPage(); });</script>"
+    js = "<script>document.addEventListener('DOMContentLoaded',function(){ renderCartPage(); });</script>"
     return base_page(body, page_js=js, active="")
 
 

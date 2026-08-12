@@ -1122,7 +1122,7 @@ html[data-theme="light"] .os-seg { background:var(--line); }
 .auth-demo b { font-size:1.3rem; letter-spacing:3px; }
 .auth-new { display:none; font-size:.8rem; color:var(--mut); margin-top:8px; }
 .phone-row { display:flex; gap:8px; }
-.phone-row .cc-sel { flex:0 0 112px; border:1.5px solid var(--line); border-radius:12px; padding:0 10px; font-size:.9rem; font-weight:800; background:#fff; color:var(--txt); font-family:inherit; }
+.phone-row .cc-sel { flex:0 0 112px; border:1.5px solid var(--line); border-radius:12px; padding:0 10px; font-size:.9rem; font-weight:800; background:var(--card2); color:var(--txt); font-family:inherit; }
 .phone-row input { flex:1; min-width:0; }
 .auth-sent { font-size:.88rem; color:var(--mut); margin-bottom:12px; line-height:1.7; }
 .auth-sent b { color:var(--txt); font-weight:900; }
@@ -1485,7 +1485,7 @@ html[data-club] .hd::after { background:linear-gradient(90deg,var(--ac,#18E875),
 .club-opt.on { background:#0B0B0C; color:#fff; }
 .fp-sizes { display:flex; flex-wrap:wrap; gap:7px; }
 .sz-btn { min-width:38px; text-align:center; padding:7px 8px; border-radius:9px; border:1.5px solid var(--line);
-  background:#fff; font-weight:800; font-size:.8rem; cursor:pointer; color:var(--txt); }
+  background:var(--card2); font-weight:800; font-size:.8rem; cursor:pointer; color:var(--txt); }
 .sz-btn:hover { border-color:#18E875; }
 .sz-btn.on { background:#050607; border-color:#18E875; color:#18E875; }
 details.fp-acc { border-top:1px solid var(--line); padding-top:12px; }
@@ -2547,15 +2547,15 @@ function gxSet(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){}
 function gxDev(){ var d=gxGet('gx_device',null); if(!d){ d='d'+Math.random().toString(36).slice(2)+Date.now().toString(36); gxSet('gx_device',d); } return d; }
 /* ---------- theme & font ---------- */
 function applyPrefs(){
-  var th=gxGet('gx_theme','dark'); document.documentElement.setAttribute('data-theme',th);
+  var th=gxGet('gx_theme_v2','dark'); document.documentElement.setAttribute('data-theme',th);
   var fs=gxGet('gx_font','b'); document.documentElement.setAttribute('data-font',fs);
   var club=gxGet('gx_club',null); if(club) document.documentElement.setAttribute('data-club',club);
 }
-function setTheme(t){ gxSet('gx_theme',t); applyPrefs(); syncPrefs(); }
+function setTheme(t){ gxSet('gx_theme_v2',t); applyPrefs(); syncPrefs(); }
 function setFont(f){ gxSet('gx_font',f); applyPrefs(); syncPrefs(); }
 function setMyClub(cid){ gxSet('gx_club',cid); applyPrefs(); syncPrefs(); if(cid) toast(gxT('md_choice_ok')); }
 function syncPrefs(){
-  var th=gxGet('gx_theme','dark'), fs=gxGet('gx_font','b'), club=gxGet('gx_club',null);
+  var th=gxGet('gx_theme_v2','dark'), fs=gxGet('gx_font','b'), club=gxGet('gx_club',null);
   var rows=document.querySelectorAll('.seg[data-seg]');
   rows.forEach(function(row){
     var name=row.getAttribute('data-seg'); var val = name==='theme'?th:(name==='font'?fs:club);
@@ -3422,7 +3422,7 @@ function loadPoints(){
 function saveAccountData(){
   var name=($('pd_name').value||'').trim(), area=($('pd_area').value||'').trim(), addr=($('pd_addr').value||'').trim();
   fetch('/api/account/save',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({name:name,area:area,address:addr,theme:gxGet('gx_theme','dark'),font:gxGet('gx_font','b')})})
+    body:JSON.stringify({name:name,area:area,address:addr,theme:gxGet('gx_theme_v2','dark'),font:gxGet('gx_font','b')})})
   .then(function(r){return r.json();}).then(function(d){ if(d.ok) toast(gxT('ok_saved')); });
 }
 function accTab(id){
@@ -3784,7 +3784,7 @@ def base_page(body, active="", page_js="", extra_club=None):
 <meta name="theme-color" content="#0A0D0C">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-<script>(function(){try{var t=JSON.parse(localStorage.getItem('gx_theme')||'"dark"');document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();</script>
+<script>(function(){try{var t=JSON.parse(localStorage.getItem('gx_theme_v2')||'"dark"');document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();</script>
 <script>document.documentElement.classList.add('js');</script>
 <noscript><style>.rv{opacity:1;transform:none}.hero-ball,.stadium-bg,.gx-football,.gx-intro{display:none!important}</style></noscript>
 CSS
@@ -5701,7 +5701,7 @@ function penShow(goal,once){{
   res.innerHTML='<span class="big">'+t+'</span><span class="pts">'+sub+'</span>'
     +'<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:6px">'
     +'<a class="btn" style="background:#25D366;color:#fff" href="/track?code='+PEN_CODE+'">'+gxT('pen_track')+'</a>'
-    +'<a class="btn" style="background:#fff;color:#0F172A" href="/home">'+gxT('pen_back')+'</a></div>';
+    +'<a class="btn ghost" href="/home">'+gxT('pen_back')+'</a></div>';
   res.classList.add('show');
   if(goal&&!once) confetti(50);
 }}
@@ -6466,9 +6466,9 @@ def otp_email_text(code):
 def otp_email_html(code):
     return ("<div style='font-family:Arial,Helvetica,sans-serif;background:#f4f4f4;padding:24px'>"
             "<div style='max-width:480px;margin:auto;background:#ffffff;border-radius:14px;padding:28px;text-align:center'>"
-            "<div style='font-size:24px;font-weight:900;color:var(--card2)'>GOLAZOX</div>"
+            "<div style='font-size:24px;font-weight:900;color:#0B1712'>GOLAZOX</div>"
             "<p style='color:#555;margin:18px 0 22px'>رمز التحقق لتسجيل الدخول</p>"
-            "<div style='font-size:36px;letter-spacing:10px;font-weight:900;color:var(--card2)'>%s</div>"
+            "<div style='font-size:36px;letter-spacing:10px;font-weight:900;color:#0B9F50'>%s</div>"
             "<p style='color:#888;font-size:13px;margin-top:22px'>الرمز صالح لمدة 10 دقائق.<br>"
             "إذا لم تطلب تسجيل الدخول، يمكنك تجاهل هذه الرسالة.</p></div></div>" % code)
 

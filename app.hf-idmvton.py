@@ -5754,15 +5754,22 @@ def _replicate_token():
 
 
 def _hf_token():
-    return (os.environ.get("HF_TOKEN", "") or "").strip()
+    # Accept the common Hugging Face environment variable names.
+    return (os.environ.get("HF_TOKEN") or os.environ.get("HUGGINGFACEHUB_API_TOKEN") or "").strip()
 
 
 def _tryon_idm_vton(person_bytes, garment_bytes, garment_photo_type="flat-lay"):
+    """Run the official yisol/IDM-VTON Hugging Face Space through Gradio.
+
+    The Space expects PIL images through its Gradio ImageEditor/Image inputs.
+    gradio_client.handle_file() is used so the client uploads the temporary files
+    using the format expected by the Space instead of passing raw file handles.
+    """
     hf_token = _hf_token()
     import sys
 
     try:
-        from gradio_client import Client
+        from gradio_client import Client, handle_file
         sys.stderr.write("[TRYON] gradio_client imported OK\n")
     except ImportError as e:
         sys.stderr.write("[TRYON] gradio_client NOT installed: %s\n" % repr(e))
@@ -5773,10 +5780,10 @@ def _tryon_idm_vton(person_bytes, garment_bytes, garment_photo_type="flat-lay"):
         client = Client("yisol/IDM-VTON", hf_token=hf_token or None)
         sys.stderr.write("[TRYON] connected OK\n")
     except Exception as e:
-        sys.stderr.write("[TRYON] client connect failed: %s\n" % repr(e)[:200])
-        return None, "connect_failed: " + str(e)[:80]
+        sys.stderr.write("[TRYON] client connect failed: %s\n" % repr(e)[:400])
+        return None, "connect_failed: " + str(e)[:180]
 
-    import tempfile, os
+    import tempfile
     person_path = None
     garment_path = None
     try:
@@ -5787,10 +5794,16 @@ def _tryon_idm_vton(person_bytes, garment_bytes, garment_photo_type="flat-lay"):
             gf.write(garment_bytes)
             garment_path = gf.name
 
-        sys.stderr.write("[TRYON] calling predict (person=%d bytes, garment=%d bytes)...\n" % (len(person_bytes), len(garment_bytes)))
+        # The official Space uses an ImageEditor for the person image and a
+        # regular Image for the garment. handle_file() is the supported
+        # gradio_client way to upload local files to a remote Space.
+        person_file = handle_file(person_path)
+        garment_file = handle_file(garment_path)
+
+        sys.stderr.write("[TRYON] calling /tryon (person=%d bytes, garment=%d bytes)...\n" % (len(person_bytes), len(garment_bytes)))
         result = client.predict(
-            dict={"background": open(person_path, "rb"), "layers": [], "composite": None},
-            garm_img=open(garment_path, "rb"),
+            dict={"background": person_file, "layers": [], "composite": None},
+            garm_img=garment_file,
             garment_des="football jersey",
             is_checked=True,
             is_checked_crop=False,
@@ -5798,23 +5811,30 @@ def _tryon_idm_vton(person_bytes, garment_bytes, garment_photo_type="flat-lay"):
             seed=42,
             api_name="/tryon",
         )
-        sys.stderr.write("[TRYON] predict returned: %s\n" % repr(result)[:200])
+        sys.stderr.write("[TRYON] predict returned type=%s value=%s\n" % (type(result).__name__, repr(result)[:500]))
 
-        if isinstance(result, tuple):
-            result = result[0]
-        if isinstance(result, dict):
-            result = result.get("path", result.get("url", result.get("image", "")))
+        # Official Space returns (generated_image, masked_image).
+        if isinstance(result, (tuple, list)):
+            result_image = result[0] if result else None
+        else:
+            result_image = result
 
-        sys.stderr.write("[TRYON] result path: %s\n" % str(result)[:200])
-        return result, None
+        if isinstance(result_image, dict):
+            result_image = (result_image.get("path") or result_image.get("url") or
+                             result_image.get("image") or result_image.get("value"))
+
+        sys.stderr.write("[TRYON] result image=%s\n" % repr(result_image)[:500])
+        if not result_image:
+            return None, "empty_result"
+        return result_image, None
     except Exception as e:
-        sys.stderr.write("[TRYON] predict failed: %s\n" % repr(e)[:300])
-        return None, str(e)[:120]
+        sys.stderr.write("[TRYON] predict failed: %s\n" % repr(e)[:500])
+        return None, str(e)[:250]
     finally:
-        for p in [person_path, garment_path]:
-            if p:
+        for pth in [person_path, garment_path]:
+            if pth:
                 try:
-                    os.unlink(p)
+                    os.unlink(pth)
                 except Exception:
                     pass
 
@@ -5875,7 +5895,7 @@ def api_tryon_run():
             result_image, err = _tryon_idm_vton(person_bytes, garment_bytes, garment_photo_type)
             if err:
                 sys.stderr.write("[TRYON] idm-vton FAILED: %s\n" % err[:300])
-                return json_d({"ok": False, "error": "backend_error"})
+                return json_d({"ok": False, "error": "backend_error", "detail": err[:180]})
             sys.stderr.write("[TRYON] idm-vton OK, result type=%s\n" % type(result_image).__name__)
             import base64 as _b64_out
             if isinstance(result_image, str) and result_image.startswith("http"):

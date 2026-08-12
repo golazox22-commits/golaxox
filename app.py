@@ -2710,7 +2710,7 @@ function authTab(P,t){
 }
 function authContact(P){ var e=ap(P,'au_email'); return ((e&&e.value)||'').trim(); }
 function isEmail(v){
-  var r=/^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$/;
+  var r=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
   return r.test(v);
 }
 function maskEmail(em){

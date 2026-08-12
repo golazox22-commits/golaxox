@@ -3796,21 +3796,15 @@ def size_guide_premium():
         prod_all=d.get("view_all", "عرض الكل"),
         trust=trust_html,
     )
-    page_js = """<script>
-var SG_CHART=%s;
-var SG_ORDER=%s;
-var SG_PRODS=%s;
-var SG_CM='%s';
-var SG_KG='%s';
-var SG_CUR='%s';
+    page_js = '<script>\nvar SG_CHART=' + size_chart_json + ';\nvar SG_ORDER=' + size_order_json + ';\nvar SG_PRODS=' + prods_json + ';\nvar SG_CM=\'' + d.get("szt_cm", "سم") + '\';\nvar SG_KG=\'' + d.get("szt_kg", "كجم") + '\';\nvar SG_CUR=\'' + cur() + '\';\n' + r"""
 function sgSizeFromHW(h,w){
   if(!h||!w) return null;
   var bmi=w/((h/100)*(h/100));
   var best=null,bestDist=9999;
   SG_ORDER.forEach(function(sz){
     var c=SG_CHART[sz]; if(!c) return;
-    var hw=c.height.split('–');
-    var ww=c.weight.split('–');
+    var hw=c.height.split('\u2013');
+    var ww=c.weight.split('\u2013');
     var hMin=parseFloat(hw[0])||0,hMax=parseFloat(hw[1])||999;
     var wMin=parseFloat(ww[0])||0,wMax=parseFloat(ww[1])||999;
     var hMid=(hMin+hMax)/2, wMid=(wMin+wMax)/2;
@@ -3822,28 +3816,26 @@ function sgSizeFromHW(h,w){
 function sgCalc(){
   var h=parseFloat(($('sgHeight')||{}).value)||0;
   var w=parseFloat(($('sgWeight')||{}).value)||0;
-  if(!h||!w){toast('أدخل الطول والوزن');return;}
+  if(!h||!w){toast('\u0623\u062f\u062e\u0644 \u0627\u0644\u0637\u0648\u0644 \u0648\u0627\u0644\u0648\u0632\u0646');return;}
   var sz=sgSizeFromHW(h,w);
-  if(!sz){toast('تحقق من القيم');return;}
+  if(!sz){toast('\u062a\u062d\u0642\u0642 \u0645\u0646 \u0627\u0644\u0642\u064a\u0645');return;}
   var res=$('sgResult');if(res) res.style.display='block';
   var szEl=$('sgResultSize');if(szEl){szEl.textContent=sz;szEl.className='sg-result-size sg-pop';}
   var wEl=$('sgRWeight');if(wEl) wEl.textContent=w+' '+SG_KG;
   var hEl=$('sgRHeight');if(hEl) hEl.textContent=h+' '+SG_CM;
-  /* Adjacent sizes */
   var idx=SG_ORDER.indexOf(sz);
   var adj=[];
-  if(idx>0) adj.push({sz:SG_ORDER[idx-1],label:'أوسع قليلًا'});
-  if(idx<SG_ORDER.length-1) adj.push({sz:SG_ORDER[idx+1],label:'المقاس الأقرب'});
+  if(idx>0) adj.push({sz:SG_ORDER[idx-1],label:'\u0623\u0648\u0633\u0639 \u0642\u0644\u064a\u0644\u064b\u0627'});
+  if(idx<SG_ORDER.length-1) adj.push({sz:SG_ORDER[idx+1],label:'\u0627\u0644\u0645\u0642\u0627\u0633 \u0627\u0644\u0623\u0642\u0631\u0628'});
   var adjBox=$('sgAdjacent');var adjCards=$('sgAdjCards');
   if(adjBox&&adjCards&&adj.length){
     adjBox.style.display='block';
     adjCards.innerHTML=adj.map(function(a){
-      return '<div class="sg-adj-card'+(a.label.indexOf('الأقرب')>-1?' on':'')+'">'
+      return '<div class="sg-adj-card'+(a.label.indexOf('\u0627\u0644\u0623\u0642\u0631\u0628')>-1?' on':'')+'">'
         +'<div class="sg-adj-sz">'+a.sz+'</div>'
         +'<div class="sg-adj-lbl">'+a.label+'</div></div>';
     }).join('');
   }
-  /* Products */
   var prodBox=$('sgProducts');var prodGrid=$('sgProdGrid');var prodSz=$('sgProdSize');
   if(prodBox&&prodGrid){
     prodBox.style.display='block';
@@ -3855,14 +3847,12 @@ function sgCalc(){
         +'<div class="pbody"><span class="pcat">'+p.club+'</span>'
         +'<h3>'+p.name+'</h3>'
         +'<div class="pfoot"><b>'+p.price.toFixed(3)+' '+SG_CUR+'</b>'
-        +'<a class="pview" href="/product/'+p.id+'">←</a></div></div></div>';
+        +'<a class="pview" href="/product/'+p.id+'">\u2190</a></div></div></div>';
     }).join('');
   }
-  /* Scroll to result */
   if(res) res.scrollIntoView({behavior:'smooth',block:'center'});
 }
-</script>""".format(size_chart_json, size_order_json, prods_json,
-                  d.get("szt_cm", "سم"), d.get("szt_kg", "كجم"), cur())
+</script>"""
     return base_page(body, page_js=page_js, active="sizes")
 
 

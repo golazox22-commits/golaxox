@@ -65,6 +65,94 @@ CLUB_THEMES = {
     "hilal":   {"ac": "#1E4FA3", "ac2": "#0C2D6E", "glow": "#1E4FA3", "tint": "#1E4FA3"},
 }
 
+# ============================== TEAM PAGE THEMES (product page atmosphere) ==============================
+TEAM_PAGE_THEMES = {
+    "real": {
+        "bg1": "#05070A", "bg2": "#0A0E14", "bg3": "#0D1219",
+        "glow1": "rgba(201,162,75,.12)", "glow2": "rgba(200,200,220,.06)",
+        "accent": "#C9A24B", "accent2": "#E8D48B",
+        "pitch": "rgba(200,200,220,.04)", "particle": "rgba(201,162,75,.15)",
+        "label": "Royal Stadium",
+    },
+    "barca": {
+        "bg1": "#04060E", "bg2": "#080C1A", "bg3": "#0C1025",
+        "glow1": "rgba(0,77,152,.14)", "glow2": "rgba(165,0,68,.08)",
+        "accent": "#004D98", "accent2": "#A50044",
+        "pitch": "rgba(0,77,152,.04)", "particle": "rgba(0,77,152,.12)",
+        "label": "Camp Nou",
+    },
+    "hilal": {
+        "bg1": "#03060E", "bg2": "#060C1A", "bg3": "#0A1028",
+        "glow1": "rgba(30,79,163,.14)", "glow2": "rgba(255,255,255,.04)",
+        "accent": "#1E4FA3", "accent2": "#FFFFFF",
+        "pitch": "rgba(30,79,163,.04)", "particle": "rgba(30,79,163,.12)",
+        "label": "Blue Kingdom",
+    },
+    "nassr": {
+        "bg1": "#060808", "bg2": "#0C1010", "bg3": "#121818",
+        "glow1": "rgba(247,208,51,.10)", "glow2": "rgba(247,208,51,.04)",
+        "accent": "#F7D033", "accent2": "#1B1B1B",
+        "pitch": "rgba(247,208,51,.03)", "particle": "rgba(247,208,51,.10)",
+        "label": "Gold Arena",
+    },
+    "liver": {
+        "bg1": "#060404", "bg2": "#0C0808", "bg3": "#140C0C",
+        "glow1": "rgba(200,16,46,.12)", "glow2": "rgba(200,16,46,.05)",
+        "accent": "#C8102E", "accent2": "#7A0C20",
+        "pitch": "rgba(200,16,46,.04)", "particle": "rgba(200,16,46,.10)",
+        "label": "Anfield",
+    },
+    "arsenal": {
+        "bg1": "#060404", "bg2": "#0C0808", "bg3": "#140C0C",
+        "glow1": "rgba(239,1,7,.12)", "glow2": "rgba(239,1,7,.05)",
+        "accent": "#EF0107", "accent2": "#9E0000",
+        "pitch": "rgba(239,1,7,.04)", "particle": "rgba(239,1,7,.10)",
+        "label": "Emirates",
+    },
+    "bayern": {
+        "bg1": "#060405", "bg2": "#0C080A", "bg3": "#140C10",
+        "glow1": "rgba(220,5,45,.12)", "glow2": "rgba(220,5,45,.05)",
+        "accent": "#DC052D", "accent2": "#8E0A22",
+        "pitch": "rgba(220,5,45,.04)", "particle": "rgba(220,5,45,.10)",
+        "label": "Allianz Arena",
+    },
+    "united": {
+        "bg1": "#060404", "bg2": "#0C0808", "bg3": "#140C0C",
+        "glow1": "rgba(218,41,28,.12)", "glow2": "rgba(218,41,28,.05)",
+        "accent": "#DA291C", "accent2": "#5E0F0A",
+        "pitch": "rgba(218,41,28,.04)", "particle": "rgba(218,41,28,.10)",
+        "label": "Old Trafford",
+    },
+    "city": {
+        "bg1": "#04060A", "bg2": "#080C14", "bg3": "#0C101E",
+        "glow1": "rgba(108,171,221,.12)", "glow2": "rgba(108,171,221,.05)",
+        "accent": "#6CABDD", "accent2": "#1C2C5B",
+        "pitch": "rgba(108,171,221,.04)", "particle": "rgba(108,171,221,.10)",
+        "label": "Etihad",
+    },
+    "juve": {
+        "bg1": "#050505", "bg2": "#0A0A0A", "bg3": "#111111",
+        "glow1": "rgba(255,255,255,.05)", "glow2": "rgba(255,255,255,.02)",
+        "accent": "#FFFFFF", "accent2": "#5B5B5B",
+        "pitch": "rgba(255,255,255,.03)", "particle": "rgba(255,255,255,.06)",
+        "label": "Allianz Stadium",
+    },
+    "green": {
+        "bg1": "#040806", "bg2": "#08100C", "bg3": "#0C1814",
+        "glow1": "rgba(27,122,61,.12)", "glow2": "rgba(27,122,61,.05)",
+        "accent": "#1B7A3D", "accent2": "#0E4D26",
+        "pitch": "rgba(27,122,61,.04)", "particle": "rgba(27,122,61,.10)",
+        "label": "Green Stadium",
+    },
+    "psg": {
+        "bg1": "#030508", "bg2": "#060A10", "bg3": "#0A101A",
+        "glow1": "rgba(0,65,112,.14)", "glow2": "rgba(218,41,28,.06)",
+        "accent": "#004170", "accent2": "#DA291C",
+        "pitch": "rgba(0,65,112,.04)", "particle": "rgba(0,65,112,.10)",
+        "label": "Parc des Princes",
+    },
+}
+
 # ============================== PRODUCTS ==============================
 # stock: jersey -> {size: qty}; mug -> {OS: qty}. Admin panel overrides via DB.
 # badges: "new" | "best" | "offer" | "soldout" (soldout computed from stock too)

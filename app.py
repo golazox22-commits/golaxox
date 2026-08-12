@@ -450,6 +450,7 @@ html[data-theme="light"] .pcard:hover .pcard-glow { opacity:.6; }
   transition:transform .4s cubic-bezier(.22,1,.36,1);
   filter:drop-shadow(0 12px 24px rgba(0,0,0,.35));
   position:relative; z-index:2;
+  max-width:100%; display:block;
 }
 .pcard:hover .pimg img {
   transform:translateZ(20px) scale(1.04);
@@ -472,8 +473,7 @@ html[data-theme="light"] .pcard:hover .pcard-glow { opacity:.6; }
   z-index:3; pointer-events:none;
 }
 html[data-theme="light"] .pimg::before { background:linear-gradient(180deg, rgba(255,255,255,.4) 0%, transparent 100%); }
-.pimg img { width:100%; height:100%; object-fit:cover; }
-.pcard:hover .pimg img { transform:translateZ(20px) scale(1.04); }
+.pimg-fallback { display:flex; align-items:center; justify-content:center; width:100%; height:100%; font-size:3rem; color:var(--mut); opacity:.4; }
 .pbody { padding:14px 15px 15px; }
 .pcat { font-size:.7rem; font-weight:800; letter-spacing:.4px; text-transform:uppercase; color:var(--ac); }
 .ads-strip { display:flex; flex-direction:column; gap:10px; margin:16px 0; }
@@ -537,6 +537,39 @@ html[data-theme="light"] .qic { background:var(--card2); }
 .ft-links a:hover { color:var(--ac); }
 .ft-copy { color:var(--mut); font-size:.8rem; margin-top:20px; }
 /* product page */
+/* ── Team Atmosphere ── */
+.tm-atmos { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
+.tm-pitch {
+  position:absolute; inset:0; opacity:.03;
+  background:
+    radial-gradient(circle at 50% 50%, transparent 29.5%, rgba(255,255,255,.5) 30%, rgba(255,255,255,.5) 30.5%, transparent 31%),
+    linear-gradient(0deg, transparent 49.5%, rgba(255,255,255,.4) 49.5%, rgba(255,255,255,.4) 50.5%, transparent 50.5%),
+    linear-gradient(90deg, transparent 49.5%, rgba(255,255,255,.4) 49.5%, rgba(255,255,255,.4) 50.5%, transparent 50.5%);
+}
+.tm-particles { position:absolute; inset:0; }
+.tm-particles i {
+  position:absolute; width:3px; height:3px; border-radius:50%; background:rgba(255,255,255,.15);
+  animation:tmFloat 12s ease-in-out infinite;
+}
+.tm-particles i:nth-child(1){ left:15%; top:20%; animation-delay:0s; }
+.tm-particles i:nth-child(2){ left:75%; top:35%; animation-delay:-3s; width:2px; height:2px; }
+.tm-particles i:nth-child(3){ left:40%; top:70%; animation-delay:-6s; }
+.tm-particles i:nth-child(4){ left:85%; top:60%; animation-delay:-9s; width:2px; height:2px; }
+.tm-particles i:nth-child(5){ left:25%; top:85%; animation-delay:-4s; }
+@keyframes tmFloat {
+  0%,100%{ transform:translateY(0) translateX(0); opacity:.15; }
+  25%{ transform:translateY(-15px) translateX(5px); opacity:.25; }
+  50%{ transform:translateY(-8px) translateX(-3px); opacity:.1; }
+  75%{ transform:translateY(-20px) translateX(8px); opacity:.2; }
+}
+.tm-ball {
+  position:fixed; bottom:15%; right:5%; font-size:28px; opacity:.08;
+  animation:tmBallFloat 8s ease-in-out infinite; pointer-events:none; z-index:0;
+}
+@keyframes tmBallFloat {
+  0%,100%{ transform:translateY(0) rotate(0deg); }
+  50%{ transform:translateY(-12px) rotate(15deg); }
+}
 .pg { display:grid; grid-template-columns:1fr 1fr; gap:30px; align-items:start; }
 .gal { position:sticky; top:86px; perspective:1200px; }
 .gmain {
@@ -567,6 +600,7 @@ html[data-theme="light"] .gmain::after { background:radial-gradient(ellipse, rgb
 .gmain img { width:100%; height:500px; object-fit:cover; position:relative; z-index:1;
   transition:transform .5s cubic-bezier(.22,1,.36,1);
   filter:drop-shadow(0 16px 32px rgba(0,0,0,.3));
+  max-width:100%; display:block;
 }
 .gmain:hover img { transform:scale(1.03) translateZ(10px); }
 /* Light reflection overlay */
@@ -1060,15 +1094,18 @@ html[data-theme="light"] .os-seg { background:var(--line); }
   .pcard-inner { transform:none!important; }
   .pcard-glow { display:none; }
   .pimg { height:170px; }
-  .pimg img { filter:drop-shadow(0 6px 12px rgba(0,0,0,.25)); }
+  .pimg img { width:90%; height:90%; object-fit:contain; filter:drop-shadow(0 6px 12px rgba(0,0,0,.25)); }
   .hero { padding:30px 20px; }
   .links3 { grid-template-columns:1fr; }
   .gmain { perspective:none; transform:none!important; }
-  .gmain img { height:320px; filter:drop-shadow(0 8px 16px rgba(0,0,0,.2)); }
+  .gmain img { height:auto; max-height:340px; filter:drop-shadow(0 8px 16px rgba(0,0,0,.2)); }
   .gmain::before { filter:blur(30px); opacity:.4; }
   .gmain::after { height:16px; bottom:-8px; }
   .pg { grid-template-columns:1fr; gap:20px; }
   .gal { position:static; perspective:none; }
+  .tm-ball { display:none; }
+  .tm-particles i { animation-duration:16s; }
+  .tm-label { font-size:.6rem; padding:3px 10px; }
   .tk-btns { grid-template-columns:1fr; }
   #filtersBar { position:fixed; left:0; right:0; bottom:0; z-index:80; flex-direction:column; align-items:stretch;
     background:var(--card,#fff); border-top:1.5px solid var(--line,#e5e7eb); padding:18px 16px calc(18px + env(safe-area-inset-bottom));
@@ -4213,7 +4250,7 @@ def product_card(p):
         '<div class="badges">{badges}</div>'
         '<button class="heart {on}" onclick="toggleFav(\'{id}\',this)">{h}</button>'
         '<a href="/product/{id}"><div class="pimg">'
-        '<img src="/img/{first}" alt="{name}" loading="lazy"></div></a>'
+        '<img src="/img/{first}" alt="{name}" loading="lazy" onerror="this.onerror=null;this.style.display=\'none\';var f=document.createElement(\'div\');f.className=\'pimg-fallback\';f.textContent=\'⚽\';this.parentElement.appendChild(f)"></div></a>'
         '<div class="pover"><a class="pover-btn" href="/product/{id}">{view} ←</a></div>'
         '<div class="pbody"><span class="pcat">{cat}</span><h3>{name}</h3>'
         '{low}'
@@ -4443,10 +4480,48 @@ def product_body(pid):
     ).format(of=d["img_of"], n=len(p["imgs"]))
     thumbs_block = "" if one else '<div class="gthumb" id="gthumbs">{gthumbs}</div>'
 
+    # Team page theme
+    team_theme = cfg.TEAM_PAGE_THEMES.get(club_id, {})
+    team_style = ""
+    team_atmos = ""
+    team_label = ""
+    if team_theme and not is_mug:
+        tt = team_theme
+        team_label = '<div class="tm-label" style="color:{ac}"><span class="tm-label-dot" style="background:{ac}"></span>{lbl}</div>'.format(
+            ac=tt.get("accent", "#19A463"), lbl=tt.get("label", ""))
+        team_style = (
+            '<style>'
+            '.pg-wrap{{ background:{bg1}; }}'
+            '.pg-wrap::before{{ content:""; position:fixed; inset:0; pointer-events:none; z-index:0; '
+            'background: radial-gradient(ellipse 80% 50% at 50% 30%, {glow1}, transparent 60%), '
+            'radial-gradient(ellipse 60% 40% at 20% 80%, {glow2}, transparent 50%), '
+            'linear-gradient(180deg, {bg1} 0%, {bg2} 40%, {bg3} 100%); '
+            'transition: background .5s ease; }}'
+            '.pg-wrap .wrap{{ position:relative; z-index:1; }}'
+            '.gmain{{ border-color: {accent}18; }}'
+            '.gmain::before{{ background: radial-gradient(circle, {glow1}, transparent 70%) !important; }}'
+            '.gmain:hover{{ box-shadow: 0 30px 70px rgba(0,0,0,.5), 0 0 60px {glow1}; }}'
+            '.tm-label{{ display:inline-flex; align-items:center; gap:6px; padding:4px 14px; border-radius:999px; '
+            'background:rgba(255,255,255,.04); border:1px solid {accent}20; font-size:.68rem; font-weight:800; '
+            'letter-spacing:1.5px; text-transform:uppercase; margin-bottom:10px; }}'
+            '.tm-label-dot{{ width:6px; height:6px; border-radius:50%; }}'
+            '@media (prefers-reduced-motion:reduce){{ .tm-ball,.tm-particles *{{ animation:none!important; }} }}'
+            '</style>'
+        ).format(**tt)
+        # Atmosphere layers
+        team_atmos = (
+            '<div class="tm-atmos" aria-hidden="true">'
+            '<div class="tm-pitch"></div>'
+            '<div class="tm-particles"><i></i><i></i><i></i><i></i><i></i></div>'
+            '<div class="tm-ball">⚽</div>'
+            '</div>'
+        )
+
     body = (
-        atmos_html("light")
+        team_style + atmos_html("light")
         + '<div class="wrap pg-wrap">'
-        '<input type="hidden" id="prod_id" value="{id}">'
+        + team_atmos
+        + '<input type="hidden" id="prod_id" value="{id}">'
         '{live_drop}'
         '<a class="back" href="/home">← {back}</a>'
         '<div class="pg">'
@@ -4456,7 +4531,7 @@ def product_body(pid):
         '{gal_nav}</div>'
         '{thumbs_block}'
         '<p class="zoom-hint">🔍 {zh}</p></div>'
-        '<div class="pinfo"><h1>{name}</h1><p class="pcatline">{cat}</p>'
+        '<div class="pinfo">{team_label}<h1>{name}</h1><p class="pcatline">{cat}</p>'
         '<div class="pprice">{pr}</div>{trust}{trust_info}'
         '{sizes}'
         '<div class="qtysec"><div class="lbl">{ql}</div>'
@@ -4480,7 +4555,7 @@ def product_body(pid):
              pd=d["pd_title"],
              notify=notify, a=d["prod_links_sz"], b=d["prod_links_wash"], c=d["prod_links_ret"],
              ratings=ratings, yml=yml, matchday_btn=matchday_btn, outfit=outfit_html,
-             live_drop=live_drop)
+             live_drop=live_drop, team_label=team_label)
 
     extra_club = club_id or None
     return body, page_js, extra_club

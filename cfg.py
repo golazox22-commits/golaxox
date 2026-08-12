@@ -6,7 +6,7 @@ import os
 
 # ============================== STORE CONFIG ==============================
 TELEGRAM = os.environ.get("TELEGRAM", "rms_2o")
-WHATSAPP = os.environ.get("WHATSAPP", "97338818226")
+WHATSAPP = "97338818226"  # fixed store WhatsApp number (+973 3881 8226) — always used for orders
 ADMIN_PASS = os.environ.get("ADMIN_PASS", "golazox2026")
 ADMIN_EMAIL = "golazox22@gmail.com"
 ADMIN_QUESTION = "أفضل شخص مين؟"

@@ -4508,6 +4508,7 @@ def product_body(pid):
             '@media (prefers-reduced-motion:reduce){{ .tm-ball,.tm-particles *{{ animation:none!important; }} }}'
             '</style>'
         ).format(**tt)
+        team_style = team_style.replace('{', '{{').replace('}', '}}')
         # Atmosphere layers
         team_atmos = (
             '<div class="tm-atmos" aria-hidden="true">'

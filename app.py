@@ -168,7 +168,7 @@ def gx_data():
     u = current_user()
     user = {"id": u["id"], "role": u["role"]} if u else None
     return {
-        "lang": lang(), "cur": cur(), "tg": cfg.TELEGRAM,
+        "lang": lang(), "cur": cur(), "tg": cfg.TELEGRAM, "wa": cfg.WHATSAPP,
         "delivery": cfg.DELIVERY_FEE,
         "sizes": cfg.SIZE_ORDER, "chart": cfg.SIZE_CHART, "rewards": cfg.REWARDS,
         "products": products, "clubs": clubs, "points_per": cfg.POINTS_PER_BHD,
@@ -342,15 +342,20 @@ def img(name):
 # ============================== PAGE TEMPLATES ==============================
 CSS = """<style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { overflow-x: hidden; max-width: 100vw; }
 :root {
+  --golazox-black:#050607; --golazox-stadium:#0A0D0C; --golazox-green:#0B1712;
+  --golazox-pitch:#10251A; --golazox-pitch-2:#163523;
+  --golazox-white:#F5F7F5; --golazox-silver:#B8BFBC; --golazox-muted:#78817D;
   --bg:#050607; --bg2:#0A0D0C; --bg3:#0B1712; --bg4:#10251A; --bg5:#163523;
-  --card:rgba(10,13,12,.85); --card2:rgba(11,23,18,.75); --card3:#10251A;
-  --line:rgba(24,232,117,.07); --txt:#F5F7F5; --mut:#B8BFBC; --dim:#6F8F7A;
+  --card:rgba(255,255,255,.045); --card2:rgba(255,255,255,.03); --card3:#10251A;
+  --line:rgba(255,255,255,.10); --txt:#F5F7F5; --mut:#78817D; --dim:#6F8F7A;
   --brand1:#18E875; --brand2:#0B9F50; --green:#18E875; --gold:#D8B45A; --ok:#18E875; --err:#DC2626;
   --ac:var(--brand1); --ac2:var(--brand2); --warm:var(--gold);
+  --team-primary:var(--brand1); --team-secondary:var(--brand2); --team-glow:rgba(24,232,117,.12);
   --sh:0 8px 32px rgba(0,0,0,.55); --sh2:0 20px 50px rgba(0,0,0,.65); --sh3:0 2px 8px rgba(0,0,0,.4);
   --fs:16px;
-  --glass:rgba(10,13,12,.82); --glass2:rgba(10,13,12,.55); --glass-border:rgba(24,232,117,.07);
+  --glass:rgba(5,6,7,.78); --glass2:rgba(5,6,7,.55); --glass-border:rgba(255,255,255,.08);
   --stadium-dark:#050607; --stadium-green:#0B1712;
   --glow-g:0 0 30px rgba(24,232,117,.12); --glow-w:0 0 24px rgba(216,180,90,.10);
   --grad-brand:linear-gradient(135deg,#18E875 0%,#0B9F50 100%);
@@ -365,12 +370,13 @@ html[data-font="c"] { --fs:18px; }
 html { font-size: var(--fs); }
 body { font-family:'FONT','Segoe UI',Tahoma,sans-serif; background:var(--bg); color:var(--txt);
   min-height:100vh; transition:background .4s ease, color .4s ease;
+  padding-bottom:env(safe-area-inset-bottom);
   background-image:
-    radial-gradient(ellipse 140% 50% at 50% -15%, rgba(24,232,117,.03), transparent 55%),
-    radial-gradient(ellipse 50% 35% at 85% 85%, rgba(216,180,90,.01), transparent 40%),
-    radial-gradient(ellipse 70% 40% at 8% 75%, rgba(11,23,18,.02), transparent 40%),
-    repeating-linear-gradient(0deg, transparent 0 120px, rgba(24,232,117,.005) 120px 121px),
-    repeating-linear-gradient(90deg, transparent 0 120px, rgba(24,232,117,.005) 120px 121px),
+    radial-gradient(ellipse 140% 50% at 50% -15%, rgba(16,37,26,.15), transparent 55%),
+    radial-gradient(ellipse 50% 35% at 85% 85%, rgba(216,180,90,.015), transparent 40%),
+    radial-gradient(ellipse 70% 40% at 8% 75%, rgba(16,37,26,.08), transparent 40%),
+    repeating-linear-gradient(0deg, transparent 0 120px, rgba(24,232,117,.003) 120px 121px),
+    repeating-linear-gradient(90deg, transparent 0 120px, rgba(24,232,117,.003) 120px 121px),
     linear-gradient(180deg, #0A0D0C 0%, #050607 45%, #050607 100%);
   background-attachment:fixed; }
 html[data-theme="light"] body { background:#F3F6FB; background-image:
@@ -391,12 +397,12 @@ html[data-club] .hd::after { content:''; display:block; height:3px;
   background:linear-gradient(90deg, var(--ac), var(--ac2)); }
 .wrap { max-width:1120px; margin:0 auto; padding:22px 18px 100px; }
 html[data-theme="light"] .wrap { padding-bottom:80px; }
-.hd { position:sticky; top:0; z-index:95; background:rgba(5,9,7,.94); backdrop-filter:blur(22px) saturate(1.8);
-  -webkit-backdrop-filter:blur(22px) saturate(1.8); border-bottom:1px solid var(--glass-border);
+.hd { position:sticky; top:0; z-index:95; background:rgba(5,6,7,.78); backdrop-filter:blur(22px) saturate(1.8);
+  -webkit-backdrop-filter:blur(22px) saturate(1.8); border-bottom:1px solid rgba(255,255,255,.08);
   box-shadow:0 4px 30px rgba(0,0,0,.4);
   transition:background .3s ease, border-color .3s ease, box-shadow .3s ease; }
 html[data-theme="light"] .hd { background:rgba(255,255,255,.92); backdrop-filter:blur(16px) saturate(1.5);
-  -webkit-backdrop-filter:blur(16px) saturate(1.5); box-shadow:0 2px 14px rgba(15,23,42,.04); border-bottom-color:var(--line); }
+  -webkit-backdrop-filter:blur(16px) saturate(1.5); box-shadow:0 2px 14px rgba(15,23,42,.04); border-bottom-color:rgba(0,0,0,.06); }
 .hd-in { max-width:1120px; margin:0 auto; padding:10px 16px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
 .logo { font-size:1.4rem; font-weight:900; display:flex; align-items:center; gap:6px; color:var(--txt); }
 .logo .ball { font-size:1.3rem; }
@@ -411,31 +417,31 @@ html[data-theme="light"] .hd { background:rgba(255,255,255,.92); backdrop-filter
 .hcount { position:absolute; top:-6px; inset-inline-end:-6px; background:var(--brand1); color:#fff; font-size:.62rem;
   font-weight:900; min-width:18px; height:18px; border-radius:999px; display:none; align-items:center; justify-content:center; padding:0 4px; }
 /* hero */
-.hero { position:relative; overflow:hidden; border:1px solid rgba(24,232,117,.06); border-radius:26px;
+.hero { position:relative; overflow:hidden; border:1px solid rgba(255,255,255,.06); border-radius:26px;
   background:
-  radial-gradient(130% 110% at 12% 0%, rgba(24,232,117,.08), transparent 58%),
-  radial-gradient(110% 100% at 92% 100%, rgba(216,180,90,.03), transparent 60%),
-  linear-gradient(120deg, rgba(11,23,18,.8) 0%, rgba(5,6,7,.94) 60%);
+  radial-gradient(130% 110% at 12% 0%, rgba(16,37,26,.25), transparent 58%),
+  radial-gradient(110% 100% at 92% 100%, rgba(216,180,90,.02), transparent 60%),
+  linear-gradient(120deg, rgba(11,23,18,.6) 0%, rgba(5,6,7,.92) 60%);
   padding:46px 34px; margin-bottom:26px; transition:background .45s ease;
-  box-shadow: inset 0 1px 0 rgba(24,232,117,.06); }
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04); }
 html[data-theme="light"] .hero { background:linear-gradient(120deg, var(--card) 0%, #F8FAFF 60%); border-color:var(--line);
   box-shadow: var(--sh); }
-html[data-club] .hero { background: radial-gradient(130% 110% at 12% 0%, color-mix(in srgb, var(--ac) 18%, transparent), transparent 58%), linear-gradient(120deg, rgba(11,23,18,.7) 0%, rgba(5,6,7,.9) 60%); }
+html[data-club] .hero { background: radial-gradient(130% 110% at 12% 0%, color-mix(in srgb, var(--ac) 12%, transparent), transparent 58%), linear-gradient(120deg, rgba(11,23,18,.5) 0%, rgba(5,6,7,.88) 60%); }
 html[data-theme="light"] .hero { background:linear-gradient(120deg, var(--card) 0%, #F8FAFF 55%); }
 html[data-theme="light"][data-club] .hero { background:linear-gradient(120deg, var(--tint, rgba(225,29,72,.06)) 0%, transparent 68%), linear-gradient(120deg, var(--card) 0%, #F8FAFF 55%); }
-.hero h1 { font-size:2.4rem; line-height:1.15; font-weight:900; }
+.hero h1 { font-size:2.4rem; line-height:1.15; font-weight:900; color:var(--golazox-white); }
 .hero h1 .g { background:linear-gradient(90deg, var(--ac), var(--ac2)); -webkit-background-clip:text; background-clip:text; color:transparent; }
-.hero p { margin-top:12px; color:var(--mut); font-size:1rem; line-height:1.9; max-width:640px; }
+.hero p { margin-top:12px; color:var(--golazox-silver); font-size:1rem; line-height:1.9; max-width:640px; }
 .hero-btns { margin-top:22px; display:flex; gap:12px; flex-wrap:wrap; }
 .btn { display:inline-flex; align-items:center; gap:8px; font-weight:800; font-size:.95rem; padding:12px 24px;
   border-radius:999px; border:none; transition:transform .16s ease, box-shadow .2s ease; }
 .btn:active { transform:scale(.96)!important; }
-.btn.pri { background:var(--gradient-brand); color:#fff;
-  box-shadow:0 8px 28px rgba(24,232,117,.3);
-  transition:transform .16s ease, box-shadow .3s ease; }
-.btn.pri:hover { transform:translateY(-2px); box-shadow:0 12px 36px rgba(24,232,117,.4); }
-.btn.ghost { background:var(--glass); border:1.5px solid var(--glass-border); color:var(--txt); backdrop-filter:blur(8px); }
-html[data-theme="light"] .btn.ghost { background:var(--card); border-color:var(--line); backdrop-filter:none; }
+.btn.pri { background:var(--golazox-white); color:var(--golazox-black);
+  box-shadow:0 8px 28px rgba(245,247,245,.15);
+  transition:transform .16s ease, box-shadow .3s ease, background .3s ease; }
+.btn.pri:hover { transform:translateY(-2px); background:var(--golazox-green); color:var(--golazox-white); box-shadow:0 12px 36px rgba(24,232,117,.25); }
+.btn.ghost { background:transparent; border:1.5px solid rgba(255,255,255,.12); color:var(--golazox-white); backdrop-filter:blur(8px); }
+html[data-theme="light"] .btn.ghost { background:var(--card); border-color:var(--line); color:var(--txt); backdrop-filter:none; }
 .btn.ghost:hover { border-color:var(--ac); color:var(--ac); }
 .btn.tg { background:var(--green); color:#fff; box-shadow:0 8px 28px rgba(24,232,117,.3); }
 .btn.tg:hover { transform:translateY(-2px); box-shadow:0 12px 36px rgba(24,232,117,.4); }
@@ -511,7 +517,8 @@ html[data-theme="light"] .pcard:hover .pcard-glow { opacity:.6; }
   z-index:3; pointer-events:none;
 }
 html[data-theme="light"] .pimg::before { background:linear-gradient(180deg, rgba(255,255,255,.4) 0%, transparent 100%); }
-.pimg-fallback { display:flex; align-items:center; justify-content:center; width:100%; height:100%; font-size:3rem; color:var(--mut); opacity:.4; }
+.pimg-fallback { display:flex; align-items:center; justify-content:center; width:100%; height:100%; font-size:3rem; color:var(--mut); opacity:.4; background:var(--bg3); }
+.pimg img { background:var(--bg3); }
 .pbody { padding:14px 15px 15px; }
 .pcat { font-size:.7rem; font-weight:800; letter-spacing:.4px; text-transform:uppercase; color:var(--ac); }
 .ads-strip { display:flex; flex-direction:column; gap:10px; margin:16px 0; }
@@ -810,11 +817,13 @@ html[data-theme="light"] .cd-foot { border-top-color:var(--line); background:var
 html[data-theme="light"] .pts-row { background:rgba(201,162,75,.1); border-color:rgba(201,162,75,.5); color:var(--gold); }
 .pts-row select { background:rgba(11,23,18,.5); border:1px solid var(--glass-border); border-radius:8px; color:var(--txt); padding:4px 6px; font-size:.78rem; margin-top:6px; }
 html[data-theme="light"] .pts-row select { background:var(--card); border-color:var(--line); }
-/* fab */
+/* fab - WhatsApp floating button */
 .fab { position:fixed; bottom:80px; inset-inline-end:16px; z-index:300; width:54px; height:54px; border-radius:50%;
-  background:var(--ac); border:none; font-size:22px; box-shadow:0 8px 28px rgba(24,232,117,.4); display:flex;
-  align-items:center; justify-content:center; transition:transform .2s ease; }
-.fab:hover { transform:scale(1.08); }
+  background:#25D366; border:none; font-size:22px; box-shadow:0 8px 28px rgba(37,211,102,.4); display:flex;
+  align-items:center; justify-content:center; transition:transform .2s ease; text-decoration:none;
+  animation:waPulse 3s ease-in-out infinite; }
+.fab:hover { transform:scale(1.08); box-shadow:0 12px 36px rgba(37,211,102,.5); }
+@keyframes waPulse { 0%,100%{box-shadow:0 8px 28px rgba(37,211,102,.4)} 50%{box-shadow:0 8px 28px rgba(37,211,102,.4),0 0 0 8px rgba(37,211,102,.12)} }
 @media (min-width:769px) { .fab { bottom:24px; width:58px; height:58px; font-size:26px; } }
 /* matchday */
 .md-banner { background:linear-gradient(120deg,var(--ac) 0%, var(--ac2) 100%); color:var(--bg); border-radius:22px; padding:26px 28px;
@@ -853,7 +862,7 @@ html[data-theme="light"] .poll-opt { background:var(--card2); border-color:var(-
 .lb.open { display:flex; }
 .lb img { max-width:92vw; max-height:92vh; border-radius:12px; }
 /* welcome */
-.welc { min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
+.welc { min-height:100vh; min-height:100dvh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
   padding:30px 20px; position:relative; overflow:hidden; background:var(--bg);
   background-image:
     radial-gradient(ellipse 120% 60% at 50% -10%, rgba(24,232,117,.10), transparent 50%),
@@ -959,9 +968,10 @@ html[data-theme="light"] .res-card { background:var(--card); border-color:var(--
 @media (max-width:900px) {
   .pg { grid-template-columns:1fr; }
   .gal { position:static; }
-  .gmain img { height:340px; }
+  .gmain img { height:340px; max-height:50vh; object-fit:contain; }
   .hero h1 { font-size:1.8rem; }
   .nav { order:3; width:100%; justify-content:center; }
+  .gmain { overflow:hidden; }
 }
 /* success page */
 .okpage { max-width:620px; margin:0 auto; }
@@ -1128,18 +1138,18 @@ html[data-theme="light"] .os-seg { background:var(--line); }
 .tj .tj-step.cur .tj-dot { background:var(--ac); border-color:var(--ac); color:#fff; animation:pulse 1.4s infinite; }
 @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(24,232,117,.4)} 50%{box-shadow:0 0 0 8px rgba(24,232,117,0)} }
 @media (max-width:560px) {
-  .grid { grid-template-columns:repeat(2,1fr); gap:12px; }
+  .grid { grid-template-columns:repeat(2,1fr); gap:10px; }
   .pcard-inner { transform:none!important; }
   .pcard-glow { display:none; }
-  .pimg { height:170px; }
+  .pimg { height:150px; background:var(--bg3); }
   .pimg img { width:90%; height:90%; object-fit:contain; filter:drop-shadow(0 6px 12px rgba(0,0,0,.25)); }
-  .hero { padding:30px 20px; }
+  .hero { padding:20px 14px; border-radius:16px; margin-bottom:14px; }
   .links3 { grid-template-columns:1fr; }
   .gmain { perspective:none; transform:none!important; }
-  .gmain img { height:auto; max-height:340px; filter:drop-shadow(0 8px 16px rgba(0,0,0,.2)); }
+  .gmain img { height:auto; max-height:280px; filter:drop-shadow(0 8px 16px rgba(0,0,0,.2)); background:var(--bg3); }
   .gmain::before { filter:blur(30px); opacity:.4; }
-  .gmain::after { height:16px; bottom:-8px; }
-  .pg { grid-template-columns:1fr; gap:20px; }
+  .gmain::after { height:12px; bottom:-6px; }
+  .pg { grid-template-columns:1fr; gap:14px; }
   .gal { position:static; perspective:none; }
   .tm-ball { display:none; }
   .tm-particles i { animation-duration:16s; }
@@ -1150,6 +1160,9 @@ html[data-theme="light"] .os-seg { background:var(--line); }
     border-radius:20px 20px 0 0; box-shadow:0 -14px 40px rgba(2,6,23,.18);
     transform:translateY(110%); transition:transform .28s ease; }
   #filtersBar.open { transform:translateY(0); }
+  .pinfo h1 { font-size:1.1rem; }
+  .orderbtn { margin-top:16px; }
+  .frow { flex-direction:column; gap:0; }
 }
 /* ============================== FOOTBALL STADIUM ATMOSPHERE ============================== */
 body { overflow-x:hidden; }
@@ -1533,11 +1546,11 @@ html[data-theme="dark"] .list-search .ls-box input { background:var(--card2); }
 .hw-ctas { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-bottom:8px; }
 .hw-ctas .btn { font-weight:800; }
 /* product card */
-.pcard { background:rgba(10,13,12,.80); border:1px solid rgba(24,232,117,.06); border-radius:18px; overflow:hidden;
+.pcard { background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.10); border-radius:18px; overflow:hidden;
   box-shadow:0 8px 28px rgba(0,0,0,.3); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); transition:transform .3s ease, box-shadow .3s ease, border-color .3s ease; }
 html[data-theme="light"] .pcard { background:#fff; box-shadow:var(--sh); backdrop-filter:none; }
-.pcard:hover { transform:translateY(-5px); box-shadow:0 18px 44px rgba(0,0,0,.45), 0 0 30px color-mix(in srgb, var(--ac) 15%, transparent); border-color:color-mix(in srgb, var(--ac) 30%, rgba(24,232,117,.06)); }
-.pimg { height:210px; background:rgba(11,23,18,.6); }
+.pcard:hover { transform:translateY(-4px); box-shadow:0 18px 44px rgba(0,0,0,.45), 0 0 30px color-mix(in srgb, var(--ac) 15%, transparent); border-color:color-mix(in srgb, var(--ac) 30%, rgba(255,255,255,.10)); }
+.pimg { height:210px; background:rgba(255,255,255,.03); }
 html[data-theme="light"] .pimg { background:#FBFBFA; }
 .badge.best { background:linear-gradient(90deg, var(--ac), var(--ac2)); color:#050607; }
 .badge.new { background:linear-gradient(90deg, var(--warm), #D8B45A); color:#050607; }
@@ -1599,9 +1612,11 @@ html[data-theme="light"] .ft-copy { border-top-color:var(--line); }
   .hd-search { order:5; }
 }
 @media (max-width:480px) {
-  .hd-in { padding:8px 10px; gap:5px; }
-  .hd-in .hbtn { padding:5px 8px; font-size:.74rem; }
-  .hd-search { margin-top:6px; }
+  .hd-in { padding:6px 8px; gap:4px; }
+  .hd-in .hbtn { padding:4px 6px; font-size:.7rem; }
+  .logo { font-size:1rem; }
+  .hd-search { margin-top:4px; }
+  .btn.big { padding:11px; font-size:.88rem; }
 }
 /* ============================== CINEMATIC INTRO ============================== */
 .gx-intro { position:fixed; inset:0; z-index:9999; background:var(--bg); display:flex; align-items:center; justify-content:center;
@@ -2260,7 +2275,7 @@ html[data-theme="light"] .je-tunnel{background:linear-gradient(90deg,#F0FDF4,#ff
   .je-locker-slot{min-width:100%}
 }
 /* ============================== MATCH TICKET ============================== */
-.mtk-page { min-height: 100vh; background: #0B1712; position: relative; overflow: hidden; }
+.mtk-page { min-height:100vh; background: #0B1712; position: relative; overflow: hidden; overflow-x:hidden; }
 html[data-theme="light"] .mtk-page { background: #F3F6FB; }
 .mtk-lights { position: fixed; top: -60px; left: 0; right: 0; display: flex; justify-content: space-around; pointer-events: none; z-index: 0; }
 .mtk-light { width: 4px; height: 160px; background: linear-gradient(180deg, rgba(255,255,255,.5), transparent); filter: blur(2px); opacity: .3; animation: mtkLight 4s ease-in-out infinite; }
@@ -2348,6 +2363,175 @@ html[data-theme="light"] .mtk-jstep.done b, html[data-theme="light"] .mtk-jstep.
   .mtk-code { font-size: 1.6rem; }
   .mtk-jstep b { font-size: .52rem; }
   .mtk-jdot { width: 26px; height: 26px; font-size: .7rem; }
+}
+/* ============================== COMPREHENSIVE MOBILE FIXES ============================== */
+@media (max-width:768px) {
+  .wrap { padding:14px 12px 110px; }
+  html[data-theme="light"] .wrap { padding-bottom:100px; }
+  .gx-bnav { padding-bottom:env(safe-area-inset-bottom); }
+  .hero { padding:24px 16px; margin-bottom:16px; border-radius:18px; }
+  .hero h1 { font-size:1.5rem; line-height:1.2; }
+  .hero p { font-size:.88rem; line-height:1.7; }
+  .hero-btns { margin-top:14px; gap:8px; }
+  .hero-btns .btn { flex:1; min-width:0; justify-content:center; padding:11px 14px; font-size:.88rem; }
+  .hero-ball { display:none; }
+  .hero-tag { font-size:.6rem; padding:5px 10px; margin-bottom:12px; }
+  .hero-brand { font-size:1.6rem; letter-spacing:3px; }
+  .sec { margin-bottom:20px; }
+  .sec-head { margin-bottom:10px; }
+  .sec-head h2 { font-size:1.15rem; }
+  .grid { gap:12px; }
+  .pg { grid-template-columns:1fr; gap:16px; }
+  .gal { position:static; }
+  .gmain { perspective:none; transform:none!important; border-radius:18px; }
+  .gmain img { height:auto; max-height:300px; object-fit:contain; filter:drop-shadow(0 8px 16px rgba(0,0,0,.2)); }
+  .gmain::before { filter:blur(20px); opacity:.3; }
+  .gmain::after { height:12px; bottom:-6px; }
+  .pimg { height:180px; }
+  .pimg img { width:90%; height:90%; }
+  .pinfo h1 { font-size:1.2rem; }
+  .okpage { padding:0 12px; }
+  .ok-card { padding:28px 16px; border-radius:18px; }
+  .ok-anim { font-size:42px; }
+  .ok-card h1 { font-size:1.25rem; }
+  .ok-code { font-size:1.2rem; }
+  .ok-btns { flex-direction:column; gap:8px; margin-top:16px; }
+  .ok-btns .btn { min-width:0; width:100%; padding:12px; font-size:.9rem; }
+  .ticket { padding:0 12px; }
+  .tk { border-radius:18px; }
+  .tk-top { padding:14px 16px; }
+  .tk-stub { padding:14px 16px; }
+  .tk-items { padding:12px 16px; }
+  .tk-btns { grid-template-columns:1fr; padding:12px 16px 16px; gap:8px; }
+  .tk-total { padding:10px 16px; }
+  .tk-btns .btn { padding:11px; font-size:.88rem; }
+  .cd { width:100%; max-width:100vw; }
+  .cd-head { padding:12px 14px; }
+  .cd-body { padding:10px 14px; }
+  .cd-foot { padding:12px 14px; }
+  .ci { gap:10px; padding:10px 0; }
+  .ci-emoji { font-size:1.3rem; }
+  .ci-tx b { font-size:.82rem; }
+  .ci-tx span { font-size:.74rem; }
+  .btn { padding:10px 18px; font-size:.88rem; }
+  .btn.big { padding:12px; font-size:.92rem; }
+  .btn.sm { padding:7px 12px; font-size:.8rem; }
+  .fab { bottom:76px; width:48px; height:48px; font-size:20px; }
+  .toast { bottom:80px; font-size:.82rem; padding:10px 16px; }
+  .mkmode-toggle { bottom:66px; inset-inline-end:10px; padding:4px 8px; }
+  .mkmode-toggle .mkmode-lbl { font-size:.55rem; }
+  .pen-pitch { height:300px; }
+  .pen-goal { width:240px; height:110px; }
+  .pen-zone { width:56px; height:38px; font-size:.6rem; }
+  .pen-keeper { width:60px; height:96px; }
+  .pen-keeper .kb { width:60px; height:76px; }
+  .spotlight-card { flex-direction:column; text-align:center; padding:16px; gap:14px; border-radius:18px; }
+  .spotlight-img { width:100%; height:180px; border-radius:14px; }
+  .spotlight-info h3 { font-size:1.05rem; }
+  .spotlight-price { font-size:1.2rem; }
+  .sg-hero { min-height:auto; padding:24px 14px; }
+  .sg-hero-inner { flex-direction:column; text-align:center; gap:14px; }
+  .sg-hero-jersey { font-size:64px; }
+  .sg-hero-text h1 { font-size:1.4rem; }
+  .sg-calc-card { padding:20px 14px; border-radius:18px; }
+  .sg-calc-inputs { grid-template-columns:1fr; gap:10px; }
+  .sg-trust-bar { grid-template-columns:1fr 1fr; gap:8px; padding:0 14px; }
+  .outfit-items { gap:6px; }
+  .outfit-item { min-width:68px; padding:8px 10px; }
+  .outfit-plus { display:none; }
+  .outfit-header { flex-direction:column; gap:8px; }
+  .je-reveal { height:200px; border-radius:14px; }
+  .je-locker { flex-direction:column; gap:10px; }
+  .je-locker-slot { min-width:100%; padding:16px; }
+  .hw-timeline { grid-template-columns:1fr; gap:12px; }
+  .hw-prices { padding:18px 14px; border-radius:18px; }
+  .hw-price-grid { grid-template-columns:1fr; gap:10px; }
+  .hw-ctas { flex-direction:column; }
+  .hw-ctas .btn { width:100%; justify-content:center; }
+  .ft-grid { grid-template-columns:1fr; gap:16px; }
+  .pitch-sec { padding:36px 16px; border-radius:18px; }
+  .pitch-sec h2 { font-size:1.2rem; }
+  .club-banner { padding:22px 14px; border-radius:18px; }
+  .club-banner h1 { font-size:1.5rem; }
+  .clubs { grid-template-columns:repeat(auto-fill,minmax(90px,1fr)); gap:8px; }
+  .clubcard { padding:12px 6px 10px; border-radius:14px; }
+  .cc-logo { width:48px; height:48px; font-size:22px; }
+  .clubcard b { font-size:.82rem; }
+  .szsec-banner { padding:18px 14px; border-radius:18px; gap:10px; }
+  .szsec-banner h2 { font-size:1.1rem; }
+  .loyal { padding:20px 14px; border-radius:18px; }
+  .loyal .loyal-q { font-size:1.1rem; }
+  .loy-btn { width:74px; padding:10px 4px; }
+  .list-search { padding:16px 14px; border-radius:18px; }
+  .list-search h1 { font-size:1.2rem; }
+  .list-search .ls-box input { min-width:0; padding:11px 12px; font-size:.88rem; }
+  .feat-bar { padding:14px 12px; border-radius:14px; margin-bottom:20px; }
+  .feat b { font-size:.82rem; }
+  .feat span { font-size:.7rem; }
+  .stat-cards { grid-template-columns:repeat(2,1fr); gap:8px; }
+  .stat { padding:12px; border-radius:12px; }
+  .stat b { font-size:1.2rem; }
+  .adm { padding:14px 12px 50px; }
+  .mbox { border-radius:16px; max-width:96vw; }
+  .mhead { padding:12px 14px; }
+  .mbody { padding:14px; }
+  .sb { gap:6px; }
+  .sbox { min-width:0; }
+  .links3 { grid-template-columns:1fr; gap:8px; }
+  .qcard { padding:14px; border-radius:14px; }
+  .poll { padding:16px; border-radius:14px; }
+  .drop-banner { padding:18px 14px; border-radius:18px; }
+  .drop-banner h2 { font-size:1.2rem; }
+  .md-banner { padding:18px 14px; border-radius:18px; gap:12px; }
+  .md-teams { font-size:1rem; }
+  .acc-card { padding:12px; border-radius:14px; }
+  .acc-hero { padding:16px; border-radius:16px; }
+  .acc-hero h2 { font-size:1.2rem; }
+  .pp-card { padding:16px; border-radius:16px; }
+  .dna-grid { grid-template-columns:repeat(2,1fr); gap:8px; }
+  .dna-cell { padding:10px; border-radius:12px; }
+  .al-box { padding:0 12px; }
+  .al-item { padding:10px 12px; border-radius:12px; }
+  .os-card { padding:16px 12px; border-radius:14px; margin-bottom:14px; }
+  .os-title { font-size:.92rem; }
+  .os-path { margin-top:18px; }
+  .os-station { width:58px; font-size:.6rem; }
+  .os-station .ic { width:36px; height:36px; font-size:1rem; }
+  .os-msg { font-size:.85rem; margin-top:22px; }
+  .tj { gap:4px; }
+  .tj .tj-step { min-width:60px; }
+  .tj .tj-dot { width:22px; height:22px; font-size:.7rem; }
+  .mk-hero { min-height:auto; padding:40px 14px 24px; }
+  .mk-title { font-size:1.4rem; }
+  .mk-ticket { max-width:100%; border-radius:14px; }
+  .mk-ticket-top, .mk-ticket-mid { padding:14px 14px 12px; }
+  .mk-ticket-bottom { padding:12px 14px; flex-direction:column; align-items:center; }
+  .mk-detail-grid { gap:8px 12px; }
+  .mk-fan { padding:16px; border-radius:14px; }
+  .mtk-wrap { padding:18px 12px 80px; }
+  .mtk-ticket { border-radius:16px; }
+  .mtk-header { padding:18px 14px 12px; }
+  .mtk-items-section, .mtk-status-section, .mtk-journey, .mtk-qr, .mtk-footer { padding-left:14px; padding-right:14px; }
+}
+@media (max-width:480px) {
+  .wrap { padding:10px 10px 100px; }
+  .hero { padding:18px 12px; }
+  .hero h1 { font-size:1.3rem; }
+  .hero-brand { font-size:1.3rem; letter-spacing:2px; }
+  .pinfo h1 { font-size:1.1rem; }
+  .gmain img { max-height:260px; }
+  .ok-card { padding:22px 12px; }
+  .ok-card h1 { font-size:1.1rem; }
+  .grid { gap:10px; }
+  .clubcard b { font-size:.76rem; }
+  .cc-logo { width:42px; height:42px; font-size:20px; }
+  .clubs { grid-template-columns:repeat(auto-fill,minmax(80px,1fr)); gap:6px; }
+  .ft-grid { gap:14px; }
+  .sg-trust-bar { grid-template-columns:1fr; }
+  .outfit-item { min-width:60px; padding:8px 8px; }
+  .outfit-ic { font-size:1.6rem; }
+  .pen-pitch { height:260px; }
+  .pen-goal { width:200px; height:90px; }
 }
 </style>"""
 
@@ -2702,7 +2886,7 @@ function submitOrder(){
       var earned=Math.floor(fin*GX.points_per); addPoints(earned, gxT('pts_earn'));
       var msg=tgOrderMsg(d.code, items, name, phone, area, addr, tot.delivery, disc, fin);
       clearCart(); closeModal('m-checkout');
-      window.open('https://t.me/'+GX.tg,'_blank');
+      window.open('https://wa.me/'+GX.wa,'_blank');
       location.href='/order/success?code='+d.code;
     } else { toast('Error'); }
   });
@@ -2723,7 +2907,7 @@ function tgOrderMsg(code,items,name,phone,area,addr,del,disc,total){
   l.push('🏠 '+gxT('co_address').replace(/[^\u0600-\u06FF\\w\\s]/g,'')+': '+addr);
   return l.join('\\n');
 }
-/* ---------- order via Telegram ---------- */
+/* ---------- order via WhatsApp ---------- */
 function orderCartTG(){
   var cart=gxGet('gx_cart',[]); if(!cart.length) return;
   var tot=cartTotals(); var disc=rewardSel?rewardSel.discount:0;
@@ -2739,7 +2923,7 @@ function orderCartTG(){
         msg+='- '+it.emoji+' '+it.name+(it.kind!=='mug'?' ('+it.size+')':'')+' × '+it.qty+'\\n';
       });
       msg+='\\n'+gxT('cart_total')+': '+pmoney(fin)+' '+GX.cur;
-      window.open('https://t.me/'+GX.tg,'_blank');
+      window.open('https://wa.me/'+GX.wa,'_blank');
       location.href='/order/success?code='+d.code;
     } else { toast('Error'); }
   });
@@ -2788,7 +2972,7 @@ function submitRequest(){
     if(size) msg+='• '+gxT('req_size')+': '+size+'\\n';
     msg+='• '+gxT('req_qty')+': '+qty+'\\n';
     if(notes) msg+='• '+gxT('req_notes')+': '+notes;
-    window.open('https://t.me/'+GX.tg,'_blank');
+    window.open('https://wa.me/'+GX.wa,'_blank');
     closeModal('m-request'); toast(gxT('req_ok')+' — '+d.ref);
   });
 }
@@ -3626,7 +3810,7 @@ MODALS
 <div class="mkmode-toggle" id="mkModeToggle" onclick="mkModeToggle()" title="Matchday Mode"><span class="mkmode-ic">⚽</span><span class="mkmode-lbl">MATCHDAY</span></div>
 <div class="mkmode-pitch"></div>
 <div class="mkmode-lights"><div class="mkl"></div><div class="mkl"></div><div class="mkl"></div><div class="mkl"></div></div>
-<a class="fab" target="_blank" rel="noopener" href="https://t.me/rms_2o" title="Telegram">💬</a>
+<a class="fab" target="_blank" rel="noopener" href="https://wa.me/{WA}" title="WhatsApp">💬</a>
 __PAGEJS_SLOT__
 __BASEJS_SLOT__
 </body>
@@ -3641,7 +3825,7 @@ __BASEJS_SLOT__
         .replace("FOOTER", footer_html()) \
         .replace("MODALS", ads_html("banner") + modals_html()) \
         .replace("T_CART", d["cart_title"]) \
-        .replace("WA", cfg.TELEGRAM) \
+        .replace("WA", cfg.WHATSAPP) \
         .replace("BNAV_HOME", " on" if active == "home" else "") \
         .replace("BNAV_SHOP", " on" if active in ("products", "mugs", "clubs") else "") \
         .replace("BNAV_CART", " on" if active == "cart" else "") \
@@ -3708,17 +3892,17 @@ def footer_html():
             '<div class="ft-col"><div class="ft-brand">⚽ golazox</div>'
             '<p class="ft-desc">{badge}</p>'
             '<div class="ft-social">'
-            '<a target="_blank" rel="noopener" href="https://t.me/{tg}" title="{tg_title}">💬</a>'
+            '<a target="_blank" rel="noopener" href="https://wa.me/{wa}" title="{tg_title}">💬</a>'
             '<a onclick="setLang(\'{other}\')" title="{lang}">{langname}</a>'
             '</div></div>'
             '<div class="ft-col"><h4>{t1}</h4>{col_links}</div>'
             '<div class="ft-col"><h4>{t2}</h4>{club_links}</div>'
             '<div class="ft-col"><h4>{t3}</h4>{col_help}'
-            '<a target="_blank" rel="noopener" href="https://t.me/{tg}" style="margin-top:10px;font-weight:800">{tg_txt} 💬</a>'
+            '<a target="_blank" rel="noopener" href="https://wa.me/{wa}" style="margin-top:10px;font-weight:800">{tg_txt} 💬</a>'
             '</div></div>'
             '<p class="ft-copy">{copy}</p>'
             '</div></footer>').format(
-        badge=d["badge"], tg=cfg.TELEGRAM, tg_title=d["ft_wa"], tg_txt=d["order_wa"],
+        badge=d["badge"], wa=cfg.WHATSAPP, tg_title=d["ft_wa"], tg_txt=d["order_wa"],
         other="ar" if en else "en",
         lang=d["lang_name"], langname=d["lang_name"],
         t1=d["ft_links"], col_links=col_links, t2=d["ft_clubs"], club_links=club_links,
@@ -3824,7 +4008,7 @@ def modals_html():
     ret_body = "<ul class='ret'>" + ret_items + "</ul>" + "<div class='mwarning'>⚠️ {w}</div>".format(w=d["ret_warn"])
     how_body = ("<ol class='steps'>" + "".join("<li>{x}</li>".format(x=d["how_" + str(i + 1)]) for i in range(4)) + "</ol>")
     contact_body = ("<p class='mnote'>{sub}</p>".format(sub=d["contact_sub"])
-                    + "<a class='btn tg big' target='_blank' rel='noopener' href='https://t.me/{num}'>💬 {wa}</a>".format(num=cfg.TELEGRAM, wa=d["contact_wa"])
+                    + "<a class='btn tg big' target='_blank' rel='noopener' href='https://wa.me/{num}'>💬 {wa}</a>".format(num=cfg.WHATSAPP, wa=d["contact_wa"])
                     + "<p class='cnum'>{n}</p>".format(n=d["contact_num"]))
 
     theme_seg = ('<div class="seg" data-seg="theme">'
@@ -4486,9 +4670,9 @@ def info_page(kind):
         ctas = ('<a class="btn pri" href="/products">{cj}</a>'
                 '<a class="btn ghost" href="/mugs">{cm}</a>'
                 '<a class="btn ghost" href="/size-guide">{cs}</a>'
-                '<a class="btn tg" target="_blank" rel="noopener" href="https://t.me/{tg}">{cw}</a>'
+                '<a class="btn tg" target="_blank" rel="noopener" href="https://wa.me/{wa}">{cw}</a>'
                 ).format(cj=d["how_cta_j"], cm=d["how_cta_m"], cs=d["how_cta_sz"],
-                         cw=d["how_cta_wa"], tg=cfg.TELEGRAM)
+                         cw=d["how_cta_wa"], wa=cfg.WHATSAPP)
         inner = ('<div class="hw-timeline">{steps}</div>'
                  '<div class="hw-prices"><h2><span class="bar"></span>{pt}</h2>'
                  '<p class="hw-sub">{ps}</p><div class="hw-price-grid">{cards}</div></div>'
@@ -5028,7 +5212,7 @@ function orderDirect(pid){
       var msg=gxT('hello').trim()+':\\n'+items[0].emoji+' '+items[0].name;
       if(sz) msg+='\\n'+gxT('size_w')+sz;
       msg+='\\n'+gxT('qty_w')+q+' · '+pmoney(p.price*q)+' '+GX.cur+'\\n\\n'+gxT('code_w')+dd.code;
-      window.open('https://t.me/'+GX.tg,'_blank');
+      window.open('https://wa.me/'+GX.wa,'_blank');
       location.href='/order/success?code='+dd.code;
     }
   });
@@ -5825,14 +6009,14 @@ def ticket_page(code):
         '<button class="btn ghost" onclick="shareTk()">{sh}</button>'
         '<button class="btn ghost" onclick="window.print()">{sv}</button>'
         '<button class="btn ghost" onclick="location.href=\'/track?code={code}\'">{tr}</button>'
-        '<a class="btn tg" target="_blank" rel="noopener" href="https://t.me/{tg}?text={wm}">{cw}</a></div>'
+        '<a class="btn tg" target="_blank" rel="noopener" href="https://wa.me/{wa}?text={wm}">{cw}</a></div>'
         '<div style="text-align:center;margin-top:18px"><a class="back" href="/home">← {b}</a></div>'
         '</div></div>'
     ).format(code=code, items=items_html, st_emoji=st_emoji, sl=status_label,
              journey=tj, goal=goal_celebration, qr=qr,
              dt=data.get("date", ""), tm=data.get("time", ""),
              sh=d["tk_share"], sv=d["tk_save"], tr=d["tk_track"],
-             tg=cfg.TELEGRAM, wm=esc(wa_msg), cw=d["tk_wa"], b=d["back"])
+             tg=cfg.WHATSAPP, wm=esc(wa_msg), cw=d["tk_wa"], b=d["back"])
 
     page_js = """<script>
 function shareTk(){ var url=location.href;
@@ -6943,6 +7127,12 @@ def admin():
                 "home": request.form.get("home", ""), "away": request.form.get("away", ""),
                 "kickoff": request.form.get("kickoff", "").replace("T", " "), "result": request.form.get("result", "") or None})
             return admin_page("<div class='msg'>تم الحفظ</div>")
+        if act == "whatsapp_settings":
+            wa = request.form.get("whatsapp", "").strip().replace("+", "").replace(" ", "").replace("-", "")
+            if wa:
+                cfg.WHATSAPP = wa
+                db.settings_set("whatsapp", wa)
+            return admin_page("<div class='msg'>✅ تم حفظ رقم واتساب</div>")
         if act == "match_clear":
             db.settings_set("match", None)
             return admin_page("<div class='msg'>تم المسح</div>")
@@ -7107,6 +7297,49 @@ def admin():
         if act == "ad_del":
             db.ad_delete(int(request.form.get("aid", 0) or 0))
             return admin_page("<div class='msg'>🗑 تم حذف الإعلان</div>")
+        if act == "comp_new":
+            comps = db.settings_get("competitions") or []
+            if not isinstance(comps, list):
+                comps = []
+            comps.append({
+                "title": request.form.get("title", "").strip(),
+                "description": request.form.get("description", "").strip(),
+                "start": request.form.get("start", ""),
+                "end": request.form.get("end", ""),
+                "participants": []
+            })
+            db.settings_set("competitions", comps)
+            return admin_page("<div class='msg'>✅ تم إنشاء المسابقة</div>")
+        if act == "comp_del":
+            comps = db.settings_get("competitions") or []
+            if isinstance(comps, list):
+                idx = int(request.form.get("idx", 0) or 0) - 1
+                if 0 <= idx < len(comps):
+                    comps.pop(idx)
+                    db.settings_set("competitions", comps)
+            return admin_page("<div class='msg'>🗑 تم حذف المسابقة</div>")
+        if act == "comp_add_participant":
+            comps = db.settings_get("competitions") or []
+            if isinstance(comps, list):
+                idx = int(request.form.get("idx", 0) or 0) - 1
+                if 0 <= idx < len(comps):
+                    name = request.form.get("name", "").strip()
+                    if name:
+                        comps[idx].setdefault("participants", []).append(name)
+                        db.settings_set("competitions", comps)
+            return admin_page("<div class='msg'>✅ تمت إضافة المشارك</div>")
+        if act == "draw_run":
+            comps = db.settings_get("competitions") or []
+            if isinstance(comps, list):
+                idx = int(request.form.get("comp_idx", 0) or 0) - 1
+                if 0 <= idx < len(comps):
+                    participants = comps[idx].get("participants", [])
+                    if participants:
+                        import random
+                        winner = random.choice(participants)
+                        return admin_page('<div class="msg" style="font-size:1.2rem;text-align:center;padding:30px">🎉 الفائز: <b style="color:#E11D48;font-size:1.5rem">{}</b></div>'.format(esc(winner)))
+                    return admin_page("<div class='msg'>⚠️ لا يوجد مشاركين في المسابقة</div>")
+            return admin_page("<div class='msg'>⚠️ اختر مسابقة صحيحة</div>")
     return admin_page("")
 
 
@@ -7149,65 +7382,11 @@ def admin_page(msg=""):
                ("delivering", "خرج للتوصيل"), ("delivered", "تم التسليم"), ("cancelled", "ملغي")]
     pay_opts = [("pending", "بانتظار الدفع"), ("paid", "تم الدفع"), ("not", "لم يتم الدفع")]
 
-    rows = ""
-    for o in orders[:30]:
-        d = o["data"]
-        items = ", ".join(i.get("name", "") for i in d.get("items", [])[:2])
-        rows += ("<tr><td><b>{c}</b></td><td>{n}</td><td>{i}</td><td>{t} {cu}</td>"
-                 "<td>{s}</td><td>{p}</td><td><a href='/admin/order/{c}'>فتح</a></td></tr>").format(
-            c=o["code"], n=esc(d.get("name", "—")), i=esc(items),
-            t=fmt_cur(d.get("total", 0)), cu=cur(),
-            s=o["status"], p=o["payment"])
-
-    stock_rows = ""
-    for p in cfg.PRODUCTS:
-        st = stock.get(p["id"], p.get("stock", {}))
-        ins = ""
-        for sz, q in st.items():
-            ins += '<span style="white-space:nowrap">%s <input class="mini" name="s_%s" type="number" value="%d"></span> ' % (sz, sz, q)
-        stock_rows += ("<form method='post' style='display:contents'><input type='hidden' name='act' value='stock'>"
-                       "<tr><td><input type='hidden' name='pid' value='{id}'>{id} {name}</td><td>{ins}</td>"
-                       "<td><button class='hbtn'>حفظ</button></td></tr></form>").format(
-            id=p["id"], name=p.get("name_ar", ""), ins=ins)
-
-    req_rows = ""
-    for r in requests[:30]:
-        d = r["data"]
-        req_rows += ("<form method='post' style='display:contents'><input type='hidden' name='act' value='req'>"
-                     "<input type='hidden' name='rid' value='{rid}'>"
-                     "<tr><td>#{rid}</td><td>{club}</td><td>{type} {ver}</td><td>{size} × {qty}</td>"
-                     "<td>{notes}</td><td><select name='status'>{opts}</select>"
-                     "<button class='hbtn'>حفظ</button></td></tr></form>").format(
-            rid=r["id"], club=esc(d.get("club", "")), type=esc(d.get("type", "")),
-            ver=esc(d.get("version", "")), size=esc(d.get("size", "")), qty=esc(d.get("qty", "")),
-            notes=esc(d.get("notes", "")),
-            opts="".join('<option value="%s"%s>%s</option>' % (s, " selected" if s == r["status"] else "", lbl)
-                         for s, lbl in [("new", "جديد"), ("reviewed", "تمت المراجعة"), ("available", "متوفر"),
-                                        ("unavailable", "غير متوفر"), ("contacted", "تم التواصل")]))
-
-    notif_rows = ""
-    for n in notifs[:30]:
-        wa = "https://t.me/" + n["phone"].replace("+", "")
-        notif_rows += ("<tr><td>{p} {sz}</td><td>{ph}</td><td>{c}</td>"
-                       "<td>{st}</td><td><a href='{wa}' target='_blank'>تيليجرام</a></td></tr>").format(
-            p=n["product"], sz=n["size"], ph=n["phone"], c=n["created"],
-            st="جاهز" if n["notified"] else "بانتظار", wa=wa)
-
-    poll_rows = ""
-    for pl in polls:
-        q = pl["data"].get("q_ar", "")
-        poll_rows += ("<form method='post' style='display:contents'><input type='hidden' name='act' value='poll_upd'>"
-                      "<input type='hidden' name='pid' value='{pid}'>"
-                      "<tr><td>#{pid} {q}</td><td>{opts}</td><td>{hide}</td><td>{win}</td><td><button class='hbtn'>حفظ</button></td></tr></form>").format(
-            pid=pl["id"], q=esc(q),
-            opts="".join('<option value="%s"%s>%s</option>' % (s, " selected" if s == pl["data"].get("status", "open") else "", lbl)
-                         for s, lbl in [("open", "مفتوح"), ("closed", "مغلق")]),
-            hide="<input type='checkbox' name='hide' " + ("checked" if pl["data"].get("hide") else "") + ">",
-            win="<input name='winner' value='" + esc(pl["data"].get("winner", "")) + "' placeholder='الخيار الفائز'>")
-
-    n_orders = len([o for o in orders if o["status"] == "pending"])
+    n_orders_total = len(orders)
+    n_orders_pending = len([o for o in orders if o["status"] == "pending"])
     rev = sum(o["data"].get("total", 0) for o in orders if o["status"] not in ("cancelled",))
     n_ready = len(ready)
+    n_cust = len(db.users_list())
 
     today = datetime.date.today().strftime("%Y-%m-%d")
     ym = today[:7]
@@ -7215,312 +7394,689 @@ def admin_page(msg=""):
                     if o["status"] != "cancelled" and o["data"].get("date") == today)
     rev_month = sum(o["data"].get("total", 0) for o in orders
                     if o["status"] != "cancelled" and str(o["data"].get("date", "")).startswith(ym))
-    cnt = {}
+    today_orders = len([o for o in orders if o["data"].get("date") == today])
+
     cntq = {}
     for o in orders:
         for it in o["data"].get("items", []):
             pid = it.get("id", "")
-            if not pid:
-                continue
-            cnt[pid] = cnt.get(pid, 0) + 1
-            cntq[pid] = cntq.get(pid, 0) + it.get("qty", 1)
+            if pid:
+                cntq[pid] = cntq.get(pid, 0) + it.get("qty", 1)
     ranked = sorted(cntq.items(), key=lambda kv: -kv[1])
     top = "—"
     if ranked:
         tp = next((x for x in cfg.PRODUCTS if x["id"] == ranked[0][0]), None)
         top = (tp.get("name_ar", "") if tp else ranked[0][0]) or ranked[0][0]
-    top_rows = ""
-    for pid, q in ranked[:10]:
-        tp = next((x for x in cfg.PRODUCTS if x["id"] == pid), None)
-        if not tp:
-            continue
-        top_rows += ("<tr><td>{rank}</td><td>{e} {n}</td>"
-                     "<td>{t} {cu}</td><td>{q} قطع</td></tr>").format(
-            rank=ranked.index((pid, q)) + 1, e=tp.get("emoji", "⚽"), n=esc(tp.get("name_ar", pid)),
-            t=fmt_cur(eff_price(tp)), cu=cur(), q=q)
-    top_card = ('<div class="adm-card"><h3>🏆 المنتجات الأكثر طلبًا</h3>'
-                '<table><tr><th>#</th><th>المنتج</th><th>السعر</th><th>الكمية المطلوبة</th></tr>{top_rows}</table></div>').format(top_rows=top_rows) if top_rows else ""
-    n_cust = len(db.users_list())
 
-    prod_add_form = ('<div class="adm-card"><h3>➕ إضافة منتج</h3>'
-                     '<form method="post" style="display:grid;gap:8px;max-width:620px">'
-                     '<input type="hidden" name="act" value="product_save">'
-                     '<div style="display:flex;gap:8px;flex-wrap:wrap"><input name="pid" placeholder="المعرّف (مثال: j7)" required>'
-                     '<select name="kind"><option value="jersey">تيشيرت</option><option value="mug">مق</option></select>'
-                     '<select name="club"><option value="">بدون نادي</option>' + club_opts + '</select></div>'
-                     '<div style="display:flex;gap:8px;flex-wrap:wrap"><input name="name_ar" placeholder="الاسم (عربي)" required>'
-                     '<input name="name_en" placeholder="الاسم (إنجليزي)"></div>'
-                     '<div style="display:flex;gap:8px;flex-wrap:wrap"><input class="mini" name="emoji" value="👕"><input class="mini" name="colors" value="#E11D48,#F97316">'
-                     '<input class="mini" name="badges" placeholder="badges إضافية (offer)"></div>'
-                     '<div style="display:flex;gap:14px;align-items:center">'
-                     '<label style="font-size:.82rem">⭐ جديد<input type="checkbox" name="b_new" value="1"></label>'
-                     '<label style="font-size:.82rem">🔥 الأكثر مبيعًا<input type="checkbox" name="b_best" value="1"></label></div>'
-                     '<input name="imgs" placeholder="الصور مفصولة بفاصلة (مثال: j7_1,j7_2)">'
-                     '<input name="stock" placeholder="المخزون: S:3,M:5,L:8,XL:4,2XL:2,3XL:0">'
-                     '<button class="hbtn">💾 حفظ المنتج</button></form></div>')
+    n_products = len(cfg.PRODUCTS)
+    n_instock = sum(1 for p in cfg.PRODUCTS if sum(eff_stock(p).values()) > 0)
+    n_outstock = n_products - n_instock
+    super_role = admin_role() == "super_admin"
+    n_unread = db.admin_notif_unread()
 
-    prod_rows = ""
-    for p in cfg.PRODUCTS:
-        st = eff_stock(p)
-        st_txt = " ".join("%s:%d" % (k, v) for k, v in st.items())
-        bad = ",".join(p.get("badges", []))
-        prod_rows += ('<tr><td><b>{id}</b> {name}<br><small style="color:#64748b">{kind} · {price} {cu}{hid}</small></td>'
-                      '<td><form method="post" style="display:grid;gap:6px;max-width:540px">'
-                      '<input type="hidden" name="act" value="product_save"><input type="hidden" name="pid" value="{id}">'
-                      '<div style="display:flex;gap:6px;flex-wrap:wrap"><input name="name_ar" value="{na}" placeholder="عربي">'
-                      '<input name="name_en" value="{ne}" placeholder="EN"></div>'
-                      '<div style="display:flex;gap:6px;flex-wrap:wrap"><input class="mini" name="emoji" value="{em}">'
-                      '<input class="mini" name="badges" value="{bad}" placeholder="badges">'
-                      '<input class="mini" name="stock" value="{st_txt}" placeholder="مخزون"></div>'
-                      '<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">'
-                      '<label style="font-size:.78rem">⭐ جديد<input type="checkbox" name="b_new" value="1"{bnew}></label>'
-                      '<label style="font-size:.78rem">🔥 الأكثر مبيعًا<input type="checkbox" name="b_best" value="1"{bbest}></label>'
-                      '<label style="font-size:.78rem">إخفاء<input type="checkbox" name="hidden"{hc}></label>'
-                      '<button class="hbtn">حفظ</button></form></div></td>'
-                      '<td><form method="post" onsubmit="return confirm(\'هل تريد حذف المنتج؟\')">'
-                      '<input type="hidden" name="act" value="product_del"><input type="hidden" name="pid" value="{id}">'
-                      '<button class="hbtn" style="background:#dc2626">حذف</button></form></td></tr>'
-                      ).format(id=p["id"], name=p.get("name_ar", ""), kind=dl.get("type_jersey") if p["kind"] == "jersey" else dl.get("type_mug", ""),
-                               price=fmt_cur(eff_price(p)), cu=cur(), hid=" · مخفي" if p.get("hidden") else "",
-                               na=p.get("name_ar", ""), ne=p.get("name_en", ""),
-                               em=p.get("emoji", "👕"), bad=bad, st_txt=st_txt, hc=" checked" if p.get("hidden") else "",
-                               bnew=" checked" if "new" in p.get("badges", []) else "",
-                               bbest=" checked" if "best" in p.get("badges", []) else "")
-    prod_card = prod_add_form + '<div class="adm-card"><h3>📋 المنتجات (إضافة / تعديل / حذف)</h3><table>' + prod_rows + '</table></div>'
+    msg_html = '<div class="adm-flash">' + msg + '</div>' if msg else ''
 
-    rev_rows = ""
-    for r in db.reviews_list()[:30]:
-        rev_rows += ("<form method='post' style='display:contents'><input type='hidden' name='act' value='review'>"
-                     "<input type='hidden' name='rid' value='{rid}'>"
-                     "<tr><td>{pid}</td><td>{name}</td><td>{dims}</td><td>{txt}</td>"
-                     "<td>{ver}</td><td><select name='status'>{opts}</select>"
-                     "<button class='hbtn'>حفظ</button></td></tr></form>").format(
-            rid=r["id"], pid=r["product"], name=esc(r["name"] or "—"),
-            dims="%s★ %s★ %s★ %s★" % (r["design"], r["fabric"], r["quality"], r["fit"]),
-            txt=esc(r["text"] or "")[:80], ver="✓" if r["verified"] else "—",
-            opts="".join('<option value="%s"%s>%s</option>' % (s, " selected" if s == r["status"] else "", lb)
-                         for s, lb in [("pending", "بانتظار"), ("approved", "مقبول"), ("rejected", "مرفوض")]))
+    st_opts_html = "".join('<option value="%s">%s</option>' % (v, lb) for v, lb in st_opts)
+    pay_opts_html = "".join('<option value="%s">%s</option>' % (v, lb) for v, lb in pay_opts)
 
-    al_rows = ""
-    for a in db.alerts_list()[:30]:
-        al_rows += ("<tr><td>{p}</td><td>{ph}</td><td>{pr} {cu}</td><td>{st}</td></tr>").format(
-            p=a["product"], ph=a["phone"], pr=fmt_cur(a["price"]), cu=cur(),
-            st="أُرسل ✓" if a["triggered"] else ("ملغي" if not a["active"] else "بانتظار"))
+    # --- Dashboard section ---
+    dash_orders = ""
+    for o in orders[:10]:
+        d = o["data"]
+        items = ", ".join(i.get("name", "") for i in d.get("items", [])[:2])
+        st_cls = {"pending": "st-new", "confirmed": "st-ok", "preparing": "st-warn", "delivering": "st-info", "delivered": "st-ok", "cancelled": "st-err"}.get(o["status"], "")
+        dash_orders += ('<tr><td><b>{c}</b></td><td>{n}</td><td>{i}</td><td>{t}</td>'
+                        '<td><span class="st-chip {cls}">{s}</span></td><td><a href="#" onclick="admNav(\'orders\');return false">فتح</a></td></tr>').format(
+            c=o["code"], n=esc(d.get("name", "—")), i=esc(items),
+            t=fmt_cur(d.get("total", 0)),
+            cls=st_cls, s=o["status"])
 
+    dash_cust = ""
+    for u in db.users_list()[:5]:
+        uo = db.orders_by_user(u["id"])
+        us = sum(x["data"].get("total", 0) for x in uo if x["status"] != "cancelled")
+        dash_cust += '<tr><td>{name}</td><td>{phone}</td><td>{n}</td><td>{sp}</td></tr>'.format(
+            name=esc(u["name"] or "—"), phone=esc(u["phone"]), n=len(uo), sp=fmt_cur(us))
+
+    sec_dashboard = (
+        '<div class="adm-section" id="adm-dashboard">'
+        '<div class="adm-stat-grid">'
+        '<div class="adm-stat"><div class="adm-stat-icon">📦</div><div class="adm-stat-val">{n1}</div><div class="adm-stat-label">إجمالي الطلبات</div></div>'
+        '<div class="adm-stat"><div class="adm-stat-icon">🕐</div><div class="adm-stat-val">{n2}</div><div class="adm-stat-label">طلبات اليوم</div></div>'
+        '<div class="adm-stat"><div class="adm-stat-icon">👥</div><div class="adm-stat-val">{nc}</div><div class="adm-stat-label">العملاء</div></div>'
+        '<div class="adm-stat"><div class="adm-stat-icon">👕</div><div class="adm-stat-val">{np}</div><div class="adm-stat-label">المنتجات</div></div>'
+        '<div class="adm-stat"><div class="adm-stat-icon">✅</div><div class="adm-stat-val">{ni}</div><div class="adm-stat-label">متوفر</div></div>'
+        '<div class="adm-stat"><div class="adm-stat-icon">❌</div><div class="adm-stat-val">{no}</div><div class="adm-stat-label">نفذ</div></div>'
+        '<div class="adm-stat"><div class="adm-stat-icon">💰</div><div class="adm-stat-val">{rt}</div><div class="adm-stat-label">إيراد اليوم</div></div>'
+        '<div class="adm-stat"><div class="adm-stat-icon">📈</div><div class="adm-stat-val">{rm}</div><div class="adm-stat-label">إيراد الشهر</div></div>'
+        '</div>'
+        '<div class="adm-card"><h3>📦 أحدث الطلبات</h3>'
+        '<div class="adm-tbl-wrap"><table class="adm-tbl"><thead><tr><th>الرقم</th><th>العميل</th><th>المنتجات</th><th>الإجمالي</th><th>الحالة</th><th></th></tr></thead>'
+        '<tbody>{dash_orders}</tbody></table></div></div>'
+        '<div class="adm-card"><h3>👥 أحدث العملاء</h3>'
+        '<div class="adm-tbl-wrap"><table class="adm-tbl"><thead><tr><th>الاسم</th><th>الهاتف</th><th>الطلبات</th><th>المصروف</th></tr></thead>'
+        '<tbody>{dash_cust}</tbody></table></div></div>'
+        '</div>'
+    ).format(n1=n_orders_total, n2=today_orders, nc=n_cust, np=n_products, ni=n_instock, no=n_outstock,
+             rt=fmt_cur(rev_today), rm=fmt_cur(rev_month), dash_orders=dash_orders, dash_cust=dash_cust)
+
+    # --- Orders section ---
+    orders_rows = ""
+    for o in orders[:100]:
+        d = o["data"]
+        items = ", ".join(i.get("name", "") for i in d.get("items", [])[:2])
+        st_sel = "".join('<option value="%s"%s>%s</option>' % (v, " selected" if v == o["status"] else "", lb) for v, lb in st_opts)
+        pay_sel = "".join('<option value="%s"%s>%s</option>' % (v, " selected" if v == o["payment"] else "", lb) for v, lb in pay_opts)
+        orders_rows += ('<tr><td><b>{c}</b><br><small>{dt}</small></td><td>{n}<br><small>{ph}</small></td>'
+                        '<td>{i}</td><td>{t}</td>'
+                        '<td><form method="post" style="display:flex;gap:4px;align-items:center" class="inline-form">'
+                        '<input type="hidden" name="act" value="order"><input type="hidden" name="code" value="{c}">'
+                        '<select name="status" class="adm-sel-sm">{st_sel}</select>'
+                        '<select name="payment" class="adm-sel-sm">{pay_sel}</select>'
+                        '<button class="adm-btn-sm">حفظ</button></form></td>'
+                        '<td><a href="/admin/order/{c}" class="adm-btn-sm">فتح</a></td></tr>').format(
+            c=o["code"], dt=o.get("created", ""), n=esc(d.get("name", "—")), ph=esc(d.get("phone", "")),
+            i=esc(items), t=fmt_cur(d.get("total", 0)), st_sel=st_sel, pay_sel=pay_sel)
+
+    sec_orders = (
+        '<div class="adm-section" id="adm-orders" style="display:none">'
+        '<div class="adm-card"><h3>📦 إدارة الطلبات</h3>'
+        '<div class="adm-tbl-wrap"><table class="adm-tbl"><thead><tr><th>الرقم / التاريخ</th><th>العميل</th><th>المنتجات</th><th>الإجمالي</th><th>الحالة / الدفع</th><th></th></tr></thead>'
+        '<tbody>{rows}</tbody></table></div></div></div>'
+    ).format(rows=orders_rows)
+
+    # --- Customers section ---
     cust_rows = ""
     for u in db.users_list():
         uo = db.orders_by_user(u["id"])
         us = sum(x["data"].get("total", 0) for x in uo if x["status"] != "cancelled")
-        cust_rows += ("<form method='post' style='display:contents'><input type='hidden' name='act' value='cust'>"
-                      "<input type='hidden' name='uid' value='{uid}'>"
-                      "<tr><td>{name}</td><td>{phone}</td><td>{role}</td><td>{ord} طلبات · {sp} {cu}</td>"
-                      "<td><select name='status'>{opts}</select>"
-                      "<button class='hbtn'>حفظ</button></td></tr></form>").format(
-            uid=u["id"], name=esc(u["name"] or "—"), phone=esc(u["phone"]), role=u["role"],
-            ord=len(uo), sp=fmt_cur(us), cu=cur(),
-            opts="".join('<option value="%s"%s>%s</option>' % (s, " selected" if s == u["status"] else "", lb)
-                         for s, lb in [("active", "نشط"), ("disabled", "موقوف")]))
+        st_sel = "".join('<option value="%s"%s>%s</option>' % (v, " selected" if v == u["status"] else "", lb) for v, lb in [("active", "نشط"), ("disabled", "موقوف")])
+        cust_rows += ('<tr><td>{name}</td><td>{phone}</td><td>{n}</td><td>{sp}</td>'
+                      '<td>{last_login}</td>'
+                      '<td><form method="post" style="display:flex;gap:4px;align-items:center" class="inline-form">'
+                      '<input type="hidden" name="act" value="cust"><input type="hidden" name="uid" value="{uid}">'
+                      '<select name="status" class="adm-sel-sm">{st_sel}</select>'
+                      '<button class="adm-btn-sm">حفظ</button></form></td></tr>').format(
+            uid=u["id"], name=esc(u["name"] or "—"), phone=esc(u["phone"]),
+            n=len(uo), sp=fmt_cur(us), last_login=u.get("last_login", "—"), st_sel=st_sel)
 
-    super_role = admin_role() == "super_admin"
+    sec_customers = (
+        '<div class="adm-section" id="adm-customers" style="display:none">'
+        '<div class="adm-card"><h3>👥 إدارة العملاء</h3>'
+        '<div class="adm-tbl-wrap"><table class="adm-tbl"><thead><tr><th>الاسم</th><th>الهاتف</th><th>الطلبات</th><th>المصروف</th><th>آخر دخول</th><th>الحالة</th></tr></thead>'
+        '<tbody>{rows}</tbody></table></div></div></div>'
+    ).format(rows=cust_rows)
+
+    # --- Products section (JERSEYS) ---
+    jersey_rows = ""
+    for p in cfg.PRODUCTS:
+        if p["kind"] != "jersey":
+            continue
+        st = eff_stock(p)
+        st_txt = " ".join("%s:%d" % (k, v) for k, v in st.items())
+        total_q = sum(st.values())
+        club_name = cfg.CLUBS.get(p.get("club_id", ""), {}).get("ar", "") if p.get("club_id") else "—"
+        bad = ",".join(p.get("badges", []))
+        jersey_rows += ('<tr><td>{em} <b>{id}</b> {name}<br><small>{club} · {price} {cu}{hid}</small></td>'
+                        '<td><form method="post" style="display:grid;gap:4px;max-width:440px" class="inline-form">'
+                        '<input type="hidden" name="act" value="product_save"><input type="hidden" name="pid" value="{id}">'
+                        '<input name="name_ar" value="{na}" placeholder="عربي" class="adm-input-sm">'
+                        '<input name="name_en" value="{ne}" placeholder="EN" class="adm-input-sm">'
+                        '<input name="emoji" value="{em}" class="adm-input-xs" placeholder="إيموجي">'
+                        '<input name="badges" value="{bad}" class="adm-input-sm" placeholder="badges">'
+                        '<input name="stock" value="{st_txt}" class="adm-input-sm" placeholder="مخزون">'
+                        '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">'
+                        '<label class="adm-check">⭐ جديد<input type="checkbox" name="b_new" value="1"{bnew}></label>'
+                        '<label class="adm-check">🔥 الأكثر مبيعًا<input type="checkbox" name="b_best" value="1"{bbest}></label>'
+                        '<label class="adm-check">إخفاء<input type="checkbox" name="hidden"{hc}></label>'
+                        '<button class="adm-btn-sm">حفظ</button></div></form></td>'
+                        '<td>{stock}<br><small>{total} قطعة</small></td>'
+                        '<td><form method="post" onsubmit="return confirm(\'هل تريد حذف المنتج؟\')" class="inline-form">'
+                        '<input type="hidden" name="act" value="product_del"><input type="hidden" name="pid" value="{id}">'
+                        '<button class="adm-btn-sm adm-btn-danger">حذف</button></form></td></tr>'
+                        ).format(id=p["id"], em=p.get("emoji", "👕"), name=p.get("name_ar", ""),
+                                 club=club_name, price=fmt_cur(eff_price(p)), cu=cur(),
+                                 hid=" · مخفي" if p.get("hidden") else "",
+                                 na=p.get("name_ar", ""), ne=p.get("name_en", ""),
+                                 bad=bad, st_txt=st_txt, stock=st_txt,
+                                 total=total_q, hc=" checked" if p.get("hidden") else "",
+                                 bnew=" checked" if "new" in p.get("badges", []) else "",
+                                 bbest=" checked" if "best" in p.get("badges", []) else "")
+
+    # --- Caps section (mugs) ---
+    cap_rows = ""
+    for p in cfg.PRODUCTS:
+        if p["kind"] != "mug":
+            continue
+        st = eff_stock(p)
+        st_txt = " ".join("%s:%d" % (k, v) for k, v in st.items())
+        total_q = sum(st.values())
+        club_name = cfg.CLUBS.get(p.get("club_id", ""), {}).get("ar", "") if p.get("club_id") else "—"
+        bad = ",".join(p.get("badges", []))
+        cap_rows += ('<tr><td>{em} <b>{id}</b> {name}<br><small>{club} · {price} {cu}{hid}</small></td>'
+                     '<td><form method="post" style="display:grid;gap:4px;max-width:440px" class="inline-form">'
+                     '<input type="hidden" name="act" value="product_save"><input type="hidden" name="pid" value="{id}">'
+                     '<input name="name_ar" value="{na}" placeholder="عربي" class="adm-input-sm">'
+                     '<input name="name_en" value="{ne}" placeholder="EN" class="adm-input-sm">'
+                     '<input name="emoji" value="{em}" class="adm-input-xs" placeholder="إيموجي">'
+                     '<input name="badges" value="{bad}" class="adm-input-sm" placeholder="badges">'
+                     '<input name="stock" value="{st_txt}" class="adm-input-sm" placeholder="مخزون">'
+                     '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">'
+                     '<label class="adm-check">⭐ جديد<input type="checkbox" name="b_new" value="1"{bnew}></label>'
+                     '<label class="adm-check">🔥 الأكثر مبيعًا<input type="checkbox" name="b_best" value="1"{bbest}></label>'
+                     '<label class="adm-check">إخفاء<input type="checkbox" name="hidden"{hc}></label>'
+                     '<button class="adm-btn-sm">حفظ</button></div></form></td>'
+                     '<td>{stock}<br><small>{total} قطعة</small></td>'
+                     '<td><form method="post" onsubmit="return confirm(\'هل تريد حذف المنتج؟\')" class="inline-form">'
+                     '<input type="hidden" name="act" value="product_del"><input type="hidden" name="pid" value="{id}">'
+                     '<button class="adm-btn-sm adm-btn-danger">حذف</button></form></td></tr>'
+                     ).format(id=p["id"], em=p.get("emoji", "☕"), name=p.get("name_ar", ""),
+                              club=club_name, price=fmt_cur(eff_price(p)), cu=cur(),
+                              hid=" · مخفي" if p.get("hidden") else "",
+                              na=p.get("name_ar", ""), ne=p.get("name_en", ""),
+                              bad=bad, st_txt=st_txt, stock=st_txt,
+                              total=total_q, hc=" checked" if p.get("hidden") else "",
+                              bnew=" checked" if "new" in p.get("badges", []) else "",
+                              bbest=" checked" if "best" in p.get("badges", []) else "")
+
+    prod_add_form = (
+        '<div class="adm-card"><h3>➕ إضافة منتج جديد</h3>'
+        '<form method="post" style="display:grid;gap:8px;max-width:620px" class="inline-form">'
+        '<input type="hidden" name="act" value="product_save">'
+        '<div style="display:flex;gap:8px;flex-wrap:wrap">'
+        '<input name="pid" placeholder="المعرّف (مثال: j7)" required class="adm-input-sm">'
+        '<select name="kind" class="adm-sel-sm"><option value="jersey">تيشيرت</option><option value="mug">مق</option></select>'
+        '<select name="club" class="adm-sel-sm"><option value="">بدون نادي</option>' + club_opts + '</select></div>'
+        '<div style="display:flex;gap:8px;flex-wrap:wrap"><input name="name_ar" placeholder="الاسم (عربي)" required class="adm-input-sm">'
+        '<input name="name_en" placeholder="الاسم (إنجليزي)" class="adm-input-sm"></div>'
+        '<div style="display:flex;gap:8px;flex-wrap:wrap"><input name="emoji" value="👕" class="adm-input-xs">'
+        '<input name="colors" value="#E11D48,#F97316" class="adm-input-sm" placeholder="ألوان">'
+        '<input name="badges" placeholder="badges (offer)" class="adm-input-sm"></div>'
+        '<div style="display:flex;gap:14px;align-items:center">'
+        '<label class="adm-check">⭐ جديد<input type="checkbox" name="b_new" value="1"></label>'
+        '<label class="adm-check">🔥 الأكثر مبيعًا<input type="checkbox" name="b_best" value="1"></label></div>'
+        '<input name="imgs" placeholder="الصور مفصولة بفاصلة (j7_1,j7_2)" class="adm-input-sm">'
+        '<input name="stock" placeholder="المخزون: S:3,M:5,L:8,XL:4,2XL:2,3XL:0" class="adm-input-sm">'
+        '<button class="adm-btn-sm adm-btn-primary">💾 حفظ المنتج</button></form></div>'
+    )
+
+    sec_products = (
+        '<div class="adm-section" id="adm-products" style="display:none">'
+        '<div class="adm-card"><h3>👕 التيشرتات</h3>'
+        '<div class="adm-tbl-wrap"><table class="adm-tbl"><thead><tr><th>المنتج</th><th>تعديل</th><th>المخزون</th><th></th></tr></thead>'
+        '<tbody>{jersey_rows}</tbody></table></div></div>'
+        '<div class="adm-card"><h3>☕ المقّات</h3>'
+        '<div class="adm-tbl-wrap"><table class="adm-tbl"><thead><tr><th>المنتج</th><th>تعديل</th><th>المخزون</th><th></th></tr></thead>'
+        '<tbody>{cap_rows}</tbody></table></div></div>'
+        '{prod_add_form}'
+        '</div>'
+    ).format(jersey_rows=jersey_rows, cap_rows=cap_rows, prod_add_form=prod_add_form)
+
+    # --- Teams section ---
+    team_rows = ""
+    for cid, c in cfg.CLUBS.items():
+        t = club_themes().get(cid, {})
+        team_rows += (
+            '<div class="adm-team-card">'
+            '<div class="adm-team-emoji">{emoji}</div>'
+            '<div class="adm-team-name">{ar}<br><small style="color:#78817D">{en}</small></div>'
+            '<div class="adm-team-colors">'
+            '<label><span class="adm-color-dot" style="background:{ac}"></span>أساسي<input type="color" value="{ac}" class="adm-color-pick"></label>'
+            '<label><span class="adm-color-dot" style="background:{ac2}"></span>ثانوي<input type="color" value="{ac2}" class="adm-color-pick"></label>'
+            '</div></div>'
+        ).format(emoji=c.get("emoji", "⚽"), ar=c.get("ar", cid), en=c.get("en", cid),
+                 ac=t.get("ac", c.get("accent", "#E11D48")),
+                 ac2=t.get("ac2", c.get("accent2", "#F97316")))
+
+    sec_teams = (
+        '<div class="adm-section" id="adm-teams" style="display:none">'
+        '<div class="adm-card"><h3>⚽ الأندية</h3>'
+        '<div class="adm-team-grid">{team_rows}</div></div></div>'
+    ).format(team_rows=team_rows)
+
+    # --- Sizes section ---
+    size_chart = ""
+    for sz in cfg.SIZE_ORDER:
+        sc = cfg.SIZE_CHART.get(sz, {})
+        size_chart += (
+            '<tr><td><b>{sz}</b></td>'
+            '<td><input name="len_{sz}" value="{len}" class="adm-input-xs"></td>'
+            '<td><input name="wid_{sz}" value="{wid}" class="adm-input-xs"></td>'
+            '<td><input name="hgt_{sz}" value="{hgt}" class="adm-input-xs"></td>'
+            '<td><input name="wgt_{sz}" value="{wgt}" class="adm-input-xs"></td></tr>'
+        ).format(sz=sz, len=sc.get("length", ""), wid=sc.get("width", ""),
+                 hgt=sc.get("height", ""), wgt=sc.get("weight", ""))
+
+    sec_sizes = (
+        '<div class="adm-section" id="adm-sizes" style="display:none">'
+        '<div class="adm-card"><h3>📏 دليل المقاسات الآسيوي</h3>'
+        '<div class="adm-tbl-wrap"><table class="adm-tbl"><thead><tr><th>المقاس</th><th>الطول (سم)</th><th>العرض (سم)</th><th>الطول (سم)</th><th>الوزن (كجم)</th></tr></thead>'
+        '<tbody>{size_chart}</tbody></table></div>'
+        '<div class="adm-notice">⚠️ هذا الدليل تقريبي — الأطوال والعرض بالسنتيمتر، والأوزان بالكيلوجرام.</div></div></div>'
+    ).format(size_chart=size_chart)
+
+    # --- Competitions section ---
+    comps = db.settings_get("competitions") or []
+    if not isinstance(comps, list):
+        comps = []
+    comp_rows = ""
+    for i, cp in enumerate(comps):
+        comp_rows += (
+            '<tr><td>#{idx}</td><td>{title}</td><td>{desc}</td><td>{start}</td><td>{end}</td>'
+            '<td><a href="#" onclick="admNav(\'draw\');return false" class="adm-btn-sm">سحب</a></td></tr>'
+        ).format(idx=i + 1, title=esc(cp.get("title", "")), desc=esc(cp.get("description", "")),
+                 start=esc(cp.get("start", "")), end=esc(cp.get("end", "")))
+
+    if not comp_rows:
+        comp_rows = '<tr><td colspan="6" class="adm-empty">لا توجد مسابقات</td></tr>'
+
+    sec_competitions = (
+        '<div class="adm-section" id="adm-competitions" style="display:none">'
+        '<div class="adm-card"><h3>🏆 المسابقات</h3>'
+        '<div class="adm-tbl-wrap"><table class="adm-tbl"><thead><tr><th>#</th><th>العنوان</th><th>الوصف</th><th>البداية</th><th>النهاية</th><th></th></tr></thead>'
+        '<tbody>{comp_rows}</tbody></table></div></div>'
+        '<div class="adm-card"><h3>➕ مسابقة جديدة</h3>'
+        '<form method="post" style="display:grid;gap:8px;max-width:560px" class="inline-form">'
+        '<input type="hidden" name="act" value="comp_new">'
+        '<input name="title" placeholder="عنوان المسابقة" class="adm-input-sm" required>'
+        '<input name="description" placeholder="الوصف" class="adm-input-sm">'
+        '<div style="display:flex;gap:10px"><input name="start" type="datetime-local" class="adm-input-sm"><input name="end" type="datetime-local" class="adm-input-sm"></div>'
+        '<button class="adm-btn-sm adm-btn-primary">💾 إنشاء</button></form></div></div>'
+    ).format(comp_rows=comp_rows)
+
+    # --- Draw section ---
+    comp_sel_opts = "".join('<option value="%d">%s</option>' % (i, esc(cp.get("title", "—" + str(i + 1)))) for i, cp in enumerate(comps))
+    sec_draw = (
+        '<div class="adm-section" id="adm-draw" style="display:none">'
+        '<div class="adm-card"><h3>🎯 السحب العشوائي</h3>'
+        '<form method="post" style="display:grid;gap:8px;max-width:560px" class="inline-form">'
+        '<input type="hidden" name="act" value="draw_run">'
+        '<select name="comp_idx" class="adm-sel-sm">{comp_sel_opts}</select>'
+        '<button class="adm-btn-sm adm-btn-primary" type="submit">⚽ ابدأ السحب</button></form>'
+        '<div id="drawResult" style="margin-top:16px"></div></div></div>'
+    ).format(comp_sel_opts=comp_sel_opts if comp_sel_opts else '<option value="">— لا توجد مسابقات —</option>')
+
+    # --- Penalty section ---
+    pen_conn = db._conn() if hasattr(db, '_conn') else None
+    pen_rows = ""
+    try:
+        import db as _db
+        _conn = _db._conn()
+        pen_all = [dict(r) for r in _conn.execute("SELECT * FROM penalties ORDER BY id DESC LIMIT 50").fetchall()]
+        _conn.close()
+        total_pen = len(pen_all)
+        goals = sum(1 for p in pen_all if p.get("outcome") == "goal")
+        saved = total_pen - goals
+        for pp in pen_all[:20]:
+            pen_rows += '<tr><td>{code}</td><td>{out}</td><td>{dt}</td></tr>'.format(
+                code=esc(pp.get("order_code", "")), out="هدف ⚽" if pp.get("outcome") == "goal" else "تصدي 🧤",
+                dt=esc(pp.get("created", "")))
+    except Exception:
+        total_pen = goals = saved = 0
+        pen_rows = '<tr><td colspan="3" class="adm-empty">لا توجد بيانات</td></tr>'
+
+    sec_penalty = (
+        '<div class="adm-section" id="adm-penalty" style="display:none">'
+        '<div class="adm-stat-grid">'
+        '<div class="adm-stat"><div class="adm-stat-icon">⚽</div><div class="adm-stat-val">{total}</div><div class="adm-stat-label">إجمالي</div></div>'
+        '<div class="adm-stat"><div class="adm-stat-icon">🥅</div><div class="adm-stat-val">{goals}</div><div class="adm-stat-label">أهداف</div></div>'
+        '<div class="adm-stat"><div class="adm-stat-icon">🧤</div><div class="adm-stat-val">{saved}</div><div class="adm-stat-label">تصديات</div></div>'
+        '</div>'
+        '<div class="adm-card"><h3>⚽ أحدث التحديات</h3>'
+        '<div class="adm-tbl-wrap"><table class="adm-tbl"><thead><tr><th>رقم الطلب</th><th>النتيجة</th><th>التاريخ</th></tr></thead>'
+        '<tbody>{pen_rows}</tbody></table></div></div></div>'
+    ).format(total=total_pen, goals=goals, saved=saved, pen_rows=pen_rows)
+
+    # --- Analytics section ---
+    top_products_html = ""
+    for pid, q in ranked[:8]:
+        tp = next((x for x in cfg.PRODUCTS if x["id"] == pid), None)
+        if not tp:
+            continue
+        bar_w = max(5, int(q / max(cntq.values()) * 100)) if cntq else 5
+        top_products_html += (
+            '<div class="adm-bar-row">'
+            '<div class="adm-bar-label">{em} {n}</div>'
+            '<div class="adm-bar-track"><div class="adm-bar-fill" style="width:{w}%"></div></div>'
+            '<div class="adm-bar-val">{q}</div></div>'
+        ).format(em=tp.get("emoji", ""), n=esc(tp.get("name_ar", pid)), w=bar_w, q=q)
+
+    team_cnt = {}
+    for o in orders:
+        for it in o["data"].get("items", []):
+            pid = it.get("id", "")
+            tp = next((x for x in cfg.PRODUCTS if x["id"] == pid), None)
+            if tp and tp.get("club_id"):
+                team_cnt[tp["club_id"]] = team_cnt.get(tp["club_id"], 0) + it.get("qty", 1)
+    team_ranked = sorted(team_cnt.items(), key=lambda kv: -kv[1])
+    top_teams_html = ""
+    if team_ranked:
+        max_tv = team_ranked[0][1]
+        for cid, q in team_ranked[:8]:
+            c = cfg.CLUBS.get(cid, {})
+            bar_w = max(5, int(q / max_tv * 100))
+            top_teams_html += (
+                '<div class="adm-bar-row">'
+                '<div class="adm-bar-label">{em} {n}</div>'
+                '<div class="adm-bar-track"><div class="adm-bar-fill" style="width:{w}%;background:var(--bar-ac,#E11D48)"></div></div>'
+                '<div class="adm-bar-val">{q}</div></div>'
+            ).format(em=c.get("emoji", "⚽"), n=esc(c.get("ar", cid)), w=bar_w, q=q)
+
+    status_dist = {}
+    for o in orders:
+        s = o.get("status", "pending")
+        status_dist[s] = status_dist.get(s, 0) + 1
+
+    sec_analytics = (
+        '<div class="adm-section" id="adm-analytics" style="display:none">'
+        '<div class="adm-stat-grid">'
+        '<div class="adm-stat"><div class="adm-stat-icon">📦</div><div class="adm-stat-val">{nt}</div><div class="adm-stat-label">إجمالي الطلبات</div></div>'
+        '<div class="adm-stat"><div class="adm-stat-icon">💰</div><div class="adm-stat-val">{rev}</div><div class="adm-stat-label">إجمالي الإيراد</div></div>'
+        '<div class="adm-stat"><div class="adm-stat-icon">👥</div><div class="adm-stat-val">{nc}</div><div class="adm-stat-label">العملاء</div></div>'
+        '</div>'
+        '<div class="adm-card"><h3>🏆 المنتجات الأكثر طلبًا</h3>{top_products}</div>'
+        '<div class="adm-card"><h3>⚽ الأندية الأكثر طلبًا</h3>{top_teams}</div>'
+        '<div class="adm-card"><h3>📊 توزيع الحالات</h3>'
+        '<div class="adm-status-bars">{status_bars}</div></div></div>'
+    ).format(nt=n_orders_total, rev=fmt_cur(rev), nc=n_cust,
+             top_products=top_products_html if top_products_html else '<p class="adm-empty">لا توجد بيانات</p>',
+             top_teams=top_teams_html if top_teams_html else '<p class="adm-empty">لا توجد بيانات</p>',
+             status_bars="".join(
+                 '<div class="adm-bar-row"><div class="adm-bar-label">{s}</div>'
+                 '<div class="adm-bar-track"><div class="adm-bar-fill" style="width:{w}%"></div></div>'
+                 '<div class="adm-bar-val">{c}</div></div>'.format(
+                     s=s, c=c, w=max(5, int(c / max(status_dist.values()) * 100)) if status_dist else 5)
+                 for s, c in sorted(status_dist.items(), key=lambda kv: -kv[1])
+             ))
+
+    # --- Settings section ---
+    theme_rows = ""
+    for cid, c in cfg.CLUBS.items():
+        t = club_themes().get(cid, {})
+        theme_rows += (
+            '<div class="adm-theme-row">'
+            '<div class="adm-theme-label">{emoji} {ar}</div>'
+            '<div class="adm-theme-inputs">'
+            '<label>أساسي<input type="color" name="ac_{cid}" value="{ac}" class="adm-color-pick"></label>'
+            '<label>ثانوي<input type="color" name="ac2_{cid}" value="{ac2}" class="adm-color-pick"></label>'
+            '<label>توهج<input type="color" name="glow_{cid}" value="{glow}" class="adm-color-pick"></label>'
+            '<label>الصفحة<input type="color" name="tint_{cid}" value="{tint}" class="adm-color-pick"></label>'
+            '<label class="adm-check">إعادة<div style="margin-top:2px"><input type="checkbox" name="reset_{cid}"></div></label>'
+            '</div></div>'
+        ).format(emoji=c.get("emoji", ""), ar=c.get("ar", cid), cid=cid,
+                 ac=t.get("ac", "#E11D48"), ac2=t.get("ac2", "#F97316"),
+                 glow=t.get("glow", "#E11D48"), tint=t.get("tint", "#E11D48"))
+
+    pp_rw = passport_rewards()
+    pp_form = ""
+    for l in range(4):
+        r = pp_rw.get(str(l), pp_rw.get(l, {"d": 0, "p": 0}))
+        pp_form += (
+            '<div class="adm-pp-row">'
+            '<b class="adm-pp-label">{name}</b>'
+            '<input name="pp_d_{l}" type="number" step="0.5" value="{d}" class="adm-input-xs" placeholder="خصم %">'
+            '<input name="pp_p_{l}" type="number" value="{p}" class="adm-input-xs" placeholder="نقاط"></div>'
+        ).format(name=dl.get("lv_" + str(l), str(l)), l=l, d=r.get("d", 0), p=r.get("p", 0))
+
     adm_rows = ""
     for u in db.users_list():
         if u["role"] not in ("admin", "super_admin"):
             continue
         togg = ""
         if super_role and u["role"] == "admin":
-            togg = ("<form method='post' style='display:inline'><input type='hidden' name='act' value='admins_toggle'>"
-                    "<input type='hidden' name='uid' value='{uid}'><input type='hidden' name='role' value='customer'>"
-                    "<button class='hbtn'>إلغاء الصلاحية</button></form>").format(uid=u["id"])
-        adm_rows += "<tr><td>{name}</td><td>{phone}</td><td>{role}</td><td>{t}</td></tr>".format(
+            togg = ('<form method="post" style="display:inline" class="inline-form">'
+                     '<input type="hidden" name="act" value="admins_toggle">'
+                     '<input type="hidden" name="uid" value="{uid}"><input type="hidden" name="role" value="customer">'
+                     '<button class="adm-btn-sm adm-btn-danger">إلغاء</button></form>').format(uid=u["id"])
+        adm_rows += '<tr><td>{name}</td><td>{phone}</td><td>{role}</td><td>{t}</td></tr>'.format(
             name=esc(u["name"] or "—"), phone=esc(u["phone"]), role=u["role"], t=togg)
 
-    pp_rw = passport_rewards()
-    pp_form = ""
-    for l in range(4):
-        r = pp_rw.get(str(l), pp_rw.get(l, {"d": 0, "p": 0}))
-        pp_form += ("<div style='display:flex;gap:8px;align-items:center'><b style='width:110px'>{name}</b>"
-                    "<input class='mini' name='pp_d_{l}' type='number' step='0.5' value='{d}' placeholder='خصم %'>"
-                    "<input class='mini' name='pp_p_{l}' type='number' value='{p}' placeholder='نقاط'></div>"
-                    ).format(name=dl["lv_" + str(l)], l=l, d=r.get("d", 0), p=r.get("p", 0))
-    pp_card = ('<div class="adm-card"><h3>🎫 مكافآت جواز كرة القدم</h3>'
-               '<form method="post" style="display:grid;gap:8px;max-width:560px"><input type="hidden" name="act" value="pp_rewards">'
-               + pp_form + '<button class="hbtn">حفظ المكافآت</button></form></div>')
-
-    theme_rows = ""
-    for cid, c in cfg.CLUBS.items():
-        t = club_themes().get(cid, {})
-        theme_rows += ('<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px">'
-                       '<b style="min-width:150px">%s %s</b>'
-                       '<label>أساسي<input class="mini" type="color" name="ac_%s" value="%s"></label>'
-                       '<label>ثانوي<input class="mini" type="color" name="ac2_%s" value="%s"></label>'
-                       '<label>توهج<input class="mini" type="color" name="glow_%s" value="%s"></label>'
-                       '<label>لون الصفحة<input class="mini" type="color" name="tint_%s" value="%s"></label>'
-                       '<label style="font-size:.78rem;color:#64748b">استعادة الافتراضي<input type="checkbox" name="reset_%s"></label>'
-                       '</div>') % (c.get("emoji", ""), c.get("ar", cid),
-                                    cid, t.get("ac", "#E11D48"),
-                                    cid, t.get("ac2", "#F97316"),
-                                    cid, t.get("glow", "#E11D48"),
-                                    cid, t.get("tint", "#E11D48"),
-                                    cid)
-    theme_card = ('<div class="adm-card"><h3>🎨 ثيمات الأندية (الثيم الديناميكي)</h3>'
-                  '<form method="post" style="max-width:820px"><input type="hidden" name="act" value="club_theme">'
-                  + theme_rows +
-                  '<button class="hbtn">حفظ الثيمات</button>'
-                  '<p style="font-size:.78rem;color:#64748b;margin-top:6px">كل نادي يغيّر ألوان الموقع بالكامل عند دخول صفحة المنتج أو عند اختياره من إعدادات المستخدم.</p>'
-                  '</form></div>')
     adm_card = ""
     if super_role:
-        adm_card = ('<div class="adm-card"><h3>👥 إدارة المديرين</h3>'
-                    '<form method="post" style="display:grid;gap:8px;max-width:420px;margin-bottom:12px">'
-                    '<input type="hidden" name="act" value="admins">'
-                    '<input name="name" placeholder="اسم المدير">'
-                    '<input name="phone" placeholder="رقم الهاتف (بينات أو دولي)">'
-                    '<button class="hbtn">إضافة مدير</button></form>'
-                    '<table><tr><th>الاسم</th><th>الهاتف</th><th>الدور</th><th></th></tr>{adm_rows}</table></div>').format(adm_rows=adm_rows)
+        adm_card = (
+            '<div class="adm-card"><h3>👥 إدارة المديرين</h3>'
+            '<form method="post" style="display:grid;gap:8px;max-width:420px;margin-bottom:12px" class="inline-form">'
+            '<input type="hidden" name="act" value="admins">'
+            '<input name="name" placeholder="اسم المدير" class="adm-input-sm">'
+            '<input name="phone" placeholder="رقم الهاتف" class="adm-input-sm">'
+            '<button class="adm-btn-sm adm-btn-primary">إضافة مدير</button></form>'
+            '<div class="adm-tbl-wrap"><table class="adm-tbl"><thead><tr><th>الاسم</th><th>الهاتف</th><th>الدور</th><th></th></tr></thead>'
+            '<tbody>{adm_rows}</tbody></table></div></div>'
+        ).format(adm_rows=adm_rows)
 
-    adm_notifs = db.admin_notifs(60)
-    n_unread = db.admin_notif_unread()
-    an_rows = ""
-    for an in adm_notifs:
-        an_rows += ('<tr class="{un}"><td>{txt}</td><td style="white-space:nowrap">{dt}</td></tr>').format(
-            un="un" if not an["read"] else "", txt=esc(an["text"]), dt=esc(an["created"]))
-    an_card = ('<div class="adm-card"><h3>🔔 مركز الإشعارات '
-               '<span class="anbadge" style="display:{show}">{u}</span>'
-               '<a href="/admin/notifs" class="hbtn" style="float:left">عرض الكل</a></h3>'
-               '<div class="anbox">{rows}</div>'
-               '<form method="post" style="margin-top:10px"><input type="hidden" name="act" value="notif_read">'
-               '<button class="hbtn">تحديد الكل كمقروء</button></form></div>').format(
-        show="inline-block" if n_unread else "none", u=n_unread, rows=an_rows if an_rows else '<p class="mnote">لا توجد إشعارات</p>')
-
-    ads = db.ads_list()
-    ad_rows = ""
-    for a in ads:
-        ad_rows += ('<tr><td>{id}</td><td>{ta}<br><small style="color:#64748b">{te}</small></td>'
-                    '<td>{place}</td><td>{st}</td>'
-                    '<td><form method="post" style="display:inline"><input type="hidden" name="act" value="ad_toggle">'
-                    '<input type="hidden" name="aid" value="{id}"><input type="hidden" name="active" value="{newv}">'
-                    '<button class="hbtn">{newl}</button></form> '
-                    '<form method="post" style="display:inline" onsubmit="return confirm(\'حذف الإعلان؟\')">'
-                    '<input type="hidden" name="act" value="ad_del"><input type="hidden" name="aid" value="{id}">'
-                    '<button class="hbtn" style="background:#dc2626">حذف</button></form></td></tr>').format(
-            id=a["id"], ta=esc(a["text_ar"] or ""), te=esc(a["text_en"] or ""),
-            place={"home": "الرئيسية", "products": "المنتجات", "banner": "شريط علوي"}.get(a["place"], a["place"]),
-            st="مفعّل ✓" if a["active"] else "متوقف",
-            newv="0" if a["active"] else "1", newl="إيقاف" if a["active"] else "تفعيل")
-    ad_add_form = ('<h4 style="margin-top:12px">➕ إعلان جديد</h4>'
-                   '<form method="post" style="display:grid;gap:8px;max-width:560px">'
-                   '<input type="hidden" name="act" value="ad_save">'
-                   '<input name="text_ar" placeholder="نص الإعلان (عربي)" required>'
-                   '<input name="text_en" placeholder="Announcement text (EN)">'
-                   '<input name="link" placeholder="الرابط (اختياري)، مثال: /products">'
-                   '<select name="place"><option value="home">الرئيسية</option>'
-                   '<option value="products">صفحة المنتجات</option><option value="banner">شريط علوي</option></select>'
-                   '<button class="hbtn">💾 حفظ الإعلان</button></form>')
-    ad_card = ('<div class="adm-card"><h3>📢 إدارة الإعلانات</h3>'
-               '<table><tr><th>#</th><th>النص</th><th>الموضع</th><th>الحالة</th><th></th></tr>{rows}</table>'
-               + ad_add_form + '</div>').format(rows=ad_rows if ad_rows else '<tr><td colspan="5"><p class="mnote">لا توجد إعلانات</p></td></tr>')
-
-    body = ('<div class="adm">'
-            '<div class="hd-in" style="justify-content:space-between;padding:14px 0"><b style="font-size:1.2rem">⚙️ لوحة تحكم golazox</b>'
-            '<span><a href="/home" class="hbtn">الموقع</a> <a href="/admin/logout" class="hbtn">خروج</a></span></div>'
-            + msg +
-            '<div class="stat-cards">'
-            '<div class="stat"><b>{n1}</b><span>طلبات جديدة</span></div>'
-            '<div class="stat"><b>{n2}</b><span>إجمالي الطلبات</span></div>'
-            '<div class="stat"><b>{rev}</b><span>الإيراد الكلي ({cu})</span></div>'
-            '<div class="stat"><b>{rt}</b><span>إيراد اليوم</span></div>'
-            '<div class="stat"><b>{rm}</b><span>إيراد الشهر</span></div>'
-            '<div class="stat"><b>{top}</b><span>الأكثر مبيعًا</span></div>'
-            '<div class="stat"><b>{nc}</b><span>العملاء</span></div>'
-            '<div class="stat"><b>{n3}</b><span>تنبيهات جاهزة</span></div>'
-            '<div class="stat"><b>{np}</b><span>إشعارات غير مقروءة</span></div></div>'
-            + an_card + ad_card +
-            '<div class="adm-card"><h3>📦 الطلبات</h3><table><tr><th>الرقم</th><th>العميل</th><th>المنتجات</th><th>الإجمالي</th><th>الحالة</th><th>الدفع</th><th></th></tr>{rows}</table></div>'
-            + top_card +
-            '<div class="adm-card"><h3>📦 المخزون</h3><table><tr><th>المنتج</th><th>المقاسات (الكمية)</th><th></th></tr>{stock_rows}</table></div>'
-            + prod_card +
-            '<div class="adm-card"><h3>⭐ مراجعات العملاء</h3><table><tr><th>المنتج</th><th>الاسم</th><th>التقييم</th><th>النص</th><th>موثق</th><th>الحالة</th></tr>{rev_rows}</table></div>'
-            '<div class="adm-card"><h3>🔔 تنبيهات انخفاض السعر</h3><table><tr><th>المنتج</th><th>الهاتف</th><th>السعر المحفوظ</th><th>الحالة</th></tr>{al_rows}</table>'
-            '<h4 style="margin-top:12px">إرسال التنبيهات الآن</h4>'
-            '<form method="post" style="display:flex;gap:8px;max-width:420px"><input type="hidden" name="act" value="alert_trigger">'
-            '<select name="pid">' + "".join('<option value="%s">%s</option>' % (p["id"], p.get("name_ar", "")) for p in cfg.PRODUCTS) + '</select>'
-            '<button class="hbtn">إرسال</button></form></div>'
-            '<div class="adm-card"><h3>👥 العملاء</h3><table><tr><th>الاسم</th><th>الهاتف</th><th>الدور</th><th>النشاط</th><th>الحالة</th></tr>{cust_rows}</table></div>'
-            + adm_card + pp_card + theme_card +
-            '<div class="adm-card"><h3>📝 طلبات المنتجات الخاصة</h3><table><tr><th>#</th><th>النادي</th><th>النوع</th><th>مقاس × كمية</th><th>ملاحظات</th><th>الحالة</th></tr>{req_rows}</table></div>'
-            '<div class="adm-card"><h3>🔔 طلبات الإشعار عند التوفر</h3><table><tr><th>المنتج</th><th>الهاتف</th><th>التاريخ</th><th>الحالة</th><th></th></tr>{notif_rows}</table></div>'
-            '<div class="adm-card"><h3>🗳️ التصويتات</h3><table><tr><th>السؤال</th><th>الحالة</th><th>إخفاء النتائج</th><th>الفائز</th><th></th></tr>{poll_rows}</table>'
-            '<h4 style="margin-top:12px">تصويت جديد</h4>'
-            '<form method="post" style="display:grid;gap:8px;max-width:560px">'
-            '<input type="hidden" name="act" value="poll_new">'
-            '<input name="q_ar" placeholder="السؤال (عربي)">'
-            '<input name="q_en" placeholder="Question (EN)">'
-            '<input name="opts" placeholder="الخيارات JSON، مثال: [{{\"id\":\"real\",\"label_ar\":\"ريال\",\"label_en\":\"Real\",\"color\":\"#C9A24B\",\"icon\":\"🤍\"}}]">'
-            '<div style="display:flex;gap:10px"><input name="start" type="datetime-local" placeholder="بداية"><input name="end" type="datetime-local" placeholder="نهاية"></div>'
-            '<label><input type="checkbox" name="hide"> إخفاء النتائج</label>'
-            '<button class="hbtn">إنشاء التصويت</button></form></div>'
-            '<div class="adm-card"><h3>⚡ MATCHDAY</h3>'
-            '<form method="post" style="display:grid;gap:8px;max-width:560px"><input type="hidden" name="act" value="match">'
-            '<div style="display:flex;gap:10px">' + club_opts + club_opts.replace("name=\"home\"", "name=\"away\"") + '</div>'
-            '<input name="kickoff" type="datetime-local" value="{mk}">'
-            '<input name="result" placeholder="النتيجة (اختياري)، مثال: 2-1" value="{mr}">'
-            '<div style="display:flex;gap:10px"><button class="hbtn">حفظ</button>'
-            '<button class="hbtn" formaction="/admin" name="act" value="match_clear">مسح</button></div></form></div>'
-            '<div class="adm-card"><h3>🔥 NEW DROP</h3>'
-            '<form method="post" style="display:grid;gap:8px;max-width:560px"><input type="hidden" name="act" value="drop">'
-            '<div style="display:flex;gap:10px"><input name="drop_ar" placeholder="اسم الإصدار (عربي)" value="{dar}"><input name="drop_en" placeholder="Drop name (EN)" value="{den}"></div>'
-            '<input name="target" type="datetime-local" value="{dtg}">'
-            '<input name="img" placeholder="صورة (مثال: j1_1)" value="{dimg}">'
-            '<input name="pids" placeholder="منتجات الإصدار (مفصولة بفواصل) مثال: j1,j2" value="{dids}">'
-            '<div style="display:flex;gap:10px"><button class="hbtn">حفظ</button>'
-            '<button class="hbtn" formaction="/admin" name="act" value="drop_clear">مسح</button></div></form></div>'
-            '</div>').format(
-        n1=n_orders, n2=len(orders), rev=fmt_cur(rev), cu=cur(), n3=n_ready,
-        rt=fmt_cur(rev_today), rm=fmt_cur(rev_month), top=esc(top), nc=n_cust,
-        np=n_unread,
-        rows=rows, stock_rows=stock_rows, rev_rows=rev_rows, al_rows=al_rows,
-        cust_rows=cust_rows, req_rows=req_rows, notif_rows=notif_rows, poll_rows=poll_rows,
+    sec_settings = (
+        '<div class="adm-section" id="adm-settings" style="display:none">'
+        '<div class="adm-card"><h3>💬 إعدادات واتساب</h3>'
+        '<form method="post" style="display:grid;gap:8px;max-width:420px" class="inline-form">'
+        '<input type="hidden" name="act" value="whatsapp_settings">'
+        '<label style="font-size:.82rem;color:var(--muted)">رقم واتساب (بدون + أو مسافات)</label>'
+        '<input name="whatsapp" value="{wa}" class="adm-input-sm" placeholder="97338818226">'
+        '<button class="adm-btn-sm adm-btn-primary">حفظ رقم واتساب</button></form>'
+        '<div class="adm-notice" style="margin-top:8px">يُستخدم هذا الرقم في جميع أزرار التواصل عبر واتساب في الموقع.</div></div>'
+        '<div class="adm-card"><h3>🎨 ثيمات الأندية</h3>'
+        '<form method="post" class="inline-form"><input type="hidden" name="act" value="club_theme">'
+        '{theme_rows}'
+        '<button class="adm-btn-sm adm-btn-primary">حفظ الثيمات</button></form></div>'
+        '<div class="adm-card"><h3>🎫 مكافآت الجواز</h3>'
+        '<form method="post" style="display:grid;gap:8px;max-width:560px" class="inline-form">'
+        '<input type="hidden" name="act" value="pp_rewards">'
+        '{pp_form}'
+        '<button class="adm-btn-sm adm-btn-primary">حفظ المكافآت</button></form></div>'
+        '{adm_card}'
+        '<div class="adm-card"><h3>📢 إدارة الإعلانات</h3>'
+        '<form method="post" style="display:grid;gap:8px;max-width:560px" class="inline-form">'
+        '<input type="hidden" name="act" value="ad_save">'
+        '<input name="text_ar" placeholder="نص الإعلان (عربي)" class="adm-input-sm" required>'
+        '<input name="text_en" placeholder="Announcement text (EN)" class="adm-input-sm">'
+        '<input name="link" placeholder="الرابط (اختياري)" class="adm-input-sm">'
+        '<select name="place" class="adm-sel-sm"><option value="home">الرئيسية</option>'
+        '<option value="products">صفحة المنتجات</option><option value="banner">شريط علوي</option></select>'
+        '<button class="adm-btn-sm adm-btn-primary">💾 حفظ الإعلان</button></form></div>'
+        '<div class="adm-card"><h3>⚡ MATCHDAY</h3>'
+        '<form method="post" style="display:grid;gap:8px;max-width:560px" class="inline-form">'
+        '<input type="hidden" name="act" value="match">'
+        '<div style="display:flex;gap:10px">{club_opts_h} {club_opts_a}</div>'
+        '<input name="kickoff" type="datetime-local" value="{mk}" class="adm-input-sm">'
+        '<input name="result" placeholder="النتيجة (مثلاً 2-1)" value="{mr}" class="adm-input-sm">'
+        '<div style="display:flex;gap:10px"><button class="adm-btn-sm adm-btn-primary">حفظ</button>'
+        '<button class="adm-btn-sm" formaction="/admin" name="act" value="match_clear">مسح</button></div></form></div>'
+        '<div class="adm-card"><h3>🔥 NEW DROP</h3>'
+        '<form method="post" style="display:grid;gap:8px;max-width:560px" class="inline-form">'
+        '<input type="hidden" name="act" value="drop">'
+        '<div style="display:flex;gap:10px"><input name="drop_ar" placeholder="اسم الإصدار (عربي)" value="{dar}" class="adm-input-sm">'
+        '<input name="drop_en" placeholder="Drop name (EN)" value="{den}" class="adm-input-sm"></div>'
+        '<input name="target" type="datetime-local" value="{dtg}" class="adm-input-sm">'
+        '<input name="img" placeholder="صورة (j1_1)" value="{dimg}" class="adm-input-sm">'
+        '<input name="pids" placeholder="منتجات الإصدار (j1,j2)" value="{dids}" class="adm-input-sm">'
+        '<div style="display:flex;gap:10px"><button class="adm-btn-sm adm-btn-primary">حفظ</button>'
+        '<button class="adm-btn-sm" formaction="/admin" name="act" value="drop_clear">مسح</button></div></form></div>'
+        '</div>'
+    ).format(
+        theme_rows=theme_rows, pp_form=pp_form, adm_card=adm_card,
+        wa=cfg.WHATSAPP,
+        club_opts_h=club_opts, club_opts_a=club_opts.replace('name="home"', 'name="away"'),
         mk=(m["kickoff"].replace(" ", "T") if m and m.get("kickoff") else ""),
         mr=(m["result"] if m and m.get("result") else ""),
         dar=(dr["ar"] if dr else ""), den=(dr["en"] if dr else ""),
         dtg=(dr["target"].replace(" ", "T") if dr else ""), dimg=(dr["img"] if dr else ""),
         dids=",".join(dr["product_ids"]) if dr else "")
+
+    body = (
+        msg_html
+        + sec_dashboard
+        + sec_orders
+        + sec_customers
+        + sec_products
+        + sec_teams
+        + sec_sizes
+        + sec_competitions
+        + sec_draw
+        + sec_penalty
+        + sec_analytics
+        + sec_settings
+    )
     return admin_template(body)
 
 
-def admin_template(body):
+def admin_template(body, title="Dashboard"):
     return """<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>golazox Admin</title>
+<title>GOLAZOX Admin — """ + esc(title) + """</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Cairo','Segoe UI',sans-serif;background:#F3F6FB;color:#0F172A;font-size:15px}
+:root{--bg:#050607;--card:rgba(255,255,255,.045);--border:rgba(255,255,255,.10);--text:#F5F7F5;--muted:#78817D;--accent:#18E875;--accent2:#0B9F50;--sidebar-w:240px;--bar-ac:#18E875}
+body{font-family:'Cairo','Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
 a{text-decoration:none;color:inherit}
-.hd-in{max-width:1120px;margin:0 auto;display:flex;align-items:center;gap:12px}
-.hbtn{background:#fff;border:1px solid #E2E8F0;border-radius:999px;padding:8px 16px;font-weight:700;cursor:pointer;font-family:inherit;color:#0F172A}
-.adm{max-width:1120px;margin:0 auto;padding:20px 18px 60px}
-.adm-card{background:#fff;border:1px solid #E2E8F0;border-radius:16px;padding:18px;margin-bottom:16px;overflow-x:auto}
-.adm-card h3{font-size:1.05rem;font-weight:900;margin-bottom:12px}
-.adm table{width:100%;border-collapse:collapse;font-size:.88rem}
-.adm th{text-align:start;padding:8px;color:#64748B;border-bottom:1px solid #E2E8F0}
-.adm td{padding:8px;border-bottom:1px dashed #E2E8F0;vertical-align:top}
-.adm input,.adm select{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:8px 10px;font-size:.88rem;font-family:inherit;color:#0F172A;max-width:100%}
-.adm .mini{width:64px}
-.stat-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:18px}
-.stat{background:#fff;border:1px solid #E2E8F0;border-radius:16px;padding:16px}
-.stat b{font-size:1.5rem;display:block;color:#E11D48}
-.stat span{color:#64748B;font-size:.8rem}
-.msg{background:#ECFDF5;border:1px solid #A7F3D0;color:#065F46;border-radius:12px;padding:10px 14px;margin-bottom:14px}
-.anbadge{background:#E11D48;color:#fff;border-radius:999px;font-size:.7rem;padding:1px 8px;margin-inline-start:6px}
-.anbox{max-height:320px;overflow:auto;border:1px solid #E2E8F0;border-radius:12px}
-.anbox table{width:100%;border-collapse:collapse}
-.anbox tr.un{background:#FFF1F2}
-.anbox td{padding:8px 10px;border-bottom:1px dashed #E2E8F0;font-size:.85rem}
-.anbox tr.un td{font-weight:800}
+
+/* ---- Sidebar ---- */
+.adm-sidebar{position:fixed;top:0;right:0;width:var(--sidebar-w);height:100vh;background:rgba(255,255,255,.03);border-left:1px solid var(--border);display:flex;flex-direction:column;z-index:100;overflow-y:auto;transition:transform .25s}
+.adm-sidebar-brand{padding:18px 16px 12px;font-size:1.1rem;font-weight:900;color:var(--text);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)}
+.adm-sidebar-brand span{font-size:1.4rem}
+.adm-nav{flex:1;padding:8px 0}
+.adm-nav-item{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;color:var(--muted);transition:all .15s;border-right:3px solid transparent;font-weight:600}
+.adm-nav-item:hover,.adm-nav-item.active{color:var(--text);background:rgba(255,255,255,.06);border-right-color:var(--accent)}
+.adm-nav-item .nav-icon{font-size:1.1rem;width:24px;text-align:center}
+.adm-nav-item .nav-label{font-size:.88rem}
+.adm-sidebar-footer{padding:12px 16px;border-top:1px solid var(--border)}
+.adm-sidebar-footer a{display:block;padding:6px 0;color:var(--muted);font-weight:600;font-size:.85rem}
+.adm-sidebar-footer a:hover{color:var(--text)}
+
+/* ---- Hamburger (mobile) ---- */
+.adm-hamburger{display:none;position:fixed;top:12px;right:12px;z-index:200;width:40px;height:40px;background:rgba(255,255,255,.08);border:1px solid var(--border);border-radius:10px;cursor:pointer;align-items:center;justify-content:center;font-size:1.3rem;color:var(--text)}
+.adm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:90}
+.adm-overlay.show{display:block}
+
+/* ---- Main ---- */
+.adm-main{margin-right:var(--sidebar-w);padding:24px 28px 60px;min-height:100vh}
+.adm-topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.adm-topbar h1{font-size:1.2rem;font-weight:900}
+.adm-topbar-actions{display:flex;gap:8px}
+
+/* ---- Cards ---- */
+.adm-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:16px;overflow-x:auto}
+.adm-card h3{font-size:1rem;font-weight:900;margin-bottom:12px;color:var(--text)}
+
+/* ---- Stat cards ---- */
+.adm-stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px}
+.adm-stat{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center}
+.adm-stat-icon{font-size:1.4rem;margin-bottom:4px}
+.adm-stat-val{font-size:1.6rem;font-weight:900;color:var(--accent)}
+.adm-stat-label{font-size:.78rem;color:var(--muted);margin-top:2px}
+
+/* ---- Tables ---- */
+.adm-tbl-wrap{overflow-x:auto}
+.adm-tbl{width:100%;border-collapse:collapse;font-size:.85rem}
+.adm-tbl th{text-align:right;padding:8px 10px;color:var(--muted);border-bottom:1px solid var(--border);font-weight:700;white-space:nowrap}
+.adm-tbl td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:top}
+.adm-tbl tr:hover{background:rgba(255,255,255,.03)}
+.adm-empty{text-align:center;color:var(--muted);padding:20px}
+
+/* ---- Forms / Inputs ---- */
+.adm-input-sm{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text);font-family:inherit;font-size:.85rem;width:100%;max-width:100%}
+.adm-input-xs{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--text);font-family:inherit;font-size:.82rem;width:72px}
+.adm-sel-sm{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:8px;padding:6px 8px;color:var(--text);font-family:inherit;font-size:.82rem}
+.adm-btn-sm{background:rgba(255,255,255,.08);border:1px solid var(--border);border-radius:8px;padding:6px 14px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--text);font-size:.82rem;transition:all .15s}
+.adm-btn-sm:hover{background:rgba(255,255,255,.14)}
+.adm-btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.adm-btn-primary:hover{background:var(--accent2)}
+.adm-btn-danger{background:rgba(220,38,38,.2);border-color:rgba(220,38,38,.3);color:#f87171}
+.adm-btn-danger:hover{background:rgba(220,38,38,.35)}
+.adm-check{font-size:.8rem;color:var(--muted);display:flex;align-items:center;gap:4px;cursor:pointer}
+.adm-check input{accent-color:var(--accent)}
+
+/* ---- Flash message ---- */
+.adm-flash{background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);color:#6ee7b7;border-radius:10px;padding:10px 14px;margin-bottom:16px;font-weight:600}
+
+/* ---- Status chips ---- */
+.st-chip{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.75rem;font-weight:700}
+.st-new{background:rgba(251,191,36,.15);color:#fbbf24}
+.st-ok{background:rgba(16,185,129,.15);color:#6ee7b7}
+.st-warn{background:rgba(245,158,11,.15);color:#fbbf24}
+.st-info{background:rgba(59,130,246,.15);color:#93c5fd}
+.st-err{background:rgba(239,68,68,.15);color:#fca5a5}
+
+/* ---- Bar chart ---- */
+.adm-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.adm-bar-label{width:140px;text-align:right;font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}
+.adm-bar-track{flex:1;height:18px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden}
+.adm-bar-fill{height:100%;background:var(--accent);border-radius:4px;transition:width .4s}
+.adm-bar-val{width:40px;text-align:left;font-size:.82rem;font-weight:700;flex-shrink:0}
+
+/* ---- Teams grid ---- */
+.adm-team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.adm-team-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center}
+.adm-team-emoji{font-size:2rem;margin-bottom:6px}
+.adm-team-name{font-weight:800;margin-bottom:8px}
+.adm-team-colors{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.adm-team-colors label{display:flex;align-items:center;gap:4px;font-size:.78rem;color:var(--muted)}
+.adm-color-dot{width:14px;height:14px;border-radius:50%;display:inline-block;border:1px solid var(--border)}
+.adm-color-pick{width:28px;height:24px;border:none;background:none;cursor:pointer;padding:0}
+
+/* ---- Theme row (settings) ---- */
+.adm-theme-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05);flex-wrap:wrap}
+.adm-theme-label{min-width:160px;font-weight:700}
+.adm-theme-inputs{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.adm-theme-inputs label{display:flex;align-items:center;gap:4px;font-size:.78rem;color:var(--muted)}
+
+/* ---- Passport row ---- */
+.adm-pp-row{display:flex;gap:8px;align-items:center;margin-bottom:6px}
+.adm-pp-label{width:100px;font-weight:700;font-size:.85rem}
+
+/* ---- Notice ---- */
+.adm-notice{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.2);color:#fbbf24;border-radius:8px;padding:8px 12px;font-size:.82rem;margin-top:10px}
+
+/* ---- Mobile ---- */
+@media(max-width:768px){
+.adm-sidebar{transform:translateX(100%)}
+.adm-sidebar.open{transform:translateX(0)}
+.adm-hamburger{display:flex}
+.adm-main{margin-right:0;padding:60px 14px 40px}
+.adm-stat-grid{grid-template-columns:repeat(2,1fr)}
+.adm-team-grid{grid-template-columns:1fr 1fr}
+.adm-bar-label{width:80px;font-size:.75rem}
+}
 </style></head>
-<body><div class="wrap2">BODY</div></body></html>""".replace("BODY", body)
+<body>
+<button class="adm-hamburger" onclick="document.querySelector('.adm-sidebar').classList.toggle('open');document.querySelector('.adm-overlay').classList.toggle('show')">☰</button>
+<div class="adm-overlay" onclick="document.querySelector('.adm-sidebar').classList.remove('open');this.classList.remove('show')"></div>
+<nav class="adm-sidebar" id="admSidebar">
+<div class="adm-sidebar-brand"><span>⚽</span> GOLAZOX</div>
+<div class="adm-nav" id="admNav">
+<div class="adm-nav-item active" onclick="admNav('dashboard')" data-sec="dashboard"><span class="nav-icon">🏠</span><span class="nav-label">لوحة التحكم</span></div>
+<div class="adm-nav-item" onclick="admNav('orders')" data-sec="orders"><span class="nav-icon">📦</span><span class="nav-label">الطلبات</span></div>
+<div class="adm-nav-item" onclick="admNav('customers')" data-sec="customers"><span class="nav-icon">👥</span><span class="nav-label">العملاء</span></div>
+<div class="adm-nav-item" onclick="admNav('products')" data-sec="products"><span class="nav-icon">👕</span><span class="nav-label">المنتجات</span></div>
+<div class="adm-nav-item" onclick="admNav('teams')" data-sec="teams"><span class="nav-icon">⚽</span><span class="nav-label">الأندية</span></div>
+<div class="adm-nav-item" onclick="admNav('sizes')" data-sec="sizes"><span class="nav-icon">📏</span><span class="nav-label">المقاسات</span></div>
+<div class="adm-nav-item" onclick="admNav('competitions')" data-sec="competitions"><span class="nav-icon">🏆</span><span class="nav-label">المسابقات</span></div>
+<div class="adm-nav-item" onclick="admNav('draw')" data-sec="draw"><span class="nav-icon">🎯</span><span class="nav-label">السحب</span></div>
+<div class="adm-nav-item" onclick="admNav('penalty')" data-sec="penalty"><span class="nav-icon">⚽</span><span class="nav-label">الركلات</span></div>
+<div class="adm-nav-item" onclick="admNav('analytics')" data-sec="analytics"><span class="nav-icon">📊</span><span class="nav-label">التحليلات</span></div>
+<div class="adm-nav-item" onclick="admNav('settings')" data-sec="settings"><span class="nav-icon">⚙️</span><span class="nav-label">الإعدادات</span></div>
+</div>
+<div class="adm-sidebar-footer">
+<a href="/home">الموقع</a>
+<a href="/admin/logout">خروج</a>
+</div>
+</nav>
+<main class="adm-main">
+<div class="adm-topbar"><h1>GOLAZOX Admin</h1><div class="adm-topbar-actions"><a href="/home" class="adm-btn-sm">الموقع</a><a href="/admin/logout" class="adm-btn-sm">خروج</a></div></div>
+BODY
+</main>
+<script>
+function admNav(sec){
+var items=document.querySelectorAll('.adm-nav-item');
+var secs=document.querySelectorAll('.adm-section');
+items.forEach(function(el){el.classList.toggle('active',el.getAttribute('data-sec')===sec)});
+secs.forEach(function(el){el.style.display=el.id==='adm-'+sec?'block':'none'});
+document.querySelector('.adm-sidebar').classList.remove('open');
+document.querySelector('.adm-overlay').classList.remove('show');
+window.scrollTo(0,0);
+}
+</script>
+</body></html>""".replace("BODY", body)
 
 
 if __name__ == "__main__":

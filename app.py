@@ -2888,7 +2888,7 @@ function submitOrder(){
       var earned=Math.floor(fin*GX.points_per); addPoints(earned, gxT('pts_earn'));
       var msg=tgOrderMsg(d.code, items, name, phone, area, addr, tot.delivery, disc, fin);
       clearCart(); closeModal('m-checkout');
-      window.open('https://wa.me/'+GX.wa,'_blank');
+      window.open('https://wa.me/message/KZFSQ7ONXMY2M1','_blank');
       location.href='/order/success?code='+d.code;
     } else { toast('Error'); }
   });
@@ -2925,7 +2925,7 @@ function orderCartTG(){
         msg+='- '+it.emoji+' '+it.name+(it.kind!=='mug'?' ('+it.size+')':'')+' × '+it.qty+'\\n';
       });
       msg+='\\n'+gxT('cart_total')+': '+pmoney(fin)+' '+GX.cur;
-      window.open('https://wa.me/'+GX.wa,'_blank');
+      window.open('https://wa.me/message/KZFSQ7ONXMY2M1','_blank');
       location.href='/order/success?code='+d.code;
     } else { toast('Error'); }
   });
@@ -2974,7 +2974,7 @@ function submitRequest(){
     if(size) msg+='• '+gxT('req_size')+': '+size+'\\n';
     msg+='• '+gxT('req_qty')+': '+qty+'\\n';
     if(notes) msg+='• '+gxT('req_notes')+': '+notes;
-    window.open('https://wa.me/'+GX.wa,'_blank');
+    window.open('https://wa.me/message/KZFSQ7ONXMY2M1','_blank');
     closeModal('m-request'); toast(gxT('req_ok')+' — '+d.ref);
   });
 }
@@ -5215,7 +5215,7 @@ function orderDirect(pid){
       var msg=gxT('hello').trim()+':\\n'+items[0].emoji+' '+items[0].name;
       if(sz) msg+='\\n'+gxT('size_w')+sz;
       msg+='\\n'+gxT('qty_w')+q+' · '+pmoney(p.price*q)+' '+GX.cur+'\\n\\n'+gxT('code_w')+dd.code;
-      window.open('https://wa.me/'+GX.wa,'_blank');
+      window.open('https://wa.me/message/KZFSQ7ONXMY2M1','_blank');
       location.href='/order/success?code='+dd.code;
     }
   });

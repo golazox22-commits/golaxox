@@ -1734,6 +1734,144 @@ html[data-theme="light"] .adm-msg.err { color: #DC2626; }
   color: #07100D; border-radius: 999px; padding: 5px 16px; font-size: .78rem; font-weight: 900; margin-top: 12px;
 }
 .pcard-id .pid-emoji { font-size: 3.8rem; position: absolute; top: 16px; inset-inline-end: 20px; opacity: .2; }
+/* ============================== MATCH TICKET EXPERIENCE ============================== */
+.mk-hero{position:relative;min-height:420px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:60px 20px 40px;overflow:hidden}
+.mk-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(800px 500px at 50% 0%,var(--mk-glow1,rgba(24,232,117,.10)),transparent 60%),radial-gradient(600px 300px at 50% 100%,var(--mk-glow2,rgba(24,232,117,.04)),transparent 60%);z-index:0;transition:background .6s ease}
+.mk-hero>*{position:relative;z-index:1}
+.mk-grass{position:absolute;bottom:0;left:0;right:0;height:80px;background:repeating-linear-gradient(0deg,transparent 0 12px,rgba(255,255,255,.03) 12px 24px),linear-gradient(180deg,rgba(27,122,61,.08),rgba(27,122,61,.15));z-index:0}
+.mk-lights{position:absolute;top:-60px;width:3px;height:120px;background:linear-gradient(180deg,rgba(255,255,255,.5),transparent);border-radius:0 0 4px 4px;opacity:.25;animation:mkpulse 4s ease-in-out infinite}
+.mk-lights:nth-child(2){left:12%;animation-delay:.8s}
+.mk-lights:nth-child(3){right:12%;animation-delay:1.6s}
+.mk-lights:nth-child(4){left:28%;animation-delay:2.4s;height:90px;top:-40px}
+.mk-lights:nth-child(5){right:28%;animation-delay:3.2s;height:90px;top:-40px}
+@keyframes mkpulse{0%,100%{opacity:.15}50%{opacity:.35}}
+.mk-subtitle{font-size:.85rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--mk-ac,rgba(24,232,117,.8));margin-bottom:8px}
+.mk-title{font-size:2rem;font-weight:900;color:#fff;margin-bottom:6px;line-height:1.2}
+.mk-empty{font-size:1.1rem;color:rgba(255,255,255,.6);margin-bottom:24px}
+.mk-explore{display:inline-flex;align-items:center;gap:8px;padding:14px 32px;border-radius:14px;background:var(--mk-ac,#18E875);color:#030708;font-weight:900;font-size:1rem;border:none;cursor:pointer;text-decoration:none;transition:transform .2s,box-shadow .2s}
+.mk-explore:hover{transform:scale(1.04);box-shadow:0 0 30px var(--mk-glow,rgba(24,232,117,.3))}
+/* --- Main Ticket --- */
+.mk-ticket{width:100%;max-width:600px;margin:0 auto;border-radius:20px;overflow:hidden;position:relative;background:linear-gradient(160deg,rgba(10,20,17,.95),rgba(5,12,9,.98));border:1px solid var(--mk-border,rgba(24,232,117,.15));box-shadow:0 20px 60px rgba(0,0,0,.5),0 0 40px var(--mk-glow,rgba(24,232,117,.08));animation:ticketIn .6s ease-out}
+@keyframes ticketIn{from{opacity:0;transform:translateY(30px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+.mk-ticket-top{padding:24px 24px 16px;border-bottom:2px dashed var(--mk-border,rgba(24,232,117,.12));position:relative}
+.mk-ticket-top::after{content:'';position:absolute;bottom:-12px;inset-inline-start:-12px;width:24px;height:24px;background:var(--bg);border-radius:50%}
+.mk-ticket-top::before{content:'';position:absolute;bottom:-12px;inset-inline-end:-12px;width:24px;height:24px;background:var(--bg);border-radius:50%}
+.mk-ticket-brand{text-align:center;margin-bottom:14px}
+.mk-ticket-brand h3{font-size:.72rem;font-weight:800;letter-spacing:4px;text-transform:uppercase;color:var(--mk-ac,rgba(24,232,117,.8));margin-bottom:2px}
+.mk-ticket-brand .mk-ticket-sub{font-size:1.1rem;font-weight:900;color:#fff;letter-spacing:2px}
+.mk-matchup{display:flex;align-items:center;justify-content:center;gap:20px;margin:16px 0}
+.mk-matchup .mk-team{text-align:center;flex:1}
+.mk-matchup .mk-team-name{font-weight:900;font-size:1rem;color:#fff;margin-top:6px}
+.mk-matchup .mk-team-role{font-size:.7rem;color:rgba(255,255,255,.5);font-weight:700;letter-spacing:2px;text-transform:uppercase}
+.mk-matchup .mk-vs{font-size:1.4rem;font-weight:900;color:var(--mk-ac,#18E875);text-shadow:0 0 20px var(--mk-glow,rgba(24,232,117,.3))}
+.mk-ticket-mid{padding:20px 24px;border-bottom:2px dashed var(--mk-border,rgba(24,232,117,.12));position:relative}
+.mk-ticket-mid::after{content:'';position:absolute;bottom:-12px;inset-inline-start:-12px;width:24px;height:24px;background:var(--bg);border-radius:50%}
+.mk-ticket-mid::before{content:'';position:absolute;bottom:-12px;inset-inline-end:-12px;width:24px;height:24px;background:var(--bg);border-radius:50%}
+.mk-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 20px}
+.mk-detail{display:flex;flex-direction:column}
+.mk-detail-label{font-size:.65rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:2px}
+.mk-detail-value{font-size:.95rem;font-weight:800;color:#fff}
+.mk-detail-value.mk-highlight{color:var(--mk-ac,#18E875);font-size:1.1rem}
+.mk-ticket-bottom{padding:20px 24px;display:flex;gap:16px;align-items:flex-start}
+.mk-barcode{flex:0 0 80px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.mk-barcode-lines{width:80px;height:50px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.7) 0 2px,transparent 2px 4px,rgba(255,255,255,.4) 4 5px,transparent 5 8px,rgba(255,255,255,.6) 8 10px,transparent 10 12px);border-radius:4px;animation:brcscan 3s linear infinite}
+@keyframes brcscan{0%{background-position:0 0}100%{background-position:24px 0}}
+.mk-barcode-id{font-size:.6rem;color:rgba(255,255,255,.4);font-family:monospace;letter-spacing:1px}
+.mk-ticket-meta{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mk-meta-item{text-align:center}
+.mk-meta-label{font-size:.55rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.35)}
+.mk-meta-val{font-size:.8rem;font-weight:800;color:rgba(255,255,255,.8);font-family:monospace}
+.mk-ticket-actions{display:flex;gap:8px;padding:0 24px 20px;flex-wrap:wrap}
+.mk-ticket-actions .hbtn,.mk-ticket-actions a.hbtn{flex:1;min-width:0;text-align:center;font-size:.82rem;padding:10px 8px}
+/* --- Status Journey --- */
+.mk-journey{max-width:600px;margin:20px auto 0;padding:20px;border-radius:16px;background:rgba(10,20,17,.6);border:1px solid var(--mk-border,rgba(24,232,117,.10))}
+.mk-journey-title{font-size:.75rem;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--mk-ac,rgba(24,232,117,.7));margin-bottom:16px;text-align:center}
+.mk-journey-steps{display:flex;align-items:center;justify-content:center;gap:0;position:relative}
+.mk-step{display:flex;flex-direction:column;align-items:center;position:relative;z-index:1;flex:1;max-width:120px}
+.mk-step-dot{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;font-size:.7rem;margin-bottom:6px;transition:all .4s ease}
+.mk-step.done .mk-step-dot{background:var(--mk-ac,#18E875);border-color:var(--mk-ac,#18E875);color:#030708;box-shadow:0 0 16px var(--mk-glow,rgba(24,232,117,.25))}
+.mk-step.cur .mk-step-dot{background:transparent;border-color:var(--mk-ac,#18E875);color:var(--mk-ac,#18E875);box-shadow:0 0 20px var(--mk-glow,rgba(24,232,117,.3));animation:mkglow 2s ease-in-out infinite}
+@keyframes mkglow{0%,100%{box-shadow:0 0 12px var(--mk-glow,rgba(24,232,117,.2))}50%{box-shadow:0 0 24px var(--mk-glow,rgba(24,232,117,.4))}}
+.mk-step-lbl{font-size:.65rem;font-weight:700;color:rgba(255,255,255,.35);text-align:center;line-height:1.2}
+.mk-step.done .mk-step-lbl,.mk-step.cur .mk-step-lbl{color:rgba(255,255,255,.8)}
+.mk-step-line{position:absolute;top:16px;inset-inline-start:calc(50% + 20px);inset-inline-end:calc(-50% + 20px);height:2px;background:rgba(255,255,255,.08);z-index:0}
+.mk-step.done .mk-step-line{background:var(--mk-ac,#18E875)}
+.mk-step:last-child .mk-step-line{display:none}
+/* --- Mini Tickets --- */
+.mk-section-head{display:flex;align-items:center;gap:10px;margin:30px 0 16px;padding:0 4px}
+.mk-section-head h3{font-size:1rem;font-weight:900;color:#fff}
+.mk-section-head .mk-sh-line{flex:1;height:1px;background:var(--mk-border,rgba(24,232,117,.10))}
+.mk-mini-tickets{display:grid;gap:12px}
+.mk-mini{border-radius:14px;overflow:hidden;background:linear-gradient(145deg,rgba(10,20,17,.85),rgba(5,12,9,.9));border:1px solid var(--mk-border,rgba(24,232,117,.08));cursor:pointer;transition:transform .22s,box-shadow .22s,border-color .22s}
+.mk-mini:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(0,0,0,.4),0 0 20px var(--mk-glow,rgba(24,232,117,.06));border-color:var(--mk-ac,rgba(24,232,117,.2))}
+.mk-mini-top{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px dashed var(--mk-border,rgba(24,232,117,.08))}
+.mk-mini-img{width:52px;height:52px;border-radius:10px;object-fit:cover;border:1px solid var(--mk-border,rgba(24,232,117,.1));flex:none;background:var(--card)}
+.mk-mini-info{flex:1;min-width:0}
+.mk-mini-team{font-size:.65rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--mk-ac,rgba(24,232,117,.6))}
+.mk-mini-name{font-size:.88rem;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mk-mini-status{padding:3px 10px;border-radius:999px;font-size:.65rem;font-weight:800;white-space:nowrap}
+.mk-mini-status.st-pending{background:rgba(251,191,36,.15);color:#FCD34D}
+.mk-mini-status.st-confirmed{background:rgba(96,165,250,.15);color:#93C5FD}
+.mk-mini-status.st-preparing{background:var(--mk-ac-soft,rgba(24,232,117,.12));color:var(--mk-ac,#18E875)}
+.mk-mini-status.st-delivering{background:rgba(168,85,247,.15);color:#C4B5FD}
+.mk-mini-status.st-delivered{background:rgba(52,211,153,.15);color:#6EE7B7}
+.mk-mini-status.st-cancelled{background:rgba(239,68,68,.15);color:#FCA5A5}
+.mk-mini-bottom{display:flex;justify-content:space-between;align-items:center;padding:12px 16px}
+.mk-mini-code{font-size:.72rem;font-weight:800;color:rgba(255,255,255,.5);font-family:monospace}
+.mk-mini-price{font-size:.9rem;font-weight:900;color:#fff}
+.mk-mini-date{font-size:.7rem;color:rgba(255,255,255,.35)}
+/* --- Fan Card --- */
+.mk-fan{max-width:600px;margin:0 auto 24px;border-radius:18px;overflow:hidden;position:relative;background:linear-gradient(135deg,rgba(10,20,17,.9),rgba(5,12,9,.95));border:1px solid var(--mk-border,rgba(24,232,117,.12));padding:24px}
+.mk-fan::before{content:'';position:absolute;top:-30px;inset-inline-end:-30px;width:140px;height:140px;background:var(--mk-ac,#18E875);opacity:.04;border-radius:50%}
+.mk-fan-header{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.mk-fan-avatar{width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,var(--mk-ac,#18E875),var(--mk-ac2,#0B9F50));display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:#030708;font-weight:900}
+.mk-fan-name{font-size:1.2rem;font-weight:900;color:#fff}
+.mk-fan-id{font-size:.7rem;color:rgba(255,255,255,.4);font-family:monospace;letter-spacing:1px}
+.mk-fan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.mk-fan-stat{text-align:center;padding:12px 8px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.04)}
+.mk-fan-stat-val{font-size:1.2rem;font-weight:900;color:#fff}
+.mk-fan-stat-lbl{font-size:.65rem;font-weight:700;color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:1px;text-transform:uppercase}
+/* --- Acc tabs (simplified) --- */
+.mk-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;justify-content:center}
+.mk-tab{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:8px 16px;font-size:.8rem;font-weight:800;color:rgba(255,255,255,.5);cursor:pointer;transition:all .2s}
+.mk-tab:hover{border-color:var(--mk-ac,rgba(24,232,117,.2));color:rgba(255,255,255,.8)}
+.mk-tab.on{background:var(--mk-ac-soft,rgba(24,232,117,.1));border-color:var(--mk-ac,rgba(24,232,117,.25));color:var(--mk-ac,#18E875)}
+.mk-sec{display:none}
+.mk-sec.on{display:block;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.mk-sec-inner{max-width:600px;margin:0 auto}
+/* --- Saved sizes --- */
+.mk-szrow{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-radius:10px;background:rgba(255,255,255,.03);margin-bottom:6px;border:1px solid rgba(255,255,255,.04)}
+.mk-szrow a{color:var(--mk-ac,#18E875);text-decoration:none;font-weight:800;font-size:.88rem}
+.mk-szrow .pill{font-size:.72rem;padding:3px 10px}
+.mk-data-fld{margin-bottom:14px}
+.mk-data-fld label{display:block;font-size:.72rem;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.mk-data-fld input{width:100%;padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:#fff;font-size:.9rem;font-weight:600}
+.mk-data-fld input:focus{outline:none;border-color:var(--mk-ac,rgba(24,232,117,.3))}
+.mk-logout{display:flex;justify-content:center;margin-top:24px}
+.mk-logout button{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#FCA5A5;border-radius:12px;padding:12px 28px;font-weight:800;font-size:.88rem;cursor:pointer;transition:all .2s}
+.mk-logout button:hover{background:rgba(239,68,68,.2)}
+/* --- Ticket detail overlay --- */
+.mk-detail-overlay{position:fixed;inset:0;z-index:9000;display:none;align-items:center;justify-content:center;background:rgba(3,7,8,.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:20px;animation:fadeIn .25s ease}
+.mk-detail-overlay.on{display:flex}
+.mk-detail-close{position:fixed;top:20px;inset-inline-end:20px;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:#fff;font-size:1.2rem;cursor:pointer;z-index:9001;display:flex;align-items:center;justify-content:center}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+/* --- Mobile responsive --- */
+@media(max-width:600px){
+.mk-hero{min-height:360px;padding:50px 16px 30px}
+.mk-title{font-size:1.5rem}
+.mk-ticket{max-width:100%;border-radius:16px}
+.mk-ticket-top,.mk-ticket-mid{padding:18px 16px 14px}
+.mk-ticket-bottom{padding:16px;flex-direction:column;align-items:center}
+.mk-barcode{flex:none}
+.mk-detail-grid{grid-template-columns:1fr 1fr;gap:10px 14px}
+.mk-journey-steps{gap:0}
+.mk-step{max-width:80px}
+.mk-step-dot{width:26px;height:26px;font-size:.6rem}
+.mk-fan-grid{grid-template-columns:repeat(3,1fr);gap:8px}
+.mk-mini-top{padding:12px}
+.mk-mini-bottom{padding:10px 12px}
+}
 /* ============================== JERSEY OF THE DAY ============================== */
 .spotlight-card {
   background: var(--glass); border: 1px solid var(--glass-border); border-radius: 24px;
@@ -2981,6 +3119,38 @@ function accTab(id){
 function accTl(code){
   var el=$('tl-'+code); if(!el) return;
   el.style.display = (el.style.display==='none'||el.style.display==='') ? 'block' : 'none';
+}
+/* ---------- match ticket tabs ---------- */
+function mkTab(id){
+  document.querySelectorAll('.mk-sec').forEach(function(s){ s.classList.remove('on'); });
+  document.querySelectorAll('.mk-tab').forEach(function(b){ b.classList.remove('on'); });
+  var el=$(id); if(el) el.classList.add('on');
+  var bt=document.querySelector('.mk-tab[data-tab="'+id+'"]'); if(bt) bt.classList.add('on');
+  if(id==='mk-t-notifs'){
+    fetch('/api/account/notifs/read',{method:'POST'}).catch(function(){});
+  }
+}
+/* ---------- ticket detail overlay ---------- */
+function mkDetail(code){
+  fetch('/ticket?code='+encodeURIComponent(code),{headers:{'Accept':'text/html'}})
+    .then(function(r){return r.text();}).then(function(html){
+    var doc=new DOMParser().parseFromString(html,'text/html');
+    var mkT=doc.querySelector('.mk-ticket');
+    if(mkT){
+      $('mkDetailBody').innerHTML='<div style="max-width:600px;width:100%">'+mkT.outerHTML+'</div>';
+    } else {
+      $('mkDetailBody').innerHTML='<div style="text-align:center;color:rgba(255,255,255,.6);padding:40px">Loading...</div>';
+    }
+    $('mkDetailOverlay').classList.add('on');
+    document.body.style.overflow='hidden';
+  }).catch(function(){
+    location.href='/ticket?code='+encodeURIComponent(code);
+  });
+}
+function mkDetailClose(e){
+  if(e && e.target && e.target!==$('mkDetailOverlay') && !e.target.classList.contains('mk-detail-close')) return;
+  $('mkDetailOverlay').classList.remove('on');
+  document.body.style.overflow='';
 }
 /* ---------- football dna ---------- */
 function trackView(pid){
@@ -4689,178 +4859,317 @@ def account_page():
     orders = db.orders_by_user(u["id"])
     spent = sum(o["data"].get("total", 0) for o in orders if o["status"] != "cancelled")
     clubs = user_clubs(u)
-    lvl = passport_level(len(clubs))
-    rw = passport_rewards()
-    need = [1, 2, 5, 10]
+    themes = club_themes()
 
-    ord_html = ""
-    if not orders:
-        ord_html = '<p class="mnote">' + d["acc_empty_orders"] + '</p>'
+    def _order_team(o):
+        for it in o["data"].get("items", []):
+            p = next((x for x in cfg.PRODUCTS if x["id"] == it.get("id")), None)
+            if p and p.get("club_id"):
+                return p["club_id"]
+        return None
+
+    def _team_theme(cid):
+        if cid and cid in themes:
+            t = themes[cid]
+            return {"ac": t.get("ac", "#18E875"), "ac2": t.get("ac2", "#0B9F50"),
+                    "glow": t.get("glow", "#18E875"), "tint": t.get("tint", "#18E875"),
+                    "name": cfg.CLUBS.get(cid, {}).get(en and "en" or "ar", ""),
+                    "emoji": cfg.CLUBS.get(cid, {}).get("emoji", "⚽"),
+                    "cid": cid}
+        return {"ac": "#18E875", "ac2": "#0B9F50", "glow": "#18E875", "tint": "#18E875",
+                "name": "GOLAZOX", "emoji": "⚽", "cid": ""}
+
+    def _mk_css(ac, glow):
+        return ('--mk-ac:{ac};--mk-ac2:{ac2};--mk-glow:{glow};'
+                '--mk-glow1:{glow1};--mk-glow2:{glow2};--mk-border:{border};--mk-ac-soft:{acsoft}').format(
+            ac=ac, ac2=_team_theme(None)["ac2"], glow=hex_rgba(glow, 0.35),
+            glow1=hex_rgba(ac, 0.10), glow2=hex_rgba(ac, 0.04),
+            border=hex_rgba(ac, 0.15), acsoft=hex_rgba(ac, 0.12))
+
+    def _step_icon(i):
+        return ["✓", "✓", "✓", "✓", "✓"][i] if i < 5 else "●"
+
+    def _status_journey(o, th):
+        st = o["status"]
+        if st == "cancelled":
+            return ('<div class="mk-journey" style="border-color:rgba(239,68,68,.15)">'
+                    '<div class="mk-journey-title" style="color:#FCA5A5">{lbl}</div>'
+                    '<div style="text-align:center;color:rgba(255,255,255,.6);padding:8px 0">{msg}</div></div>').format(
+                lbl=d.get("st_cancelled", "Cancelled"), msg="—")
+        idx = ORDER_FLOW.index(st) if st in ORDER_FLOW else -1
+        labels = [d.get("st_pending", "Pending"), d.get("st_confirmed", "Confirmed"),
+                  d.get("st_preparing", "Preparing"), d.get("st_delivering", "Delivering"),
+                  d.get("st_delivered", "Delivered")]
+        steps = ""
+        for i in range(5):
+            cls = "done" if i < idx else ("cur" if i == idx else "")
+            steps += ('<div class="mk-step {cls}">'
+                      '<div class="mk-step-dot">{icon}</div>'
+                      '<div class="mk-step-lbl">{lbl}</div>'
+                      '{line}</div>').format(cls=cls, icon=_step_icon(i) if i < idx else ("▶" if i == idx else "○"),
+                                            lbl=labels[i],
+                                            line='<div class="mk-step-line"></div>' if i < 4 else "")
+        return ('<div class="mk-journey" style="{css}">'
+                '<div class="mk-journey-title">⚽ {title}</div>'
+                '<div class="mk-journey-steps">{steps}</div></div>').format(
+            css=_mk_css(th["ac"], th["glow"]), title=d.get("tick_progress", "Order Journey"), steps=steps)
+
+    def _main_ticket(o):
+        dta = o["data"]
+        code = o["code"]
+        th = _team_theme(_order_team(o))
+        item = dta.get("items", [{}])[0] if dta.get("items") else {}
+        p = next((x for x in cfg.PRODUCTS if x["id"] == item.get("id")), None)
+        team_name = th["name"]
+        item_name = item.get("name", "—")
+        item_size = item.get("size", "—")
+        item_qty = item.get("qty", 1)
+        order_total = fmt_cur(dta.get("total", 0))
+        order_date = dta.get("date", "—")
+        order_status = d.get("st_" + o["status"], o["status"])
+        match_id = "GX-" + code.replace("GX-", "") if code.startswith("GX-") else "GX-" + code
+        seat_no = str(u["id"]).zfill(4)
+        gate = "G" + str(hash(code) % 20 + 1).zfill(2)
+        section = "S" + str(hash(code) % 10 + 1)
+        row_letter = chr(65 + (hash(code) % 8))
+        barcode_num = code.replace("GX-", "").replace("-", "").zfill(12)
+        css = _mk_css(th["ac"], th["glow"])
+        ticket = (
+            '<div class="mk-ticket" style="{css}">'
+            '<div class="mk-ticket-top">'
+            '<div class="mk-ticket-brand"><h3>GOLAZOX</h3><div class="mk-ticket-sub">MATCHDAY TICKET</div></div>'
+            '<div class="mk-matchup">'
+            '<div class="mk-team"><div class="mk-team-role">HOME</div><div class="mk-team-name">GOLAZOX</div></div>'
+            '<div class="mk-vs">VS</div>'
+            '<div class="mk-team"><div class="mk-team-role">TEAM</div><div class="mk-team-name">{emoji} {team}</div></div>'
+            '</div></div>'
+            '<div class="mk-ticket-mid">'
+            '<div class="mk-detail-grid">'
+            '<div class="mk-detail"><div class="mk-detail-label">{item_lbl}</div><div class="mk-detail-value">{item_name}</div></div>'
+            '<div class="mk-detail"><div class="mk-detail-label">{size_lbl}</div><div class="mk-detail-value">{size}</div></div>'
+            '<div class="mk-detail"><div class="mk-detail-label">{qty_lbl}</div><div class="mk-detail-value">{qty}</div></div>'
+            '<div class="mk-detail"><div class="mk-detail-label">{total_lbl}</div><div class="mk-detail-value mk-highlight">{total}</div></div>'
+            '<div class="mk-detail"><div class="mk-detail-label">{order_lbl}</div><div class="mk-detail-value" style="font-family:monospace">#{code}</div></div>'
+            '<div class="mk-detail"><div class="mk-detail-label">{date_lbl}</div><div class="mk-detail-value">{date}</div></div>'
+            '<div class="mk-detail"><div class="mk-detail-label">{status_lbl}</div><div class="mk-detail-value" style="color:{ac}">{status}</div></div>'
+            '<div class="mk-detail"><div class="mk-detail-label">{match_lbl}</div><div class="mk-detail-value" style="font-family:monospace">{match_id}</div></div>'
+            '</div></div>'
+            '<div class="mk-ticket-bottom">'
+            '<div class="mk-barcode"><div class="mk-barcode-lines"></div><div class="mk-barcode-id">{barcode}</div></div>'
+            '<div class="mk-ticket-meta">'
+            '<div class="mk-meta-item"><div class="mk-meta-label">SEAT</div><div class="mk-meta-val">{seat}</div></div>'
+            '<div class="mk-meta-item"><div class="mk-meta-label">GATE</div><div class="mk-meta-val">{gate}</div></div>'
+            '<div class="mk-meta-item"><div class="mk-meta-label">SECTION</div><div class="mk-meta-val">{section}</div></div>'
+            '<div class="mk-meta-item"><div class="mk-meta-label">ROW</div><div class="mk-meta-val">{row}</div></div>'
+            '</div></div>'
+            '<div class="mk-ticket-actions">'
+            '<a class="hbtn" href="/ticket?code={code}">{view_lbl}</a>'
+            '<a class="hbtn" href="/track?code={code}">{track_lbl}</a>'
+            '<button class="hbtn" onclick="openReorder(\'{code}\')">{reorder_lbl}</button>'
+            '</div></div>'
+        ).format(
+            css=css, emoji=th["emoji"], team=esc(team_name),
+            item_lbl="ITEM" if en else "المنتج", item_name=esc(item_name),
+            size_lbl="SIZE" if en else "المقاس", size=esc(item_size),
+            qty_lbl="QTY" if en else "الكمية", qty=item_qty,
+            total_lbl="TOTAL" if en else "الإجمالي", total=order_total,
+            order_lbl="ORDER" if en else "رقم الطلب", code=esc(code),
+            date_lbl="DATE" if en else "التاريخ", date=esc(order_date),
+            status_lbl="STATUS" if en else "الحالة", status=esc(order_status), ac=th["ac"],
+            match_lbl="MATCH ID", match_id=esc(match_id),
+            barcode=barcode_num, seat=seat_no, gate=gate, section=section, row=row_letter,
+            view_lbl="🎫 " + d.get("acc_view", "View"),
+            track_lbl="🚚 " + d.get("acc_track", "Track"),
+            reorder_lbl="🔄 " + d.get("acc_reorder", "Reorder")
+        )
+        return ticket, _status_journey(o, th), th
+
+    def _mini_ticket(o):
+        dta = o["data"]
+        code = o["code"]
+        th = _team_theme(_order_team(o))
+        item = dta.get("items", [{}])[0] if dta.get("items") else {}
+        p = next((x for x in cfg.PRODUCTS if x["id"] == item.get("id")), None)
+        img = ("/img/" + esc(p["imgs"][0])) if p and p.get("imgs") else ""
+        img_html = ('<img src="' + img + '" alt="" loading="lazy">') if img else esc(th["emoji"])
+        st_cls = "st-" + o["status"]
+        status_txt = d.get("st_" + o["status"], o["status"])
+        css = _mk_css(th["ac"], th["glow"])
+        return ('<div class="mk-mini" style="{css}" onclick="mkDetail(\'{code}\')">'
+                '<div class="mk-mini-top">'
+                '<div class="mk-mini-img">{img}</div>'
+                '<div class="mk-mini-info">'
+                '<div class="mk-mini-team">{emoji} {team}</div>'
+                '<div class="mk-mini-name">{name}</div>'
+                '</div>'
+                '<span class="mk-mini-status {st_cls}">{status}</span>'
+                '</div>'
+                '<div class="mk-mini-bottom">'
+                '<div><div class="mk-mini-code">#{code}</div><div class="mk-mini-date">{date}</div></div>'
+                '<div class="mk-mini-price">{total}</div>'
+                '</div></div>'
+        ).format(
+            css=css, code=esc(code), emoji=th["emoji"], team=esc(th["name"]),
+            name=esc(item.get("name", "—")), st_cls=st_cls, status=esc(status_txt),
+            date=esc(dta.get("date", "")), total=fmt_cur(dta.get("total", 0)),
+            img=img_html
+        )
+
+    # --- Build sections ---
+    active_orders = [o for o in orders if o["status"] != "delivered" and o["status"] != "cancelled"]
+    past_orders = [o for o in orders if o["status"] == "delivered" or o["status"] == "cancelled"]
+
+    # Main ticket (most recent active order, or most recent overall)
+    current_order = active_orders[-1] if active_orders else (orders[-1] if orders else None)
+    main_ticket_html = ""
+    journey_html = ""
+    main_theme = _team_theme(None)
+
+    if current_order:
+        main_ticket_html, journey_html, main_theme = _main_ticket(current_order)
     else:
-        def _order_card(o):
-            dta = o["data"]
-            code = o["code"]
-            cancelled = o["status"] == "cancelled"
-            idx = ORDER_FLOW.index(o["status"]) if o["status"] in ORDER_FLOW else -1
-            rows = ""
-            for it in dta.get("items", [])[:6]:
-                p = next((x for x in cfg.PRODUCTS if x["id"] == it.get("id")), None)
-                img = ("/img/" + esc(p["imgs"][0])) if p and p.get("imgs") else ""
-                imgh = ('<img src="' + img + '" alt="" loading="lazy">') if img else ('<span class="acc-oem">' + esc(it.get("emoji", "⚽")) + '</span>')
-                szpart = ""
-                if it.get("kind") != "mug" and it.get("size"):
-                    szpart = d["size_w"] + esc(it.get("size", "")) + " · "
-                rows += ('<div class="acc-oit">' + imgh +
-                         '<div class="aoit"><b>{e} {n}</b><span>{sz}{q} × {pr} {c}</span></div></div>').format(
-                    e=esc(it.get("emoji", "⚽")), n=esc(it.get("name", "")), sz=szpart,
-                    q=it.get("qty", 1), pr=fmt_cur(it.get("price", 0)), c=cur())
-            if cancelled:
-                tl = ('<div class="tl"><div class="dot"></div><div><div class="lt">{lbl}</div></div></div>').format(
-                    lbl=d.get("st_cancelled", "cancelled"))
-            else:
-                inner = ""
-                for i, st in enumerate(ORDER_FLOW):
-                    done = (idx >= 0 and i <= idx)
-                    cls = "done" if done else ("cur" if i == idx else "")
-                    inner += ('<div class="tl {cls}"><div class="dot"></div>'
-                              '<div><div class="lt">{lbl}</div></div></div>').format(
-                        cls=cls, lbl=d.get("st_" + st, st))
-                tl = '<div class="tl">' + inner + '</div>'
-            return ('<div class="acc-card">'
-                    '<div class="acc-ordhead"><div class="ao"><b>#{c}</b><span>{dt}</span></div>'
-                    '<span class="pill">{sl}</span></div>'
-                    '{rows}'
-                    '<div class="row-t total" style="margin-top:12px"><span>{tlabel}</span><b>{t} {cu}</b></div>'
-                    '<button class="hbtn acc-tlbtn" onclick="accTl(\'{c}\')">🚚 {tbtn}</button>'
-                    '<div id="tl-{c}" style="display:none;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)">{tl}</div>'
-                    '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:12px">'
-                    '<a class="hbtn" href="/ticket?code={c}">{tk}</a>'
-                    '<a class="hbtn" href="/track?code={c}">{tr}</a>'
-                    '<button class="hbtn" onclick="openReorder(\'{c}\')">{ro}</button>'
-                    '</div></div>').format(
-                c=code, dt=dta.get("date", ""), sl=d.get("st_" + o["status"], o["status"]),
-                rows=rows, tlabel=d["cart_total"], t=fmt_cur(dta.get("total", 0)), cu=cur(),
-                tbtn=d["acc_track"], tl=tl, tk=d["acc_view"], tr=d["tr_title"], ro=d["acc_reorder"])
-        ord_html = "".join(_order_card(o) for o in orders)
+        main_ticket_html = (
+            '<div class="mk-empty">🏟️ {no_match}</div>'
+            '<a class="mk-explore" href="/teams">{explore}</a>'
+        ).format(no_match="ما عندك مباراة حالية" if not en else "No match in progress",
+                 explore="اكتشف الفرق ⚽" if not en else "Explore Teams ⚽")
 
-    pp_stamps = "".join('<div class="pp-stamp%s" title="%s">%s</div>' % (
-        "" if cid in clubs else " lock", esc(c.get(en and "en" or "ar", "")), c.get("emoji", "⚽"))
-        for cid, c in cfg.CLUBS.items())
-    nxt = lvl + 1 if lvl < 3 else None
-    prog_pct = int(len(clubs) / need[nxt] * 100) if nxt else 100
-    pp_meta = (d["pp_next"] + ": " + str(need[nxt] - len(clubs))) if nxt else "MAX"
-    pp_html = ('<div class="pp-card"><div class="pp-id">GOLAZOX • {ppid}</div>'
-               '<div class="pp-level">{lvlname}</div>'
-               '<div style="opacity:.85;font-size:.82rem">{n} {stamps}</div>'
-               '<div class="pp-stamps">{stamps_el}</div>'
-               '<div class="pp-prog"><i style="width:{pct}%"></i></div>'
-               '<div style="opacity:.85;font-size:.78rem;margin-top:8px">{meta}</div></div>'
-               ).format(ppid="GX-FAN-" + str(u["id"]), lvlname=d["lv_" + str(lvl)],
-                        n=len(clubs), stamps=d["pp_stamps"], stamps_el=pp_stamps,
-                        pct=prog_pct, meta=pp_meta)
-    rw_html = '<div class="dna-grid">'
-    for l in range(4):
-        r = rw.get(str(l), rw.get(l, {"d": 0, "p": 0}))
-        rw_html += ('<div class="dna-cell{cur}"><b>{name}</b><span>{rw}</span></div>').format(
-            cur=" on" if l == lvl else "", name=d["lv_" + str(l)],
-            rw=((str(r.get("d", 0)) + "% · +" + str(r.get("p", 0))) if (r.get("d") or r.get("p")) else "—"))
-    rw_html += '</div>'
+    # Past mini tickets
+    mini_html = ""
+    if past_orders:
+        for o in reversed(past_orders):
+            mini_html += _mini_ticket(o)
+    mini_section = ""
+    if mini_html:
+        mini_section = (
+            '<div class="mk-section-head"><h3>{title}</h3><div class="mk-sh-line"></div></div>'
+            '<div class="mk-mini-tickets">{tickets}</div>'
+        ).format(title="طلباتي السابقة" if not en else "Previous Orders", tickets=mini_html)
 
-    data_html = ('<div class="fld"><label>{li}</label><input value="{phone}" readonly></div>'
-                 '<div class="fld"><label>{n}</label><input id="pd_name" value="{name}"></div>'
-                 '<div class="frow"><div class="fld"><label>{a}</label><input id="pd_area" value="{area}"></div>'
-                 '<div class="fld"><label>{ad}</label><input id="pd_addr" value="{addr}"></div></div>'
-                 '<button class="btn pri big" onclick="saveAccountData()">{sv}</button>'
-                 ).format(li=d["acc_login_id"], phone=esc(u.get("phone", "") or ""), n=d["co_name"],
-                          name=esc(u.get("name", "") or ""), a=d["co_area"],
-                          area=esc(u.get("area", "") or ""), ad=d["co_address"],
-                          addr=esc(u.get("address", "") or ""), sv=d["ok_saved"])
+    # Fan Card
+    notifs = db.user_notifs(u["id"])
+    unread = db.user_notif_unread(u["id"])
+    fav_clubs_list = db.user_favs(u["id"])
+    fav_names = []
+    for fc in fav_clubs_list:
+        c = cfg.CLUBS.get(fc, {})
+        if c:
+            fav_names.append(c.get("emoji", "⚽") + " " + c.get(en and "en" or "ar", ""))
+    fav_str = " · ".join(fav_names[:5]) if fav_names else "—"
+    fan_card = (
+        '<div class="mk-fan" style="{css}">'
+        '<div class="mk-fan-header">'
+        '<div class="mk-fan-avatar">{initial}</div>'
+        '<div><div class="mk-fan-name">{name}</div>'
+        '<div class="mk-fan-id">GX-FAN-{uid}</div></div>'
+        '</div>'
+        '<div class="mk-fan-grid">'
+        '<div class="mk-fan-stat"><div class="mk-fan-stat-val">{orders}</div><div class="mk-fan-stat-lbl">{orders_lbl}</div></div>'
+        '<div class="mk-fan-stat"><div class="mk-fan-stat-val">{spent}</div><div class="mk-fan-stat-lbl">{spent_lbl}</div></div>'
+        '<div class="mk-fan-stat"><div class="mk-fan-stat-val">{clubs}</div><div class="mk-fan-stat-lbl">{clubs_lbl}</div></div>'
+        '</div>'
+        '<div style="margin-top:14px;font-size:.82rem;color:rgba(255,255,255,.5)">{fav_lbl}: {favs}</div>'
+        '</div>'
+    ).format(
+        css=_mk_css(main_theme["ac"], main_theme["glow"]),
+        initial=esc((u.get("name") or "P")[0].upper()),
+        name=esc(u.get("name", "") or "Player"),
+        uid=u["id"],
+        orders=len(orders), orders_lbl="طلبات" if not en else "Orders",
+        spent=fmt_cur(spent) + " " + cur(), spent_lbl="المصروف" if not en else "Spent",
+        clubs=len(clubs), clubs_lbl="أندية" if not en else "Clubs",
+        fav_lbl="الأندية المفضلة" if not en else "Favorite clubs", favs=esc(fav_str)
+    )
 
-    set_html = ('<p class="mnote">{sub}</p><div style="display:flex;gap:10px;flex-wrap:wrap">'
-                '<button class="hbtn" onclick="openModal(\'m-settings\')">{st}</button>'
-                '<button class="hbtn" onclick="saveAccountData()">{sv}</button></div>'
-                ).format(sub=d["auth_sub"], st=d["set_title"], sv=d["ok_saved"])
+    # Tabs
+    tabs = [
+        ("mk-t-orders", "📦 " + d["acc_orders"]),
+        ("mk-t-favs", "❤️ " + d["acc_favs"]),
+        ("mk-t-sizes", "📏 " + d["acc_sizes"]),
+        ("mk-t-data", "✏️ " + d["acc_data"]),
+        ("mk-t-notifs", "🔔 " + d["acc_notifs"] + (('<span style="background:var(--mk-ac,#18E875);color:#030708;border-radius:999px;padding:1px 7px;font-size:.65rem;font-weight:900;margin-inline-start:4px">%d</span>' % unread) if unread else "")),
+    ]
+    tabs_html = "".join(
+        '<button class="mk-tab{on}" data-tab="{sid}" onclick="mkTab(\'{sid}\')">{lbl}</button>'.format(
+            on=" on" if i == 0 else "", sid=sid, lbl=lbl)
+        for i, (sid, lbl) in enumerate(tabs)
+    )
 
+    # Notifications
+    if notifs:
+        n_html = "".join(
+            '<div style="padding:10px 14px;border-radius:10px;background:rgba(255,255,255,.03);margin-bottom:6px;border:1px solid rgba(255,255,255,.04)">'
+            '<p style="font-weight:700;font-size:.88rem;color:#fff">{txt}</p>'
+            '<span style="font-size:.7rem;color:rgba(255,255,255,.35)">{dt}</span></div>'.format(
+                txt=esc(x["text"]), dt=esc(x["created"]))
+            for x in notifs)
+    else:
+        n_html = '<p style="text-align:center;color:rgba(255,255,255,.4);padding:20px">{msg}</p>'.format(msg=d["acc_notifs_empty"])
+
+    # Saved sizes
     saved_sizes = db.user_sizes(u["id"])
     sz_prods = [p for p in cfg.PRODUCTS if p["id"] in saved_sizes and not p.get("hidden")]
     if sz_prods:
         sz_html = ""
         for p in sz_prods:
-            sz_html += ('<div class="acc-szrow">'
-                        '<a href="/product/{id}"><b>{e} {n}</b></a>'
-                        '<span class="pill">{sw} {s}</span></div>').format(
+            sz_html += ('<div class="mk-szrow"><a href="/product/{id}">{e} {n}</a><span class="pill">{sw} {s}</span></div>').format(
                 id=p["id"], e=p.get("emoji", "⚽"), n=esc(p.get("name_ar") if not en else p.get("name_en")),
                 sw=d["size_w"], s=esc(saved_sizes[p["id"]]))
-        sizes_html = '<div class="acc-szlist">' + sz_html + '</div>'
+        sizes_html = sz_html
     else:
-        sizes_html = '<p class="mnote">' + d["acc_sizes_empty"] + '</p>'
+        sizes_html = '<p style="text-align:center;color:rgba(255,255,255,.4);padding:20px">{msg}</p>'.format(msg=d["acc_sizes_empty"])
 
-    notifs = db.user_notifs(u["id"])
-    unread = db.user_notif_unread(u["id"])
-
-    tabs = [("acc-orders", d["acc_orders"]),
-            ("acc-notifs", d["acc_notifs"] + (('<span class="acc-badge" id="nbadge">%d</span>' % unread) if unread else "")),
-            ("acc-favs", d["acc_favs"]),
-            ("acc-sizes", d["acc_sizes"]), ("acc-alerts", d["acc_alerts"]),
-            ("acc-points", d["acc_points"]), ("acc-passport", d["acc_passport"]),
-            ("acc-dna", d["acc_dna"]), ("acc-data", d["acc_data"]),
-            ("acc-settings", d["acc_settings"])]
-    nav = "".join('<button class="acc-btn%s" data-tab="%s" onclick="accTab(\'%s\')">%s</button>' % (
-        " on" if i == 0 else "", sid, sid, lbl) for i, (sid, lbl) in enumerate(tabs))
-
-    if notifs:
-        n_html = "".join('<div class="acc-n{ifirst}"><span class="acc-ndot"></span><p>{txt}</p><span class="acc-ndt">{dt}</span></div>'.format(
-            ifirst=" first" if i == 0 else "", txt=esc(x["text"]), dt=esc(x["created"]))
-            for i, x in enumerate(notifs))
-    else:
-        n_html = '<p class="mnote">' + d["acc_notifs_empty"] + '</p>'
-
-    # Player Card
-    fav_clubs = db.user_favs(u["id"])
-    fav_names = []
-    for fc in fav_clubs:
-        c = cfg.CLUBS.get(fc, {})
-        if c:
-            fav_names.append(c.get("emoji", "⚽") + " " + c.get(en and "en" or "ar", ""))
-    fav_str = " · ".join(fav_names[:5]) if fav_names else (d.get("acc_empty_orders", "—"))
-    player_card = (
-        '<div class="pcard-id">'
-        '<span class="pid-emoji">{emoji}</span>'
-        '<div class="pid-logo">⚽ GOLAZOX</div>'
-        '<div class="pid-name">{name}</div>'
-        '<div class="pid-meta">GX-FAN-{uid} · {orders} {orders_lbl} · {spent_lbl} {spent} {cur}</div>'
-        '<span class="pid-level">{lvl}</span>'
-        '<div style="margin-top:10px;font-size:.8rem;color:rgba(255,255,255,.7)">{fav_lbl}: {favs}</div>'
-        '</div>'
+    # Data form
+    data_html = (
+        '<div class="mk-data-fld"><label>{phone_lbl}</label><input value="{phone}" readonly></div>'
+        '<div class="mk-data-fld"><label>{name_lbl}</label><input id="pd_name" value="{name}"></div>'
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+        '<div class="mk-data-fld"><label>{area_lbl}</label><input id="pd_area" value="{area}"></div>'
+        '<div class="mk-data-fld"><label>{addr_lbl}</label><input id="pd_addr" value="{addr}"></div></div>'
+        '<button class="mk-explore" style="width:100%;margin-top:8px" onclick="saveAccountData()">{sv}</button>'
     ).format(
-        emoji="⚽", name=esc(u.get("name", "") or "Player"),
-        uid=u["id"], orders=len(orders), orders_lbl=d.get("acc_orders", "orders"),
-        spent_lbl=d.get("acc_spent", "spent"), spent=fmt_cur(spent), cur=cur(),
-        lvl=d.get("lv_" + str(lvl), "Fan"), fav_lbl="Club" if en else "النادي",
-        favs=esc(fav_str)
+        phone_lbl=d.get("acc_login_id", "Phone"), phone=esc(u.get("phone", "") or ""),
+        name_lbl=d.get("co_name", "Name"), name=esc(u.get("name", "") or ""),
+        area_lbl=d.get("co_area", "Area"), area=esc(u.get("area", "") or ""),
+        addr_lbl=d.get("co_address", "Address"), addr=esc(u.get("address", "") or ""),
+        sv=d.get("ok_saved", "Save")
     )
 
+    # Main body
     body = (
-        '<div class="wrap"><div class="acc-box">'
-        '<div class="acc-hero"><h2>{w} {n} 👋</h2><p>{since}: {d} · {sp}: <b>{s} {c}</b></p>'
-        '<button class="hbtn" style="position:absolute;top:16px;inset-inline-end:16px;background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.4)" onclick="authOut()">{out}</button></div>'
-        '{player_card}'
-        '<div class="acc-nav">{nav}</div>'
-        '<div class="acc-sec on" id="acc-orders">{orders}</div>'
-        '<div class="acc-sec" id="acc-notifs">{notifs}</div>'
-        '<div class="acc-sec" id="acc-favs"><div id="favsBox"></div></div>'
-        '<div class="acc-sec" id="acc-sizes">{sizes}</div>'
-        '<div class="acc-sec" id="acc-alerts"><div id="alertsBox"></div></div>'
-        '<div class="acc-sec" id="acc-points"><div id="pointsBox"></div></div>'
-        '<div class="acc-sec" id="acc-passport">{pp}{rw}</div>'
-        '<div class="acc-sec" id="acc-dna"><div id="dnaBox"></div><div id="dnaRec"></div></div>'
-        '<div class="acc-sec" id="acc-data">{data}</div>'
-        '<div class="acc-sec" id="acc-settings">{set}</div>'
-        '</div></div>'
-    ).format(w=d["acc_welcome"], n=esc(u.get("name", "") or "👤"), since=d["acc_member_since"],
-             d=u.get("created", ""), sp=d["acc_spent"], s=fmt_cur(spent), c=cur(), out=d["ac_logout"],
-             nav=nav, orders=ord_html, notifs=n_html, sizes=sizes_html, pp=pp_html, rw=rw_html, data=data_html, set=set_html,
-             player_card=player_card)
+        '<div class="wrap" style="max-width:800px;margin:0 auto;padding:0 16px">'
+        '<div class="mk-hero" style="border-radius:0 0 24px 24px;margin:0 -16px 24px">'
+        '<div class="mk-lights"></div><div class="mk-lights"></div><div class="mk-lights"></div>'
+        '<div class="mk-lights"></div><div class="mk-lights"></div>'
+        '<div class="mk-grass"></div>'
+        '<div class="mk-subtitle">⚽ GOLAZOX</div>'
+        '<div class="mk-title">{hero_title}</div>'
+        '</div>'
+        '{fan_card}'
+        '<div class="mk-tabs">{tabs}</div>'
+        '<div class="mk-sec on" id="mk-t-orders">'
+        '<div class="mk-sec-inner">{main_ticket}{journey}{mini_section}</div>'
+        '</div>'
+        '<div class="mk-sec" id="mk-t-favs"><div class="mk-sec-inner"><div id="favsBox"></div></div></div>'
+        '<div class="mk-sec" id="mk-t-sizes"><div class="mk-sec-inner">{sizes}</div></div>'
+        '<div class="mk-sec" id="mk-t-data"><div class="mk-sec-inner">{data}</div></div>'
+        '<div class="mk-sec" id="mk-t-notifs"><div class="mk-sec-inner">{notifs}</div></div>'
+        '<div class="mk-logout"><button onclick="authOut()">{logout}</button></div>'
+        '</div>'
+        '<div class="mk-detail-overlay" id="mkDetailOverlay" onclick="mkDetailClose(event)">'
+        '<button class="mk-detail-close" onclick="mkDetailClose()">✕</button>'
+        '<div id="mkDetailBody"></div>'
+        '</div>'
+    ).format(
+        hero_title="記憶你的MATCH IS READY ⚽" if False else (
+            ("記憶你的" + d["acc_welcome"] + " ⚽") if False else
+            (d["acc_welcome"] + " ⚽ — YOUR MATCH IS READY" if en else d["acc_welcome"] + " ⚽ — تذكرتك جاهزة للمباراة")
+        ),
+        fan_card=fan_card, tabs=tabs_html,
+        main_ticket=main_ticket_html, journey=journey_html, mini_section=mini_section,
+        sizes=sizes_html, data=data_html, notifs=n_html,
+        logout=d.get("ac_logout", "Logout")
+    )
     return base_page(body)
 
 

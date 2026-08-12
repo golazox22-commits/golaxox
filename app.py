@@ -3868,7 +3868,7 @@ def header_html(active=""):
             '<button class="hbtn hmenu" onclick="toggleMenu()">☰</button>'
             '%s'
             '<button class="hbtn hicon" onclick="openModal(\'m-settings\')">⚙️<span class="hcount" id="cbadge">0</span></button>'
-            '<button class="hbtn hicon" onclick="openCart()">🛒<span class="hcount" id="cbadge2">0</span></button>'
+            '<a class="hbtn hicon" href="/cart">🛒<span class="hcount" id="cbadge2">0</span></a>'
             '<button class="hbtn" onclick="setLang(\'%s\')">%s</button>'
             '<div class="hd-search"><div class="sbox hd-sbox">'
             '<input id="sq" placeholder="%s" onkeydown="if(event.key===\'Enter\')applyFilters()">'

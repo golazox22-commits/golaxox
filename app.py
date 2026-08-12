@@ -23,6 +23,31 @@ app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 app.config["PERMANENT_SESSION_LIFETIME"] = datetime.timedelta(days=30)
 
 
+# ============================== LOGIN WALL ==============================
+# Every page requires a logged-in user except: language selection/entry,
+# the login page itself, auth APIs, image files, health check, static files,
+# and the /admin* routes (they already enforce their own separate admin auth).
+LOGIN_EXEMPT_ENDPOINTS = {
+    "index", "enter", "setlang", "login_route", "img", "health", "static",
+    "api_auth_otp", "api_auth_verify", "api_auth_admin_verify",
+    "api_auth_password", "api_auth_logout", "api_me", "api_diag",
+}
+
+
+@app.before_request
+def require_login_everywhere():
+    ep = request.endpoint
+    if ep is None:
+        return None  # let Flask handle 404s normally
+    if ep in LOGIN_EXEMPT_ENDPOINTS or ep.startswith("admin"):
+        return None
+    if not has_lang():
+        return None  # allow the language-selection flow to run first
+    if current_user():
+        return None
+    return redirect("/login")
+
+
 def reload_products():
     """Merge admin-managed product overrides into cfg.PRODUCTS in place."""
     cfg.PRODUCTS[:] = db.merge_products(cfg.PRODUCTS)

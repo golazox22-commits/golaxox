@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 golazox — configuration, products, clubs, size chart, rewards, translations.
 """
@@ -9,7 +9,7 @@ TELEGRAM = os.environ.get("TELEGRAM", "rms_2o")
 ADMIN_PASS = os.environ.get("ADMIN_PASS", "golazox2026")
 ADMIN_EMAIL = "golazox22@gmail.com"
 ADMIN_QUESTION = "أفضل شخص مين؟"
-ADMIN_ANSWER = "احمد الشيخ"
+ADMIN_ANSWER = "الشيخ احمد"
 CURRENCY_AR = "د.ب"
 CURRENCY_EN = "BHD"
 PRICE_JERSEY = 7.0

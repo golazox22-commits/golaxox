@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 golazox — Premium Football Club Store (Flask)
-Light default + Dark mode, font sizes, full cart+checkout+Telegram, order ticket &
+Dark Night-Stadium theme by default (optional light mode), font sizes, full cart+checkout via WhatsApp, order ticket &
 tracking, size stock + notify-me, search/filters, favorites, badges, dynamic club
 theme, ratings, request-a-product, image search, GOAL POINTS, YOU CHOOSE poll,
 NEW DROP countdown, MATCHDAY mode, admin panel.
@@ -271,7 +271,7 @@ def fix_phone(ph):
 
 
 def seed_super_admin():
-    phone = fix_phone(os.environ.get("SUPER_ADMIN_PHONE") or os.environ.get("ADMIN_PHONE") or cfg.WHATSAPP)
+    phone = fix_phone(os.environ.get("SUPER_ADMIN_PHONE") or os.environ.get("ADMIN_PHONE") or cfg.TELEGRAM)
     name = os.environ.get("SUPER_ADMIN_NAME", "Owner")
     u = db.user_by_phone(phone)
     if not u:
@@ -443,8 +443,8 @@ html[data-theme="light"][data-club] .hero { background:linear-gradient(120deg, v
 .btn.ghost { background:transparent; border:1.5px solid rgba(255,255,255,.12); color:var(--golazox-white); backdrop-filter:blur(8px); }
 html[data-theme="light"] .btn.ghost { background:var(--card); border-color:var(--line); color:var(--txt); backdrop-filter:none; }
 .btn.ghost:hover { border-color:var(--ac); color:var(--ac); }
-.btn.wa { background:var(--green); color:#fff; box-shadow:0 8px 28px rgba(24,232,117,.3); }
-.btn.wa:hover { transform:translateY(-2px); box-shadow:0 12px 36px rgba(24,232,117,.4); }
+.btn.wa2 { background:var(--green); color:#fff; box-shadow:0 8px 28px rgba(24,232,117,.3); }
+.btn.wa2:hover { transform:translateY(-2px); box-shadow:0 12px 36px rgba(24,232,117,.4); }
 .btn.big { width:100%; justify-content:center; padding:14px; font-size:1rem; }
 .btn.sm { padding:8px 16px; font-size:.85rem; }
 .btn.block { width:100%; justify-content:center; }
@@ -2405,10 +2405,12 @@ html[data-theme="light"] .mtk-jstep.done b, html[data-theme="light"] .mtk-jstep.
   .tk-btns { grid-template-columns:1fr; padding:12px 16px 16px; gap:8px; }
   .tk-total { padding:10px 16px; }
   .tk-btns .btn { padding:11px; font-size:.88rem; }
-  .cd { width:100%; max-width:100vw; }
+  .cd { width:100%; max-width:100vw; top:auto; bottom:0; left:0; right:0; inset-inline-end:0;
+    height:auto; max-height:88dvh; max-height:88vh; border-radius:20px 20px 0 0;
+    border-left:none; border-top:1px solid rgba(24,232,117,.10); box-shadow:0 -12px 40px rgba(0,0,0,.5); }
   .cd-head { padding:12px 14px; }
-  .cd-body { padding:10px 14px; }
-  .cd-foot { padding:12px 14px; }
+  .cd-body { flex:0 1 auto; max-height:42vh; padding:10px 14px; }
+  .cd-foot { padding:12px 14px; padding-bottom:calc(12px + env(safe-area-inset-bottom)); }
   .ci { gap:10px; padding:10px 0; }
   .ci-emoji { font-size:1.3rem; }
   .ci-tx b { font-size:.82rem; }
@@ -2533,100 +2535,6 @@ html[data-theme="light"] .mtk-jstep.done b, html[data-theme="light"] .mtk-jstep.
   .pen-pitch { height:260px; }
   .pen-goal { width:200px; height:90px; }
 }
-
-
-/* ============================== CART COMPACT + MOBILE STADIUM FIX ============================== */
-.cart-page-shell { width:100%; max-width:980px; margin:0 auto; }
-#cartPage { display:block; width:100%; min-height:0 !important; height:auto !important; }
-#cartPage .ci { margin:0; }
-#cartPage .row-t { margin:0 0 7px; }
-#cartPage .row-t.total { margin-top:10px; padding-top:10px; border-top:1px solid var(--glass-border); }
-.cart-page-actions { display:flex; flex-direction:column; gap:9px; margin:12px 0 0; }
-.cart-page-actions .btn { width:100%; min-height:50px; justify-content:center; }
-.cart-wa-btn { background:linear-gradient(135deg,#25D366,#128C4A) !important; color:#fff !important; box-shadow:0 8px 22px rgba(37,211,102,.18); }
-.cart-clear-btn { width:auto !important; align-self:center; min-height:38px !important; padding:7px 14px !important; background:transparent !important; }
-.cart-penalty { margin:14px 0 0; padding:16px; border:1px solid var(--glass-border); border-radius:18px; background:linear-gradient(180deg,rgba(16,37,26,.72),rgba(5,6,7,.82)); overflow:hidden; }
-.cart-penalty h3 { margin:0 0 4px; font-size:1rem; }
-.cart-penalty p { margin:0 0 10px; color:var(--mut); font-size:.82rem; }
-.cart-penalty-pitch { position:relative; height:230px; border-radius:15px; overflow:hidden; background:linear-gradient(180deg,#0c1d14 0 24%,#123c25 24% 100%); border:1px solid rgba(255,255,255,.08); }
-.cart-penalty-pitch:before { content:''; position:absolute; inset:24% 0 0; background:repeating-linear-gradient(90deg,rgba(255,255,255,.035) 0 42px,transparent 42px 84px); }
-.cart-penalty-goal { position:absolute; top:26px; left:50%; transform:translateX(-50%); width:min(72%,300px); height:88px; border:4px solid rgba(255,255,255,.9); border-top:0; background:repeating-linear-gradient(90deg,rgba(255,255,255,.12) 0 12px,transparent 12px 24px),repeating-linear-gradient(0deg,rgba(255,255,255,.12) 0 12px,transparent 12px 24px); }
-.cart-penalty-keeper { position:absolute; left:50%; top:73px; transform:translate(-50%,-50%); font-size:48px; z-index:4; transition:left .45s ease,top .45s ease; }
-.cart-penalty-ball { position:absolute; left:50%; bottom:18px; transform:translateX(-50%); font-size:32px; z-index:5; transition:left .48s cubic-bezier(.2,.8,.3,1),top .48s cubic-bezier(.2,.8,.3,1); }
-.cart-penalty-zones { position:absolute; top:35px; left:50%; transform:translateX(-50%); width:min(72%,300px); height:75px; z-index:6; display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
-.cart-penalty-zones button { border:1px dashed rgba(255,255,255,.45); background:rgba(0,0,0,.14); color:#fff; border-radius:9px; font-weight:800; cursor:pointer; }
-.cart-penalty-zones button:active { transform:scale(.96); }
-.cart-penalty-result { min-height:28px; text-align:center; margin-top:9px; font-weight:900; }
-@media (max-width:768px){
-  .cart-page-shell { width:100%; }
-  #cartPage { margin:0 !important; padding:0 !important; }
-  #cartPage .ci { min-height:0 !important; padding:10px 0 !important; }
-  #cartPage .row-t { min-height:0 !important; height:auto !important; margin-bottom:6px !important; }
-  #cartPage > * { margin-top:0; }
-  #cartPage > .cart-page-actions { margin-top:10px; }
-  .cart-penalty { margin-top:12px; padding:12px; }
-  .cart-penalty-pitch { height:215px; }
-}
-
-/* ============================== GOLAZOX FINAL MOBILE + WHATSAPP FIX ============================== */
-@media (max-width: 768px) {
-  html, body { width:100%; max-width:100%; overflow-x:hidden; }
-  body { min-height:100dvh; padding-bottom:calc(84px + env(safe-area-inset-bottom)); }
-  .wrap { width:100%; max-width:100%; padding:12px 12px calc(120px + env(safe-area-inset-bottom)); }
-  .page-head { margin-bottom:14px; }
-  .page-head h1 { font-size:1.45rem; line-height:1.25; }
-  .cart-layout { grid-template-columns:1fr !important; gap:14px; }
-  #cartPage { width:100%; min-height:0 !important; height:auto !important; background:transparent !important; }
-  #cartPage .ci { width:100%; min-height:68px; padding:12px 0; }
-  #cartPage .row-t { min-height:30px; align-items:center; }
-  #cartPage > div:last-child { width:100%; }
-  #cartPage .btn { width:100% !important; min-height:50px; flex:1 1 100% !important; justify-content:center; }
-  #cartPage .btn.wa { background:linear-gradient(135deg,#18E875,#0B9F50); color:#041009; box-shadow:0 8px 24px rgba(24,232,117,.18); }
-  #cartPage .btn.ghost { width:100% !important; }
-  .mback { padding:8px; align-items:flex-end; }
-  .mbox { width:100%; max-width:100%; max-height:min(92dvh,760px); border-radius:20px 20px 0 0; margin:0; }
-  .mbody { padding:16px 14px calc(18px + env(safe-area-inset-bottom)); overflow-y:auto; -webkit-overflow-scrolling:touch; }
-  .mhead { padding:12px 14px; }
-  .frow { flex-direction:column !important; gap:0 !important; }
-  .fld { margin-bottom:10px; }
-  .fld input, .fld select, .fld textarea { min-height:46px; font-size:16px; }
-  .mbody .btn.big, .mbody .btn.block { width:100%; min-height:50px; justify-content:center; }
-  .gmain { min-height:0 !important; height:auto !important; }
-  .gmain img { display:block; width:100%; height:auto !important; max-height:300px; object-fit:contain; }
-  .gmain:empty, .pimg:empty { min-height:0 !important; height:0 !important; }
-  .pimg { height:150px !important; min-height:0 !important; }
-  .pimg img { max-height:135px; }
-  .fab { right:14px; inset-inline-end:14px; bottom:calc(78px + env(safe-area-inset-bottom)); width:52px; height:52px; }
-  .gx-bnav { padding-bottom:env(safe-area-inset-bottom); }
-}
-@media (max-width:430px) {
-  .wrap { padding-left:10px; padding-right:10px; }
-  .grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
-  .pcard { min-width:0; }
-  .pcard-inner { min-width:0; }
-  .pbody h3 { font-size:.82rem; line-height:1.45; }
-  .pfoot { gap:6px; }
-  .pfoot b { font-size:.82rem; }
-  .btn { min-height:46px; }
-}
-
-/* ==============================
-   GOLAZOX CART - FINAL COMPACT SPACING
-   ============================== */
-#cartPage .ci { padding: 6px 0 !important; margin: 0 !important; min-height: 0 !important; }
-#cartPage .row-t { margin: 2px 0 !important; min-height: 0 !important; height: auto !important; }
-#cartPage .row-t.total { margin-top: 4px !important; padding-top: 4px !important; border-top: 1px solid var(--glass-border); }
-#cartPage .cart-page-actions { margin-top: 6px !important; gap: 6px !important; }
-#cartPage .cart-penalty { margin-top: 8px !important; padding: 12px !important; }
-#cartPage .cart-penalty-pitch { height: 200px !important; }
-@media (max-width: 768px) {
-  #cartPage .ci { padding: 4px 0 !important; }
-  #cartPage .row-t { margin: 1px 0 !important; }
-  #cartPage .cart-page-actions { margin-top: 5px !important; gap: 5px !important; }
-  #cartPage .cart-penalty { margin-top: 7px !important; }
-  #cartPage .cart-penalty-pitch { height: 180px !important; }
-}
-
 </style>"""
 
 BASE_JS = """<script>
@@ -2639,7 +2547,7 @@ function gxSet(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){}
 function gxDev(){ var d=gxGet('gx_device',null); if(!d){ d='d'+Math.random().toString(36).slice(2)+Date.now().toString(36); gxSet('gx_device',d); } return d; }
 /* ---------- theme & font ---------- */
 function applyPrefs(){
-  var th='dark'; document.documentElement.setAttribute('data-theme',th);
+  var th=gxGet('gx_theme','dark'); document.documentElement.setAttribute('data-theme',th);
   var fs=gxGet('gx_font','b'); document.documentElement.setAttribute('data-font',fs);
   var club=gxGet('gx_club',null); if(club) document.documentElement.setAttribute('data-club',club);
 }
@@ -2647,7 +2555,7 @@ function setTheme(t){ gxSet('gx_theme',t); applyPrefs(); syncPrefs(); }
 function setFont(f){ gxSet('gx_font',f); applyPrefs(); syncPrefs(); }
 function setMyClub(cid){ gxSet('gx_club',cid); applyPrefs(); syncPrefs(); if(cid) toast(gxT('md_choice_ok')); }
 function syncPrefs(){
-  var th='dark', fs=gxGet('gx_font','b'), club=gxGet('gx_club',null);
+  var th=gxGet('gx_theme','dark'), fs=gxGet('gx_font','b'), club=gxGet('gx_club',null);
   var rows=document.querySelectorAll('.seg[data-seg]');
   rows.forEach(function(row){
     var name=row.getAttribute('data-seg'); var val = name==='theme'?th:(name==='font'?fs:club);
@@ -2906,27 +2814,6 @@ function renderCart(){
   });
   box.innerHTML=html; fillFoot();
 }
-var cartPenaltyBusy=false;
-function cartPenaltyShoot(zone){
-  if(cartPenaltyBusy) return;
-  cartPenaltyBusy=true;
-  var keeper=$('cartPenaltyKeeper'), ball=$('cartPenaltyBall'), res=$('cartPenaltyResult');
-  var zones={left:['28%','46%'],center:['50%','42%'],right:['72%','46%']};
-  var keys=['left','center','right'];
-  var keeperZone=keys[Math.floor(Math.random()*keys.length)];
-  var goal=keeperZone!==zone;
-  var target=zones[zone], ktarget=zones[keeperZone];
-  if(ball){ ball.style.left=target[0]; ball.style.top=target[1]; ball.style.bottom='auto'; }
-  if(keeper){ keeper.style.left=ktarget[0]; keeper.style.top=ktarget[1]; }
-  setTimeout(function(){
-    if(res){ res.textContent=goal?'GOAL! ⚽🔥':'صدها الحارس! 🧤'; res.style.color=goal?'var(--ac)':'#fbbf24'; }
-    setTimeout(function(){
-      if(ball){ ball.style.left='50%'; ball.style.top='auto'; ball.style.bottom='18px'; }
-      if(keeper){ keeper.style.left='50%'; keeper.style.top='73px'; }
-      cartPenaltyBusy=false;
-    },900);
-  },520);
-}
 function renderCartPage(){
   var box=$('cartPage'); if(!box) return;
   var cart=gxGet('gx_cart',[]);
@@ -2948,18 +2835,10 @@ function renderCartPage(){
   html+='<div class="row-t"><span>'+gxT('cart_subtotal')+'</span><b>'+pmoney(tot.sub)+' '+GX.cur+'</b></div>'
     +'<div class="row-t"><span>'+gxT('cart_delivery')+'</span><b>'+pmoney(tot.delivery)+' '+GX.cur+'</b></div>'
     +'<div class="row-t total"><span>'+gxT('cart_total')+'</span><b>'+pmoney(tot.total)+' '+GX.cur+'</b></div>'
-    +'<div class="cart-page-actions">'
-    +'<button class="btn cart-wa-btn" onclick="orderCartWA()">💬 '+gxT('order_wa')+'</button>'
-    +'<button class="btn ghost cart-clear-btn" onclick="clearCart()">🗑 '+gxT('cart_clear')+'</button></div>'
-    +'<div class="cart-penalty">'
-    +'<h3>⚽ ركلة جزاء</h3><p>اختاري الزاوية وحاولي تسجيل الهدف.</p>'
-    +'<div class="cart-penalty-pitch">'
-    +'<div class="cart-penalty-goal"></div>'
-    +'<div class="cart-penalty-zones">'
-    +'<button onclick="cartPenaltyShoot(\"left\")">↖</button><button onclick="cartPenaltyShoot(\"center\")">↑</button><button onclick="cartPenaltyShoot(\"right\")">↗</button>'
-    +'</div><div class="cart-penalty-keeper" id="cartPenaltyKeeper">🧤</div>'
-    +'<div class="cart-penalty-ball" id="cartPenaltyBall">⚽</div></div>'
-    +'<div class="cart-penalty-result" id="cartPenaltyResult"></div></div>';
+    +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">'
+    +'<button class="btn wa" style="flex:1" onclick="openCheckout()">'+gxT('cart_checkout')+'</button>'
+    +'<button class="btn wa2" style="flex:1" onclick="orderCartTG()">💬 '+gxT('order_wa')+'</button>'
+    +'<button class="btn ghost" onclick="clearCart()">🗑 '+gxT('cart_clear')+'</button></div>';
   box.innerHTML=html;
 }
 var rewardSel=null;
@@ -2981,7 +2860,7 @@ function fillFoot(){
     }
   }
   html+='<button class="btn wa block" '+(cart.length?'':'disabled style="opacity:.5"')+' onclick="openCheckout()">'+gxT('cart_checkout')+'</button>'
-    +'<button class="btn wa block" '+(cart.length?'':'disabled style="opacity:.5"')+' onclick="orderCartWA()" style="margin-top:8px">💬 '+gxT('order_wa')+'</button>'
+    +'<button class="btn wa2 block" '+(cart.length?'':'disabled style="opacity:.5"')+' onclick="orderCartTG()" style="margin-top:8px">💬 '+gxT('order_wa')+'</button>'
     +'<div style="text-align:center;margin-top:8px"><button class="hbtn" onclick="clearCart()">🗑 '+gxT('cart_clear')+'</button></div>';
   ft.innerHTML=html;
 }
@@ -2994,27 +2873,27 @@ function pickReward(sel){
 function openCheckout(){ var cart=gxGet('gx_cart',[]); if(!cart.length) return; openModal('m-checkout'); }
 function submitOrder(){
   var name=($('co_name').value||'').trim(), phone=($('co_phone').value||'').trim(),
-      email=($('co_email').value||'').trim(), area=($('co_area').value||'').trim(), addr=($('co_addr').value||'').trim();
+      area=($('co_area').value||'').trim(), addr=($('co_addr').value||'').trim();
   if(!name||!phone||!area||!addr){ toast(gxT('co_required')); return; }
   var cart=gxGet('gx_cart',[]); var tot=cartTotals(); var disc=rewardSel?rewardSel.discount:0;
   var items=cart.map(function(x){ var p=GX.products.find(function(y){return y.id===x.id;});
     return {id:x.id, size:x.size, qty:x.qty, name:p?pname(p,x.size):x.id, price:p?p.price:0, emoji:p?p.emoji:'⚽', kind:p?p.kind:'jersey'}; });
   var fin=Math.max(0,tot.total-disc);
   fetch('/api/order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-    items:items,name:name,phone:phone,email:email,area:area,address:addr,
+    items:items,name:name,phone:phone,area:area,address:addr,
     notes:($('co_notes').value||'').trim(),delivery:tot.delivery,discount:disc,total:fin,reward:rewardSel?rewardSel.points:0,
     device:gxDev()
   })}).then(function(r){return r.json();}).then(function(d){
     if(d.code){
       var earned=Math.floor(fin*GX.points_per); addPoints(earned, gxT('pts_earn'));
-      var msg=waOrderMsg(d.code, items, name, phone, email, area, addr, tot.delivery, disc, fin);
+      var msg=tgOrderMsg(d.code, items, name, phone, area, addr, tot.delivery, disc, fin);
       clearCart(); closeModal('m-checkout');
       window.open('https://wa.me/'+GX.wa,'_blank');
       location.href='/order/success?code='+d.code;
     } else { toast('Error'); }
   });
 }
-function waOrderMsg(code,items,name,phone,email,area,addr,del,disc,total){
+function tgOrderMsg(code,items,name,phone,area,addr,del,disc,total){
   var l=[]; l.push('HELLO_LN'.indexOf('X')>-1?'':gxT('hello').trim()+' 👋'); l.push('');
   l.push(gxT('code_w')+code);
   items.forEach(function(it){
@@ -3031,7 +2910,7 @@ function waOrderMsg(code,items,name,phone,email,area,addr,del,disc,total){
   return l.join('\\n');
 }
 /* ---------- order via WhatsApp ---------- */
-function orderCartWA(){
+function orderCartTG(){
   var cart=gxGet('gx_cart',[]); if(!cart.length) return;
   var tot=cartTotals(); var disc=rewardSel?rewardSel.discount:0;
   var fin=Math.max(0,tot.total-disc);
@@ -3543,7 +3422,7 @@ function loadPoints(){
 function saveAccountData(){
   var name=($('pd_name').value||'').trim(), area=($('pd_area').value||'').trim(), addr=($('pd_addr').value||'').trim();
   fetch('/api/account/save',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({name:name,area:area,address:addr,theme:gxGet('gx_theme','light'),font:gxGet('gx_font','b')})})
+    body:JSON.stringify({name:name,area:area,address:addr,theme:gxGet('gx_theme','dark'),font:gxGet('gx_font','b')})})
   .then(function(r){return r.json();}).then(function(d){ if(d.ok) toast(gxT('ok_saved')); });
 }
 function accTab(id){
@@ -3641,11 +3520,6 @@ function syncServerFavs(){
     renderFavs();
   }).catch(function(){});
 }
-/* Intro fail-safe: secondary JS errors must never leave the full-screen intro blocking the app. */
-window.setTimeout(function(){
-  try{ var intro=$('gxIntro'); if(intro){ intro.classList.add('done'); intro.style.pointerEvents='none'; } }catch(e){}
-}, 3500);
-
 document.addEventListener('DOMContentLoaded',function(){
   applyPrefs(); syncPrefs(); gxDev(); renderFavs(); syncServerFavs();
   if($('sq')){ $('sq').addEventListener('input',applyFilters); }
@@ -3864,7 +3738,6 @@ def base_page(body, active="", page_js="", extra_club=None):
     if extra_club:
         gx["club_page"] = extra_club
     gx_json = json_d(gx)
-    gx_json = gx_json.replace("</script>", "<\\/script>")
     js = BASE_JS.replace("__GX__", gx_json)
     head_extra = "<style>" + club_theme_css() + "</style>"
     if extra_club:
@@ -3911,6 +3784,7 @@ def base_page(body, active="", page_js="", extra_club=None):
 <meta name="theme-color" content="#0A0D0C">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<script>(function(){try{var t=JSON.parse(localStorage.getItem('gx_theme')||'"dark"');document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();</script>
 <script>document.documentElement.classList.add('js');</script>
 <noscript><style>.rv{opacity:1;transform:none}.hero-ball,.stadium-bg,.gx-football,.gx-intro{display:none!important}</style></noscript>
 CSS
@@ -3940,8 +3814,8 @@ MODALS
 <div class="mkmode-pitch"></div>
 <div class="mkmode-lights"><div class="mkl"></div><div class="mkl"></div><div class="mkl"></div><div class="mkl"></div></div>
 <a class="fab" target="_blank" rel="noopener" href="https://wa.me/{WA}" title="WhatsApp">💬</a>
-__BASEJS_SLOT__
 __PAGEJS_SLOT__
+__BASEJS_SLOT__
 </body>
 </html>""".replace("LANG", "en" if en else "ar") \
         .replace("DIR", "ltr" if en else "rtl") \
@@ -4137,7 +4011,7 @@ def modals_html():
     ret_body = "<ul class='ret'>" + ret_items + "</ul>" + "<div class='mwarning'>⚠️ {w}</div>".format(w=d["ret_warn"])
     how_body = ("<ol class='steps'>" + "".join("<li>{x}</li>".format(x=d["how_" + str(i + 1)]) for i in range(4)) + "</ol>")
     contact_body = ("<p class='mnote'>{sub}</p>".format(sub=d["contact_sub"])
-                    + "<a class='btn tg big' target='_blank' rel='noopener' href='https://wa.me/{num}'>💬 {wa}</a>".format(num=cfg.WHATSAPP, wa=d["contact_wa"])
+                    + "<a class='btn wa2 big' target='_blank' rel='noopener' href='https://wa.me/{num}'>💬 {wa}</a>".format(num=cfg.WHATSAPP, wa=d["contact_wa"])
                     + "<p class='cnum'>{n}</p>".format(n=d["contact_num"]))
 
     theme_seg = ('<div class="seg" data-seg="theme">'
@@ -4159,14 +4033,13 @@ def modals_html():
                               club=club_seg)
 
     checkout_body = ('<p class="mnote">{sub}</p>'
-                     '<div class="fld"><label>{name}</label><input id="co_name" autocomplete="name"></div>'
-                     '<div class="fld"><label>{phone}</label><input id="co_phone" inputmode="tel" autocomplete="tel"></div>'
-                     '<div class="fld"><label>{email}</label><input id="co_email" type="email" inputmode="email" autocomplete="email" placeholder="example@email.com"></div>'
+                     '<div class="fld"><label>{name}</label><input id="co_name"></div>'
+                     '<div class="fld"><label>{phone}</label><input id="co_phone" inputmode="tel"></div>'
                      '<div class="frow"><div class="fld"><label>{area}</label><input id="co_area"></div>'
                      '<div class="fld"><label>{addr}</label><input id="co_addr"></div></div>'
                      '<div class="fld"><label>{notes}</label><textarea id="co_notes"></textarea></div>'
                      '<button class="btn wa big" onclick="submitOrder()">{btn}</button>'
-                     ).format(sub=d["cart_total"], name=d["co_name"], phone=d["co_phone"], email=("البريد الإلكتروني (اختياري)" if lang()=="ar" else "Email (optional)"),
+                     ).format(sub=d["cart_total"], name=d["co_name"], phone=d["co_phone"],
                               area=d["co_area"], addr=d["co_address"], notes=d["co_notes"], btn=d["co_submit"])
 
     notify_body = ('<p class="mnote">{sub}</p>'
@@ -4800,7 +4673,7 @@ def info_page(kind):
         ctas = ('<a class="btn pri" href="/products">{cj}</a>'
                 '<a class="btn ghost" href="/mugs">{cm}</a>'
                 '<a class="btn ghost" href="/size-guide">{cs}</a>'
-                '<a class="btn wa" target="_blank" rel="noopener" href="https://wa.me/{wa}">{cw}</a>'
+                '<a class="btn wa2" target="_blank" rel="noopener" href="https://wa.me/{wa}">{cw}</a>'
                 ).format(cj=d["how_cta_j"], cm=d["how_cta_m"], cs=d["how_cta_sz"],
                          cw=d["how_cta_wa"], wa=cfg.WHATSAPP)
         inner = ('<div class="hw-timeline">{steps}</div>'
@@ -4818,9 +4691,9 @@ def info_page(kind):
 
 def cart_page():
     d = cfg.L[lang()]
-    body = ('<div class="wrap cart-page-shell"><div class="page-head"><h1>{t}</h1><p>{s}</p></div>'
+    body = ('<div class="wrap"><div class="page-head"><h1>{t}</h1><p>{s}</p></div>'
             '<div id="cartPage"></div>'
-            '<div style="text-align:center;margin-top:16px"><a class="back" href="/home">← {b}</a></div>'
+            '<div style="text-align:center;margin-top:26px"><a class="back" href="/home">← {b}</a></div>'
             '</div>').format(t=d["cart_page_title"], s=d["cart_page_sub"], b=d["back"])
     js = "<script>document.addEventListener('DOMContentLoaded',function(){ renderCartPage(); });</script>"
     return base_page(body, page_js=js, active="")
@@ -5166,15 +5039,13 @@ def product_body(pid):
     if "new" in p.get("badges", []):
         live_drop = '<div class="live-drop-badge"><span class="live-dot"></span>LIVE DROP</div>'
 
-    # Build product-page JavaScript safely. Never interpolate raw product text into JS strings.
-    pid_js = json_d(p["id"])
-    page_js = ('<script>var GARR=' + arr + ';' + (('selSize=' + json_d(my_sz) + ';') if my_sz else '') +
-               'document.addEventListener("DOMContentLoaded",function(){ window.setGal(0,GARR); buildReviews(' + pid_js + ');'
+    page_js = ('<script>var GARR=' + arr + ';' + ('selSize=' + json_d(my_sz) + ';' if my_sz else '') +
+               'document.addEventListener("DOMContentLoaded",function(){ setGal(0,GARR); buildReviews("%s");'
                'if(selSize){var om=document.getElementById("omSizeVal");if(om)om.textContent=selSize;} });'
                'function triggerReveal(){var r=document.getElementById("jeReveal");if(r)r.classList.add("open");}'
                'function initJerseyExp(){var r=document.getElementById("jeReveal");if(!r)return;'
                'var io=new IntersectionObserver(function(e){if(e[0].isIntersecting){setTimeout(function(){triggerReveal()},800);io.disconnect();}},{threshold:0.4});io.observe(r);}'
-               'document.addEventListener("DOMContentLoaded",function(){initJerseyExp();});</script>')
+               'document.addEventListener("DOMContentLoaded",function(){initJerseyExp();});</script>') % p["id"]
 
     one = len(p["imgs"]) <= 1
     gal_nav = "" if one else (
@@ -6141,7 +6012,7 @@ def ticket_page(code):
         '<button class="btn ghost" onclick="shareTk()">{sh}</button>'
         '<button class="btn ghost" onclick="window.print()">{sv}</button>'
         '<button class="btn ghost" onclick="location.href=\'/track?code={code}\'">{tr}</button>'
-        '<a class="btn wa" target="_blank" rel="noopener" href="https://wa.me/{wa}?text={wm}">{cw}</a></div>'
+        '<a class="btn wa2" target="_blank" rel="noopener" href="https://wa.me/{wa}?text={wm}">{cw}</a></div>'
         '<div style="text-align:center;margin-top:18px"><a class="back" href="/home">← {b}</a></div>'
         '</div></div>'
     ).format(code=code, items=items_html, st_emoji=st_emoji, sl=status_label,
@@ -6333,9 +6204,7 @@ def product(pid):
     if not p:
         return redirect("/home")
     body, page_js, club = product_body(pid)
-    page_js = page_js.replace("</script>", "<\\/script>")
-    order_js = order_direct_js().replace("</script>", "<\\/script>")
-    return base_page(body, page_js=page_js + order_js, extra_club=club)
+    return base_page(body, page_js=page_js + order_direct_js(), extra_club=club)
 
 
 @app.route("/ticket")
@@ -6461,7 +6330,6 @@ def api_order():
             "name": it.get("name", p.get("name_ar", p["id"])),
             "price": eff_price(p), "emoji": p.get("emoji", "⚽"), "kind": p["kind"]})
     data["items"] = items
-    data["email"] = (data.get("email") or "").strip().lower()
     sub = sum(i["price"] * i["qty"] for i in items)
     deliv = cfg.DELIVERY_FEE if items else 0
     disc = min(max(0, float(data.get("discount", 0))), sub)
@@ -6470,11 +6338,6 @@ def api_order():
     u = current_user()
     if u:
         data["user_id"] = u["id"]
-        if data.get("email"):
-            try:
-                db.user_update(u["id"], email=data["email"])
-            except Exception:
-                pass
     code = db.order_create(data)
     try:
         nm = data.get("name", "")
@@ -7473,17 +7336,12 @@ def admin():
             if isinstance(comps, list):
                 idx = int(request.form.get("comp_idx", 0) or 0) - 1
                 if 0 <= idx < len(comps):
-                    comp = comps[idx]
-                    # Prefer explicit real user IDs; otherwise use active customers with real accounts.
-                    ids = comp.get("participant_ids") or []
-                    users = {u["id"]: u for u in db.users_list() if u.get("role") == "customer" and u.get("status") == "active"}
-                    participants = [users[i] for i in ids if i in users] if ids else list(users.values())
+                    participants = comps[idx].get("participants", [])
                     if participants:
+                        import random
                         winner = random.choice(participants)
-                        comp["last_winner"] = {"id": winner["id"], "name": winner.get("name") or winner.get("phone") or "عميل"}
-                        db.settings_set("competitions", comps)
-                        return admin_page('<div class="msg" style="font-size:1.2rem;text-align:center;padding:30px">🎉 الفائز: <b style="color:#18E875;font-size:1.5rem">{}</b></div>'.format(esc(comp["last_winner"]["name"])))
-                    return admin_page("<div class='msg'>⚠️ لا يوجد عملاء مؤهلون حاليًا</div>")
+                        return admin_page('<div class="msg" style="font-size:1.2rem;text-align:center;padding:30px">🎉 الفائز: <b style="color:#E11D48;font-size:1.5rem">{}</b></div>'.format(esc(winner)))
+                    return admin_page("<div class='msg'>⚠️ لا يوجد مشاركين في المسابقة</div>")
             return admin_page("<div class='msg'>⚠️ اختر مسابقة صحيحة</div>")
     return admin_page("")
 
@@ -7532,12 +7390,6 @@ def admin_page(msg=""):
     rev = sum(o["data"].get("total", 0) for o in orders if o["status"] not in ("cancelled",))
     n_ready = len(ready)
     n_cust = len(db.users_list())
-    customer_email = {}
-    for _o in orders:
-        _uid = _o.get("data", {}).get("user_id")
-        _em = (_o.get("data", {}).get("email") or "").strip()
-        if _uid and _em and _uid not in customer_email:
-            customer_email[_uid] = _em
 
     today = datetime.date.today().strftime("%Y-%m-%d")
     ym = today[:7]
@@ -7586,8 +7438,8 @@ def admin_page(msg=""):
     for u in db.users_list()[:5]:
         uo = db.orders_by_user(u["id"])
         us = sum(x["data"].get("total", 0) for x in uo if x["status"] != "cancelled")
-        dash_cust += '<tr><td>{name}</td><td>{phone}</td><td>{email}</td><td>{n}</td><td>{sp}</td></tr>'.format(
-            name=esc(u["name"] or "—"), phone=esc(u["phone"]), email=esc(customer_email.get(u["id"], "—")), n=len(uo), sp=fmt_cur(us))
+        dash_cust += '<tr><td>{name}</td><td>{phone}</td><td>{n}</td><td>{sp}</td></tr>'.format(
+            name=esc(u["name"] or "—"), phone=esc(u["phone"]), n=len(uo), sp=fmt_cur(us))
 
     sec_dashboard = (
         '<div class="adm-section" id="adm-dashboard">'
@@ -7605,7 +7457,7 @@ def admin_page(msg=""):
         '<div class="adm-tbl-wrap"><table class="adm-tbl"><thead><tr><th>الرقم</th><th>العميل</th><th>المنتجات</th><th>الإجمالي</th><th>الحالة</th><th></th></tr></thead>'
         '<tbody>{dash_orders}</tbody></table></div></div>'
         '<div class="adm-card"><h3>👥 أحدث العملاء</h3>'
-        '<div class="adm-tbl-wrap"><table class="adm-tbl"><thead><tr><th>الاسم</th><th>الهاتف</th><th>البريد</th><th>الطلبات</th><th>المصروف</th></tr></thead>'
+        '<div class="adm-tbl-wrap"><table class="adm-tbl"><thead><tr><th>الاسم</th><th>الهاتف</th><th>الطلبات</th><th>المصروف</th></tr></thead>'
         '<tbody>{dash_cust}</tbody></table></div></div>'
         '</div>'
     ).format(n1=n_orders_total, n2=today_orders, nc=n_cust, np=n_products, ni=n_instock, no=n_outstock,
@@ -7642,19 +7494,19 @@ def admin_page(msg=""):
         uo = db.orders_by_user(u["id"])
         us = sum(x["data"].get("total", 0) for x in uo if x["status"] != "cancelled")
         st_sel = "".join('<option value="%s"%s>%s</option>' % (v, " selected" if v == u["status"] else "", lb) for v, lb in [("active", "نشط"), ("disabled", "موقوف")])
-        cust_rows += ('<tr><td>{name}</td><td>{phone}</td><td>{email}</td><td>{n}</td><td>{sp}</td>'
+        cust_rows += ('<tr><td>{name}</td><td>{phone}</td><td>{n}</td><td>{sp}</td>'
                       '<td>{last_login}</td>'
                       '<td><form method="post" style="display:flex;gap:4px;align-items:center" class="inline-form">'
                       '<input type="hidden" name="act" value="cust"><input type="hidden" name="uid" value="{uid}">'
                       '<select name="status" class="adm-sel-sm">{st_sel}</select>'
                       '<button class="adm-btn-sm">حفظ</button></form></td></tr>').format(
             uid=u["id"], name=esc(u["name"] or "—"), phone=esc(u["phone"]),
-            email=esc(customer_email.get(u["id"], "—")), n=len(uo), sp=fmt_cur(us), last_login=u.get("last_login", "—"), st_sel=st_sel)
+            n=len(uo), sp=fmt_cur(us), last_login=u.get("last_login", "—"), st_sel=st_sel)
 
     sec_customers = (
         '<div class="adm-section" id="adm-customers" style="display:none">'
         '<div class="adm-card"><h3>👥 إدارة العملاء</h3>'
-        '<div class="adm-tbl-wrap"><table class="adm-tbl"><thead><tr><th>الاسم</th><th>الهاتف</th><th>البريد</th><th>الطلبات</th><th>المصروف</th><th>آخر دخول</th><th>الحالة</th></tr></thead>'
+        '<div class="adm-tbl-wrap"><table class="adm-tbl"><thead><tr><th>الاسم</th><th>الهاتف</th><th>الطلبات</th><th>المصروف</th><th>آخر دخول</th><th>الحالة</th></tr></thead>'
         '<tbody>{rows}</tbody></table></div></div></div>'
     ).format(rows=cust_rows)
 
@@ -8187,26 +8039,6 @@ a{text-decoration:none;color:inherit}
 .adm-stat-grid{grid-template-columns:repeat(2,1fr)}
 .adm-team-grid{grid-template-columns:1fr 1fr}
 .adm-bar-label{width:80px;font-size:.75rem}
-}
-
-/* ---- Final admin mobile polish ---- */
-@media(max-width:768px){
-  .adm-main{padding:60px 10px calc(34px + env(safe-area-inset-bottom));}
-  .adm-topbar{gap:8px;align-items:flex-start;flex-wrap:wrap;}
-  .adm-topbar-actions{width:100%;}
-  .adm-topbar-actions .adm-btn-sm{flex:1;text-align:center;}
-  .adm-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
-  .adm-stat{padding:12px 8px;}
-  .adm-stat-val{font-size:1.3rem;}
-  .adm-card{padding:12px;border-radius:12px;overflow:hidden;}
-  .adm-tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -4px;padding:0 4px;}
-  .adm-tbl{min-width:720px;}
-  .adm-team-grid{grid-template-columns:1fr;}
-  .adm-theme-inputs{width:100%;display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
-  .adm-theme-inputs label{justify-content:space-between;}
-  .adm-pp-row{flex-wrap:wrap;}
-  .adm-pp-label{width:100%;}
-  .adm-nav-item{padding:12px 16px;}
 }
 </style></head>
 <body>

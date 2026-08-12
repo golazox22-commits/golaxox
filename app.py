@@ -404,6 +404,9 @@ html[data-club] .hd::after { content:''; display:block; height:3px;
 #cartPage.cart-page-list > .row-t { height:auto !important; min-height:0 !important; margin-top:8px; }
 #cartPage.cart-page-list > .cart-actions { display:flex !important; flex:none !important; height:auto !important; min-height:0 !important; margin:12px 0 0 !important; padding:0 !important; gap:8px; }
 #cartPage.cart-page-list > .cart-actions .btn { flex:1 1 0 !important; min-height:48px; }
+#cartPage.cart-page-list > .cart-actions.cart-actions-tight { display:flex !important; flex-direction:column !important; gap:7px !important; margin-top:10px !important; }
+#cartPage.cart-page-list > .cart-actions.cart-actions-tight .btn { width:100% !important; flex:none !important; margin:0 !important; }
+@media (max-width:768px){.cart-wrap,.cart-page-shell,#cartPage.cart-page-list{display:block!important;height:auto!important;min-height:0!important;overflow:visible!important}#cartPage.cart-page-list>.ci,#cartPage.cart-page-list>.row-t,#cartPage.cart-page-list>.cart-actions{position:relative!important;transform:none!important}#cartPage.cart-page-list>.ci+.ci{margin-top:0!important}#cartPage.cart-page-list>.row-t{margin-top:4px!important;margin-bottom:3px!important}#cartPage.cart-page-list>.row-t.total{margin-top:6px!important;padding-top:7px!important;border-top:1px solid rgba(255,255,255,.08)}#cartPage.cart-page-list>.cart-actions.cart-actions-tight{margin-top:8px!important;gap:6px!important}}
 @media (max-width:768px) {
   .cart-wrap { padding:10px 10px calc(90px + env(safe-area-inset-bottom)) !important; }
   .cart-wrap .page-head { margin-bottom:12px !important; }
@@ -2443,6 +2446,10 @@ html[data-theme="light"] .mtk-jstep.done b, html[data-theme="light"] .mtk-jstep.
   .pen-goal { width:240px; height:110px; }
   .pen-zone { width:56px; height:38px; font-size:.6rem; }
   .pen-keeper { width:60px; height:96px; }
+  .pen-ball { top:260px; }
+  .pen-game-pitch .pen-keeper { top:150px; }
+  .pen-game-pitch .pen-zone { z-index:5; }
+  .pen-game-pitch .pen-result { inset:0; }
   .pen-keeper .kb { width:60px; height:76px; }
   .spotlight-card { flex-direction:column; text-align:center; padding:16px; gap:14px; border-radius:18px; }
   .spotlight-img { width:100%; height:180px; border-radius:14px; }
@@ -2564,7 +2571,7 @@ function gxSet(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){}
 function gxDev(){ var d=gxGet('gx_device',null); if(!d){ d='d'+Math.random().toString(36).slice(2)+Date.now().toString(36); gxSet('gx_device',d); } return d; }
 /* ---------- theme & font ---------- */
 function applyPrefs(){
-  var th=gxGet('gx_theme','light'); document.documentElement.setAttribute('data-theme',th);
+  var th='dark'; gxSet('gx_theme','dark'); document.documentElement.setAttribute('data-theme',th);
   var fs=gxGet('gx_font','b'); document.documentElement.setAttribute('data-font',fs);
   var club=gxGet('gx_club',null); if(club) document.documentElement.setAttribute('data-club',club);
 }
@@ -2572,7 +2579,7 @@ function setTheme(t){ gxSet('gx_theme',t); applyPrefs(); syncPrefs(); }
 function setFont(f){ gxSet('gx_font',f); applyPrefs(); syncPrefs(); }
 function setMyClub(cid){ gxSet('gx_club',cid); applyPrefs(); syncPrefs(); if(cid) toast(gxT('md_choice_ok')); }
 function syncPrefs(){
-  var th=gxGet('gx_theme','light'), fs=gxGet('gx_font','b'), club=gxGet('gx_club',null);
+  var th='dark', fs=gxGet('gx_font','b'), club=gxGet('gx_club',null);
   var rows=document.querySelectorAll('.seg[data-seg]');
   rows.forEach(function(row){
     var name=row.getAttribute('data-seg'); var val = name==='theme'?th:(name==='font'?fs:club);
@@ -2852,10 +2859,10 @@ function renderCartPage(){
   html+='<div class="row-t"><span>'+gxT('cart_subtotal')+'</span><b>'+pmoney(tot.sub)+' '+GX.cur+'</b></div>'
     +'<div class="row-t"><span>'+gxT('cart_delivery')+'</span><b>'+pmoney(tot.delivery)+' '+GX.cur+'</b></div>'
     +'<div class="row-t total"><span>'+gxT('cart_total')+'</span><b>'+pmoney(tot.total)+' '+GX.cur+'</b></div>'
-    +'<div class="cart-actions">'
-    +'<button class="btn wa" onclick="openCheckout()">'+gxT('cart_checkout')+'</button>'
-    +'<button class="btn tg" onclick="orderCartTG()">💬 '+gxT('order_wa')+'</button>'
-    +'<button class="btn ghost" onclick="clearCart()">🗑 '+gxT('cart_clear')+'</button></div>';
+    +'<div class="cart-actions cart-actions-tight">'
+    +'<button class="btn wa block" onclick="openCheckout()">💬 إتمام الطلب عبر واتساب</button>'
+    +'<button class="btn ghost block" onclick="location.href='/penalty-game'">⚽ ركلة جزاء</button>'
+    +'<button class="btn ghost cart-clear-btn" onclick="clearCart()">🗑 '+gxT('cart_clear')+'</button></div>';
   box.innerHTML=html;
   /* Hard reset the cart page layout after rendering: no spacer, no flex stretching. */
   box.style.display='block'; box.style.height='auto'; box.style.minHeight='0'; box.style.maxHeight='none'; box.style.padding='0'; box.style.margin='0';
@@ -5750,6 +5757,31 @@ document.addEventListener('DOMContentLoaded',function(){{
     return base_page(body, page_js=page_js)
 
 
+def penalty_game_page():
+    body = """<div class="wrap pen-game-wrap">
+      <div class="page-head"><h1>⚽ ركلة الجزاء</h1><p>اختر زاوية التسديد وحاول تتجاوز الحارس!</p></div>
+      <div class="pen-pitch pen-game-pitch" id="penGamePitch">
+        <div class="pen-stripes"></div><div class="pen-crowd"></div><div class="pen-lights"></div><div class="pen-lights right"></div><div class="pen-goal"></div>
+        <button class="pen-zone" data-z="tl" style="left:calc(50% - 95px);top:92px" onclick="gameShoot(this)">يسار</button>
+        <button class="pen-zone" data-z="tc" style="left:50%;top:92px" onclick="gameShoot(this)">وسط</button>
+        <button class="pen-zone" data-z="tr" style="left:calc(50% + 95px);top:92px" onclick="gameShoot(this)">يمين</button>
+        <button class="pen-zone" data-z="bl" style="left:calc(50% - 95px);top:155px" onclick="gameShoot(this)">يسار ↓</button>
+        <button class="pen-zone" data-z="br" style="left:calc(50% + 95px);top:155px" onclick="gameShoot(this)">يمين ↓</button>
+        <div class="pen-keeper" id="gameKeeper"><div class="kd l"></div><div class="kd r"></div><div class="kh"></div><div class="kb"></div></div>
+        <div class="pen-ball" id="gameBall">⚽</div><div class="pen-result" id="gameResult"></div>
+      </div>
+      <div style="text-align:center;margin-top:10px;font-weight:800;color:var(--mut)">اختر مكان التسديدة</div>
+      <button class="btn ghost" id="gameReset" style="display:none;margin:12px auto 0" onclick="resetPenaltyGame()">🔄 العب مرة ثانية</button>
+    </div>"""
+    js = """<script>
+(function(){
+var zones=['tl','tc','tr','bl','br'],done=false,pos={tl:['calc(50% - 95px)','92px'],tc:['50%','92px'],tr:['calc(50% + 95px)','92px'],bl:['calc(50% - 95px)','155px'],br:['calc(50% + 95px)','155px']};
+function el(id){return document.getElementById(id)}
+window.gameShoot=function(btn){if(done)return;done=true;var shot=btn.getAttribute('data-z'),keeper=zones[Math.floor(Math.random()*zones.length)],ball=el('gameBall'),gk=el('gameKeeper');document.querySelectorAll('.pen-zone').forEach(function(x){x.disabled=true;x.style.opacity='.35'});requestAnimationFrame(function(){ball.style.left=pos[shot][0];ball.style.top=pos[shot][1];gk.style.left=pos[keeper][0];gk.style.top=pos[keeper][1]});setTimeout(function(){var goal=shot!==keeper,res=el('gameResult');res.innerHTML=goal?'<span class="big">GOAL! ⚽🔥</span><span class="pts">تسديدة رائعة!</span>':'<span class="big">تصدى لها الحارس! 🧤</span><span class="pts">حاول مرة ثانية</span>';res.classList.add('show');el('gameReset').style.display='block'},650)};
+window.resetPenaltyGame=function(){done=false;el('gameResult').classList.remove('show');el('gameBall').style.left='50%';el('gameBall').style.top='352px';el('gameKeeper').style.left='50%';el('gameKeeper').style.top='168px';el('gameReset').style.display='none';document.querySelectorAll('.pen-zone').forEach(function(x){x.disabled=false;x.style.opacity='1'})};
+})();</script>"""
+    return base_page(body,page_js=js)
+
 def success_page(code):
     en = lang() == "en"
     d = cfg.L[lang()]
@@ -6265,6 +6297,12 @@ def order_success():
     if not has_lang():
         return redirect("/")
     return success_page(request.args.get("code", ""))
+
+
+@app.route("/penalty-game")
+def penalty_game():
+    if not has_lang(): return redirect("/")
+    return penalty_game_page()
 
 
 @app.route("/penalty")

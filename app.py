@@ -29,8 +29,15 @@ app.config["PERMANENT_SESSION_LIFETIME"] = datetime.timedelta(days=30)
 # and the /admin* routes (they already enforce their own separate admin auth).
 LOGIN_EXEMPT_ENDPOINTS = {
     "index", "enter", "setlang", "login_route", "img", "health", "static",
+    "home", "products_page", "mugs_page", "club_route", "product",
+    "size_guide_page", "care_page", "returns_page", "return_policy_page",
+    "how_page", "ticket", "track", "order_success", "penalty",
     "api_auth_otp", "api_auth_verify", "api_auth_admin_verify",
     "api_auth_password", "api_auth_logout", "api_me", "api_diag",
+    "api_order", "api_notify", "api_request", "api_vote",
+    "api_reviews", "api_review", "api_review_report",
+    "api_penalty_play", "api_penalty_status",
+    "api_favs", "api_alerts", "api_alerts_cancel",
 }
 
 

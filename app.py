@@ -1568,6 +1568,303 @@ html[data-theme="light"] .spotlight-card { background: var(--card); border-color
   .spotlight-img { width: 100%; height: 200px; }
   .adm-login-card { padding: 32px 20px 28px; }
 }
+/* ============================== SIZE GUIDE PREMIUM ============================== */
+.sg-page { padding-bottom: 80px; }
+.sg-hero {
+  position: relative; overflow: hidden; min-height: 320px;
+  background:
+    radial-gradient(ellipse 120% 100% at 20% 10%, rgba(25,195,125,.12), transparent 55%),
+    radial-gradient(ellipse 80% 80% at 80% 80%, rgba(215,255,79,.05), transparent 50%),
+    linear-gradient(180deg, #030706 0%, #050B08 40%, #07130E 100%);
+  display: flex; align-items: center; padding: 40px 24px;
+}
+html[data-theme="light"] .sg-hero {
+  background: linear-gradient(180deg, #F3F6FB 0%, #EDF1F8 100%);
+}
+.sg-hero-inner { max-width: 1120px; margin: 0 auto; width: 100%; display: flex; align-items: center; gap: 40px; }
+.sg-hero-visual { flex: 0 0 180px; position: relative; display: flex; align-items: center; justify-content: center; }
+.sg-hero-jersey { font-size: 120px; filter: drop-shadow(0 20px 40px rgba(25,195,125,.25)); animation: sgFloat 5s ease-in-out infinite; position: relative; z-index: 1; }
+@keyframes sgFloat { 0%,100%{transform:translateY(0) rotate(-3deg)} 50%{transform:translateY(-12px) rotate(3deg)} }
+.sg-hero-glow { position: absolute; width: 200px; height: 200px; border-radius: 50%; background: radial-gradient(circle, rgba(25,195,125,.2), transparent 70%); filter: blur(30px); }
+.sg-hero-text { flex: 1; }
+.sg-hero-text h1 { font-size: 2.4rem; font-weight: 900; line-height: 1.2; color: #F5F7F6; }
+html[data-theme="light"] .sg-hero-text h1 { color: #0F172A; }
+.sg-green { color: #16F06A; }
+html[data-theme="light"] .sg-green { color: #16A34A; }
+.sg-hero-text p { color: #A8B2AD; font-size: 1rem; margin-top: 10px; line-height: 1.7; }
+html[data-theme="light"] .sg-hero-text p { color: #5B6782; }
+.sg-wrap { max-width: 800px; margin: -40px auto 0; position: relative; z-index: 2; }
+.sg-calc-card {
+  background: rgba(3,12,12,.82); border: 1px solid rgba(30,255,110,.25); border-radius: 24px;
+  padding: 32px 28px; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 28px 60px rgba(0,0,0,.45), 0 0 40px rgba(25,195,125,.06);
+}
+html[data-theme="light"] .sg-calc-card {
+  background: #FFFFFF; border-color: #E2E8F0; backdrop-filter: none;
+  box-shadow: 0 28px 60px rgba(15,23,42,.08);
+}
+.sg-calc-header { text-align: center; margin-bottom: 24px; }
+.sg-calc-header h2 { font-size: 1.5rem; font-weight: 900; color: #F5F7F6; }
+html[data-theme="light"] .sg-calc-header h2 { color: #0F172A; }
+.sg-calc-header p { color: #87928F; font-size: .88rem; margin-top: 6px; }
+html[data-theme="light"] .sg-calc-header p { color: #5B6782; }
+.sg-calc-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.sg-field label { display: block; font-size: .78rem; font-weight: 800; color: #87928F; margin-bottom: 6px; letter-spacing: .5px; }
+html[data-theme="light"] .sg-field label { color: #5B6782; }
+.sg-input-wrap {
+  display: flex; align-items: center; background: rgba(7,19,14,.6); border: 1.5px solid rgba(30,255,110,.15);
+  border-radius: 14px; overflow: hidden; transition: border-color .2s, box-shadow .2s;
+}
+html[data-theme="light"] .sg-input-wrap { background: #F8FAFC; border-color: #E2E8F0; }
+.sg-input-wrap:focus-within { border-color: #16F06A; box-shadow: 0 0 0 3px rgba(22,240,106,.12); }
+html[data-theme="light"] .sg-input-wrap:focus-within { border-color: #16A34A; box-shadow: 0 0 0 3px rgba(22,163,74,.12); }
+.sg-input-wrap input {
+  flex: 1; padding: 14px 16px; background: transparent; border: none; color: #F5F7F6;
+  font-size: 1.1rem; font-weight: 800; font-family: inherit; outline: none; min-width: 0;
+}
+html[data-theme="light"] .sg-input-wrap input { color: #0F172A; }
+.sg-input-wrap input::placeholder { color: #4A5A54; }
+.sg-unit { padding: 0 14px; font-size: .78rem; font-weight: 800; color: #6F7B75; white-space: nowrap; }
+html[data-theme="light"] .sg-unit { color: #94A3B8; }
+.sg-calc-btn { margin-top: 4px; }
+/* Result Card */
+.sg-result {
+  margin-top: 24px; text-align: center; padding: 28px 20px;
+  background: rgba(7,19,14,.5); border: 1px solid rgba(30,255,110,.2); border-radius: 20px;
+  animation: sgResultIn .5s ease both;
+}
+html[data-theme="light"] .sg-result { background: #F0FDF4; border-color: #BBF7D0; }
+@keyframes sgResultIn { from { opacity:0; transform:translateY(12px) scale(.98); } to { opacity:1; transform:none; } }
+.sg-result-size {
+  font-size: 5rem; font-weight: 900; color: #16F06A; line-height: 1;
+  text-shadow: 0 8px 40px rgba(22,240,106,.3); position: relative; display: inline-block;
+}
+html[data-theme="light"] .sg-result-size { color: #16A34A; text-shadow: none; }
+.sg-result-size::before {
+  content: '⚽'; position: absolute; font-size: 3rem; top: -10px; right: -40px; opacity: .12;
+  animation: sgBallSpin 8s linear infinite;
+}
+@keyframes sgBallSpin { to { transform: rotate(360deg); } }
+.sg-result-label { font-size: .88rem; color: #87928F; margin-top: 6px; font-weight: 700; }
+html[data-theme="light"] .sg-result-label { color: #5B6782; }
+.sg-result-details { display: flex; justify-content: center; gap: 24px; margin-top: 16px; }
+.sg-rdetail { display: flex; flex-direction: column; align-items: center; }
+.sg-rdetail span { font-size: .72rem; color: #6F7B75; font-weight: 700; }
+.sg-rdetail b { font-size: 1rem; color: #F5F7F6; margin-top: 2px; }
+html[data-theme="light"] .sg-rdetail b { color: #0F172A; }
+.sg-result-badge {
+  display: inline-block; margin-top: 16px; background: rgba(22,240,106,.12); color: #16F06A;
+  border: 1px solid rgba(22,240,106,.3); border-radius: 999px; padding: 6px 18px;
+  font-size: .82rem; font-weight: 800;
+}
+html[data-theme="light"] .sg-result-badge { background: #DCFCE7; color: #16A34A; border-color: #BBF7D0; }
+.sg-pop { animation: sgPop .4s ease; }
+@keyframes sgPop { 0%{transform:scale(.6);opacity:0} 60%{transform:scale(1.1)} 100%{transform:scale(1);opacity:1} }
+/* Adjacent Sizes */
+.sg-adjacent { margin-top: 24px; text-align: center; }
+.sg-adjacent h3 { font-size: 1.1rem; font-weight: 900; color: #F5F7F6; }
+html[data-theme="light"] .sg-adjacent h3 { color: #0F172A; }
+.sg-adjacent p { color: #87928F; font-size: .86rem; margin-top: 4px; }
+.sg-adj-cards { display: flex; gap: 12px; justify-content: center; margin-top: 14px; }
+.sg-adj-card {
+  background: rgba(7,19,14,.4); border: 1.5px solid rgba(30,255,110,.12); border-radius: 16px;
+  padding: 16px 24px; text-align: center; min-width: 100px; transition: all .2s;
+}
+html[data-theme="light"] .sg-adj-card { background: #F8FAFC; border-color: #E2E8F0; }
+.sg-adj-card.on {
+  background: rgba(22,240,106,.08); border-color: rgba(22,240,106,.4);
+  box-shadow: 0 8px 24px rgba(22,240,106,.12);
+}
+html[data-theme="light"] .sg-adj-card.on { background: #F0FDF4; border-color: #86EFAC; box-shadow: none; }
+.sg-adj-sz { font-size: 1.6rem; font-weight: 900; color: #F5F7F6; }
+.sg-adj-card.on .sg-adj-sz { color: #16F06A; }
+html[data-theme="light"] .sg-adj-sz { color: #0F172A; }
+.sg-adj-lbl { font-size: .72rem; color: #87928F; margin-top: 4px; font-weight: 700; }
+/* Size Table Section */
+.sg-table-section { margin-top: 28px; }
+.sg-table-section h3 { font-size: 1.05rem; font-weight: 900; color: #F5F7F6; margin-bottom: 12px; }
+html[data-theme="light"] .sg-table-section h3 { color: #0F172A; }
+/* Products Section */
+.sg-products { max-width: 1120px; margin: 30px auto 0; padding: 0 18px; }
+/* Trust Bar */
+.sg-trust-bar {
+  max-width: 1120px; margin: 36px auto 0; padding: 0 18px;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+}
+.sg-trust-item {
+  background: rgba(3,12,12,.5); border: 1px solid rgba(30,255,110,.1); border-radius: 16px;
+  padding: 18px 14px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+html[data-theme="light"] .sg-trust-item { background: #FFFFFF; border-color: #E2E8F0; }
+.sg-trust-ic { font-size: 1.6rem; }
+.sg-trust-item b { font-size: .82rem; font-weight: 800; color: #F5F7F6; }
+html[data-theme="light"] .sg-trust-item b { color: #0F172A; }
+.sg-trust-item span { font-size: .72rem; color: #87928F; line-height: 1.5; }
+html[data-theme="light"] .sg-trust-item span { color: #5B6782; }
+@media (max-width: 768px) {
+  .sg-hero { min-height: 260px; padding: 30px 18px; }
+  .sg-hero-inner { flex-direction: column; text-align: center; gap: 20px; }
+  .sg-hero-visual { flex: none; }
+  .sg-hero-jersey { font-size: 80px; }
+  .sg-hero-text h1 { font-size: 1.8rem; }
+  .sg-calc-inputs { grid-template-columns: 1fr; }
+  .sg-trust-bar { grid-template-columns: 1fr 1fr; }
+  .sg-result-size { font-size: 3.8rem; }
+  .sg-adj-cards { flex-direction: column; align-items: center; }
+}
+@media (max-width: 480px) {
+  .sg-trust-bar { grid-template-columns: 1fr; }
+  .sg-calc-card { padding: 24px 18px; }
+}
+/* ============================== MATCHDAY MODE ============================== */
+.matchday-btn { border-color: rgba(30,255,110,.3) !important; color: #16F06A !important; margin-top: 12px; width: 100%; justify-content: center; }
+.matchday-btn.active { background: rgba(22,240,106,.1); border-color: rgba(22,240,106,.5) !important; }
+html[data-theme="light"] .matchday-btn { color: #16A34A !important; border-color: #BBF7D0 !important; }
+html[data-theme="light"] .matchday-btn.active { background: #F0FDF4; border-color: #86EFAC !important; }
+html.matchday-mode .pg-wrap { position: relative; }
+html.matchday-mode .pg-wrap::before {
+  content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(25,195,125,.15), transparent 50%),
+    radial-gradient(ellipse 60% 40% at 20% 80%, rgba(215,255,79,.06), transparent 40%),
+    linear-gradient(180deg, #020607 0%, #050B08 50%, #07130E 100%);
+  animation: matchdayBg 8s ease-in-out infinite;
+}
+@keyframes matchdayBg { 0%,100%{opacity:.8} 50%{opacity:1} }
+html.matchday-mode .gmain { box-shadow: 0 0 60px rgba(25,195,125,.3), 0 26px 60px rgba(0,0,0,.4); }
+.live-drop-badge {
+  display: inline-flex; align-items: center; gap: 6px; background: rgba(220,38,38,.12);
+  border: 1px solid rgba(220,38,38,.3); border-radius: 999px; padding: 5px 14px;
+  font-size: .7rem; font-weight: 900; color: #EF4444; letter-spacing: 1px; margin-bottom: 12px;
+}
+.live-dot { width: 7px; height: 7px; border-radius: 50%; background: #EF4444; animation: livePulse 1.5s ease infinite; }
+@keyframes livePulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.8)} }
+html[data-theme="light"] .live-drop-badge { background: #FEF2F2; border-color: #FECACA; color: #DC2626; }
+html[data-theme="light"] .live-dot { background: #DC2626; }
+/* ============================== OUTFIT BUILDER ============================== */
+.outfit-sec {
+  margin-top: 24px; padding: 22px; border-radius: 20px;
+  background: rgba(3,12,12,.5); border: 1px solid rgba(30,255,110,.12);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+}
+html[data-theme="light"] .outfit-sec { background: #F8FAFC; border-color: #E2E8F0; backdrop-filter: none; }
+.outfit-title { text-align: center; font-weight: 900; font-size: .88rem; letter-spacing: 1px; color: #F5F7F6; margin-bottom: 16px; }
+html[data-theme="light"] .outfit-title { color: #0F172A; }
+.outfit-items { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
+.outfit-item {
+  display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 16px;
+  background: rgba(7,19,14,.4); border: 1.5px solid rgba(30,255,110,.1); border-radius: 14px;
+  min-width: 90px; transition: all .2s;
+}
+html[data-theme="light"] .outfit-item { background: #FFFFFF; border-color: #E2E8F0; }
+.outfit-item.active { border-color: rgba(22,240,106,.4); box-shadow: 0 8px 20px rgba(22,240,106,.1); }
+.outfit-item.dim { opacity: .5; }
+.outfit-ic { font-size: 2rem; }
+.outfit-info { text-align: center; }
+.outfit-info b { display: block; font-size: .78rem; font-weight: 800; color: #F5F7F6; }
+html[data-theme="light"] .outfit-info b { color: #0F172A; }
+.outfit-info span { font-size: .68rem; color: #87928F; }
+.outfit-plus { font-size: 1.2rem; color: #6F7B75; font-weight: 900; }
+.outfit-total { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 14px; padding-top: 14px; border-top: 1px dashed rgba(30,255,110,.15); }
+.outfit-total span { font-size: .82rem; color: #87928F; font-weight: 700; }
+.outfit-total b { font-size: 1.1rem; color: #16F06A; font-weight: 900; }
+html[data-theme="light"] .outfit-total span { color: #5B6782; }
+html[data-theme="light"] .outfit-total b { color: #16A34A; }
+@media (max-width: 560px) {
+  .outfit-items { gap: 8px; }
+  .outfit-item { min-width: 75px; padding: 10px 12px; }
+  .outfit-plus { display: none; }
+}
+/* ============================== MATCH TICKET ============================== */
+.mtk-page { min-height: 100vh; background: #020607; position: relative; overflow: hidden; }
+html[data-theme="light"] .mtk-page { background: #F3F6FB; }
+.mtk-lights { position: fixed; top: -60px; left: 0; right: 0; display: flex; justify-content: space-around; pointer-events: none; z-index: 0; }
+.mtk-light { width: 4px; height: 160px; background: linear-gradient(180deg, rgba(255,255,255,.5), transparent); filter: blur(2px); opacity: .3; animation: mtkLight 4s ease-in-out infinite; }
+.mtk-light:nth-child(2) { animation-delay: -2s; }
+@keyframes mtkLight { 0%,100%{opacity:.2;transform:rotate(-2deg)} 50%{opacity:.5;transform:rotate(2deg)} }
+.mtk-wrap { max-width: 480px; margin: 0 auto; padding: 30px 18px 80px; position: relative; z-index: 1; }
+.mtk-ticket {
+  background: linear-gradient(180deg, #0A1410 0%, #07130E 100%);
+  border: 1px solid rgba(30,255,110,.2); border-radius: 24px; overflow: hidden;
+  box-shadow: 0 30px 70px rgba(0,0,0,.5), 0 0 50px rgba(25,195,125,.06);
+  opacity: 0; transform: translateY(30px); transition: all .6s cubic-bezier(.2,.8,.3,1);
+}
+.mtk-ticket.mtk-reveal { opacity: 1; transform: none; }
+html[data-theme="light"] .mtk-ticket { background: #FFFFFF; border-color: #E2E8F0; box-shadow: var(--sh2); }
+.mtk-header { text-align: center; padding: 28px 20px 18px; }
+.mtk-brand { font-family: 'Poppins','Cairo',sans-serif; font-size: 1.4rem; font-weight: 900; letter-spacing: 4px;
+  background: linear-gradient(90deg, var(--ac), var(--ac2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.mtk-matchday { font-size: .72rem; font-weight: 900; letter-spacing: 3px; color: #87928F; margin-top: 4px; }
+html[data-theme="light"] .mtk-matchday { color: #5B6782; }
+.mtk-perf { height: 1px; border-top: 2px dashed rgba(30,255,110,.15); margin: 0 20px; position: relative; }
+.mtk-perf::before, .mtk-perf::after { content: ''; position: absolute; top: -8px; width: 16px; height: 16px;
+  border-radius: 50%; background: #020607; }
+.mtk-perf::before { left: -28px; }
+.mtk-perf::after { right: -28px; }
+html[data-theme="light"] .mtk-perf::before, html[data-theme="light"] .mtk-perf::after { background: #F3F6FB; }
+.mtk-code-section { text-align: center; padding: 20px; }
+.mtk-code { font-size: 2rem; font-weight: 900; color: #F5F7F6; letter-spacing: 3px; font-family: 'Poppins','Cairo',monospace; }
+html[data-theme="light"] .mtk-code { color: #0F172A; }
+.mtk-code-label { font-size: .66rem; color: #6F7B75; letter-spacing: 2px; margin-top: 4px; font-weight: 800; }
+.mtk-items-section { padding: 16px 20px; }
+.mtk-section-title { font-size: .7rem; font-weight: 900; letter-spacing: 2px; color: #87928F; margin-bottom: 10px; }
+html[data-theme="light"] .mtk-section-title { color: #5B6782; }
+.mtk-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px dashed rgba(30,255,110,.08); }
+.mtk-item:last-child { border-bottom: none; }
+.mtk-item-ic { font-size: 1.4rem; width: 36px; text-align: center; }
+.mtk-item-info { flex: 1; }
+.mtk-item-info b { display: block; font-size: .88rem; color: #F5F7F6; }
+html[data-theme="light"] .mtk-item-info b { color: #0F172A; }
+.mtk-item-info span { font-size: .74rem; color: #87928F; }
+.mtk-status-section { padding: 16px 20px; text-align: center; }
+.mtk-status-label { font-size: .66rem; font-weight: 900; letter-spacing: 2px; color: #87928F; }
+.mtk-status-pill {
+  display: inline-flex; align-items: center; gap: 6px; margin-top: 8px;
+  background: rgba(22,240,106,.1); border: 1px solid rgba(22,240,106,.3);
+  border-radius: 999px; padding: 8px 20px; font-size: .88rem; font-weight: 900; color: #16F06A;
+}
+html[data-theme="light"] .mtk-status-pill { background: #F0FDF4; border-color: #BBF7D0; color: #16A34A; }
+/* Match Journey */
+.mtk-journey { padding: 20px; }
+.mtk-jtitle { text-align: center; font-weight: 900; font-size: .82rem; letter-spacing: 1px; color: #F5F7F6; margin-bottom: 16px; }
+html[data-theme="light"] .mtk-jtitle { color: #0F172A; }
+.mtk-jtrack { position: relative; height: 6px; border-radius: 999px; background: rgba(30,255,110,.08); margin-bottom: 16px; }
+.mtk-jfill { position: absolute; inset: 0; border-radius: 999px; background: linear-gradient(90deg, var(--ac), var(--ac2)); transition: width 1s ease; }
+.mtk-jball { position: absolute; top: -11px; transform: translateX(-50%); font-size: 22px; transition: left 1s ease; filter: drop-shadow(0 4px 8px rgba(0,0,0,.3)); z-index: 2; }
+.mtk-jsteps { display: flex; justify-content: space-between; }
+.mtk-jstep { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
+.mtk-jdot { width: 30px; height: 30px; border-radius: 50%; background: rgba(30,255,110,.06); border: 2px solid rgba(30,255,110,.12);
+  display: flex; align-items: center; justify-content: center; font-size: .8rem; transition: all .3s; }
+html[data-theme="light"] .mtk-jdot { background: #F1F5F9; border-color: #E2E8F0; }
+.mtk-jstep.done .mtk-jdot { background: var(--ac); border-color: var(--ac); }
+.mtk-jstep.cur .mtk-jdot { background: var(--ac); border-color: var(--ac); animation: pulse 1.4s infinite; box-shadow: 0 0 16px rgba(25,195,125,.4); }
+.mtk-jstep b { font-size: .6rem; color: #87928F; font-weight: 800; text-align: center; }
+.mtk-jstep.done b, .mtk-jstep.cur b { color: #F5F7F6; }
+html[data-theme="light"] .mtk-jstep.done b, html[data-theme="light"] .mtk-jstep.cur b { color: #0F172A; }
+/* Goal Celebration */
+.mtk-goal {
+  display: none; text-align: center; padding: 24px 20px; font-size: 1.6rem; font-weight: 900; color: #16F06A;
+  text-shadow: 0 8px 30px rgba(22,240,106,.3);
+}
+.mtk-goal.show { display: block; animation: mtkGoalIn .6s ease; }
+.mtk-goal span { display: block; font-size: .88rem; color: #87928F; margin-top: 6px; font-weight: 700; }
+@keyframes mtkGoalIn { from { opacity:0; transform:scale(.8); } to { opacity:1; transform:none; } }
+/* QR */
+.mtk-qr { text-align: center; padding: 20px; }
+.mtk-qr img { border-radius: 14px; border: 2px solid rgba(30,255,110,.1); }
+.mtk-qr-label { font-size: .66rem; color: #6F7B75; margin-top: 6px; letter-spacing: 1px; }
+/* Footer */
+.mtk-footer { text-align: center; padding: 16px 20px 24px; }
+.mtk-footer-brand { font-family: 'Poppins','Cairo',sans-serif; font-size: .82rem; font-weight: 900; letter-spacing: 3px; color: #6F7B75; }
+.mtk-footer-date { font-size: .72rem; color: #4A5A54; margin-top: 4px; }
+/* Buttons */
+.mtk-btns { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 18px; }
+.mtk-btns .btn { flex: 1; min-width: 100px; justify-content: center; }
+@media (max-width: 480px) {
+  .mtk-code { font-size: 1.6rem; }
+  .mtk-jstep b { font-size: .52rem; }
+  .mtk-jdot { width: 26px; height: 26px; font-size: .7rem; }
+}
 </style>"""
 
 BASE_JS = """<script>
@@ -2530,7 +2827,7 @@ document.addEventListener('DOMContentLoaded',function(){
       var intro=$('gxIntro');
       if(intro){
         setTimeout(function(){ intro.classList.add('show'); },50);
-        setTimeout(function(){ intro.classList.add('done'); sessionStorage.setItem('gx_intro_done','1'); },1800);
+        setTimeout(function(){ intro.classList.add('done'); sessionStorage.setItem('gx_intro_done','1'); },1500);
       }
     } else { var intro2=$('gxIntro'); if(intro2) intro2.style.display='none'; }
   }catch(e){}
@@ -2561,6 +2858,14 @@ document.addEventListener('DOMContentLoaded',function(){
         ball.style.opacity='0.7';
         clearTimeout(scrollTimer);
         scrollTimer=setTimeout(function(){ ball.style.opacity='0.4'; },800);
+        /* Goal at bottom */
+        var scrollPct=(window.scrollY||0)/(document.body.scrollHeight-window.innerHeight);
+        if(scrollPct>0.95 && !window._goalCelebrated){
+          window._goalCelebrated=true;
+          var fx=document.getElementById('gxGoalFx');
+          if(fx){ fx.classList.add('show'); setTimeout(function(){ fx.classList.remove('show'); },1500); }
+          confetti(15);
+        }
       },{passive:true});
     }
   }catch(e){}
@@ -2602,6 +2907,14 @@ document.addEventListener('DOMContentLoaded',function(){
       fn();
     };
   }catch(e){}
+  /* Matchday Mode */
+  window._matchdayOn=false;
+  window.toggleMatchday=function(){
+    window._matchdayOn=!window._matchdayOn;
+    document.documentElement.classList.toggle('matchday-mode',window._matchdayOn);
+    var btn=document.getElementById('matchdayBtn');
+    if(btn){ btn.classList.toggle('active',window._matchdayOn); btn.textContent=window._matchdayOn?'⚽ EXIT MATCHDAY':'⚽ MATCHDAY'; }
+  };
 });
 </script>"""
 
@@ -3392,15 +3705,172 @@ def listing_page(kind):
     return base_page(body, active=("mugs" if kind == "mug" else "products"))
 
 
+def size_guide_premium():
+    """Premium dark stadium size guide with calculator."""
+    en = lang() == "en"
+    d = cfg.L[lang()]
+    # Size chart JSON for JS
+    size_chart_json = json_d(cfg.SIZE_CHART)
+    size_order_json = json_d(cfg.SIZE_ORDER)
+    prods = [p for p in cfg.PRODUCTS if not p.get("hidden") and p["kind"] == "jersey"]
+    prods_json = json_d([{"id": p["id"], "name": p.get("name_en") if en else p.get("name_ar"),
+                          "price": p.get("price", 0), "emoji": p.get("emoji", "⚽"),
+                          "img": p["imgs"][0] if p.get("imgs") else "",
+                          "club": p.get("club_id", ""), "badges": p.get("badges", [])} for p in prods[:12]])
+
+    # Trust badges
+    trust_items = [
+        ("💬", d.get("sg_trust_support_t", "دعم 24/7"), d.get("sg_trust_support_d", "خدمتك في أي وقت")),
+        ("🔄", d.get("sg_trust_exchange_t", "سهولة الاستبدال"), d.get("sg_trust_exchange_d", "استبدال سهل في حال عدم المقاس")),
+        ("✅", d.get("sg_trust_quality_t", "راحة وجودة"), d.get("sg_trust_quality_d", "جودة عالية وخامات مريحة")),
+        ("📐", d.get("sg_trust_sizes_t", "جميع المقاسات أصلية"), d.get("sg_trust_sizes_d", "منتجات بمقاسات واضحة ومعتمدة")),
+    ]
+    trust_html = "".join(
+        '<div class="sg-trust-item"><span class="sg-trust-ic">{ic}</span>'
+        '<div><b>{t}</b><span>{x}</span></div></div>'.format(ic=ic, t=t, x=x)
+        for ic, t, x in trust_items)
+
+    body = (
+        '<div class="sg-page">'
+        # Hero Section
+        '<div class="sg-hero">'
+        '<div class="sg-hero-inner">'
+        '<div class="sg-hero-visual"><span class="sg-hero-jersey">👕</span>'
+        '<span class="sg-hero-glow"></span></div>'
+        '<div class="sg-hero-text">'
+        '<h1>{title_accent} <span class="sg-green">{title_word}</span></h1>'
+        '<p>{sub}</p></div></div></div>'
+        # Calculator Card
+        '<div class="wrap sg-wrap">'
+        '<div class="sg-calc-card" id="sgCalcCard">'
+        '<div class="sg-calc-header"><h2>{calc_title} 👕</h2><p>{calc_sub}</p></div>'
+        '<div class="sg-calc-inputs">'
+        '<div class="sg-field"><label>{height_lbl}</label>'
+        '<div class="sg-input-wrap"><input type="number" id="sgHeight" placeholder="170" min="140" max="220">'
+        '<span class="sg-unit">{cm}</span></div></div>'
+        '<div class="sg-field"><label>{weight_lbl}</label>'
+        '<div class="sg-input-wrap"><input type="number" id="sgWeight" placeholder="70" min="30" max="200">'
+        '<span class="sg-unit">{kg}</span></div></div></div>'
+        '<button class="btn pri big sg-calc-btn" onclick="sgCalc()">{calc_btn} ⚽</button>'
+        # Result (hidden initially)
+        '<div class="sg-result" id="sgResult" style="display:none">'
+        '<div class="sg-result-size" id="sgResultSize">M</div>'
+        '<div class="sg-result-label">{result_label}</div>'
+        '<div class="sg-result-details">'
+        '<div class="sg-rdetail"><span>{weight_lbl}</span><b id="sgRWeight">70 {kg}</b></div>'
+        '<div class="sg-rdetail"><span>{height_lbl}</span><b id="sgRHeight">170 {cm}</b></div></div>'
+        '<div class="sg-result-badge">✓ {result_badge}</div></div>'
+        # Adjacent sizes (hidden initially)
+        '<div class="sg-adjacent" id="sgAdjacent" style="display:none">'
+        '<h3>{adj_title}</h3><p>{adj_sub}</p>'
+        '<div class="sg-adj-cards" id="sgAdjCards"></div></div>'
+        # Size table reference
+        '<div class="sg-table-section">'
+        '<h3>{table_title}</h3>'
+        '{table}</div></div>'
+        # Products matching size
+        '<div class="sg-products" id="sgProducts" style="display:none">'
+        '<div class="sec-head"><h2><span class="bar"></span>{prod_title} <span id="sgProdSize"></span></h2></div>'
+        '<div class="grid" id="sgProdGrid"></div>'
+        '<div style="text-align:center;margin-top:18px"><a class="btn ghost" href="/products">{prod_all}</a></div></div>'
+        # Trust bar
+        '<div class="sg-trust-bar">{trust}</div>'
+        '</div></div>'
+    ).format(
+        title_accent=d.get("sg_hero_t1", "دليل") if en else "دليل",
+        title_word=d.get("sg_hero_t2", "المقاسات") if en else "المقاسات",
+        sub=d.get("sg_hero_sub", "اعثر على المقاس المثالي لك") if en else "اعثر على المقاس المثالي لك",
+        calc_title=d.get("sg_calc_title", "وش مقاسك؟") if en else "وش مقاسك؟",
+        calc_sub=d.get("sg_calc_sub", "أدخل طولك ووزنك، ونقترح لك المقاس الأقرب لك") if en else "أدخل طولك ووزنك، ونقترح لك المقاس الأقرب لك",
+        height_lbl=d.get("sg_height", "الطول") if en else "الطول",
+        weight_lbl=d.get("sg_weight", "الوزن") if en else "الوزن",
+        cm=d.get("szt_cm", "سم"), kg=d.get("szt_kg", "كجم"),
+        calc_btn=d.get("sg_calc_btn", "اعرف مقاسي") if en else "اعرف مقاسي",
+        result_label=d.get("sg_result_label", "المقاس الأقرب لك") if en else "المقاس الأقرب لك",
+        result_badge=d.get("sg_result_badge", "توصية قوية") if en else "توصية قوية",
+        adj_title=d.get("sg_adj_title", "بين مقاسين؟") if en else "بين مقاسين؟",
+        adj_sub=d.get("sg_adj_sub", "أنت بين مقاسين، اختر الأنسب لك") if en else "أنت بين مقاسين، اختر الأنسب لك",
+        table_title=d.get("sg_table_title", "جدول المقاسات الكامل") if en else "جدول المقاسات الكامل",
+        table=size_table_html(cfg.SIZE_CHART),
+        prod_title=d.get("sg_prod_title", "منتجات تناسب مقاسك") if en else "منتجات تناسب مقاسك",
+        prod_all=d.get("view_all", "عرض الكل"),
+        trust=trust_html,
+    )
+    page_js = """<script>
+var SG_CHART=%s;
+var SG_ORDER=%s;
+var SG_PRODS=%s;
+var SG_CM='%s';
+var SG_KG='%s';
+var SG_CUR='%s';
+function sgSizeFromHW(h,w){
+  if(!h||!w) return null;
+  var bmi=w/((h/100)*(h/100));
+  var best=null,bestDist=9999;
+  SG_ORDER.forEach(function(sz){
+    var c=SG_CHART[sz]; if(!c) return;
+    var hw=c.height.split('–');
+    var ww=c.weight.split('–');
+    var hMin=parseFloat(hw[0])||0,hMax=parseFloat(hw[1])||999;
+    var wMin=parseFloat(ww[0])||0,wMax=parseFloat(ww[1])||999;
+    var hMid=(hMin+hMax)/2, wMid=(wMin+wMax)/2;
+    var dist=Math.abs(h-hMid)*0.6+Math.abs(w-wMid)*0.4;
+    if(dist<bestDist){bestDist=dist;best=sz;}
+  });
+  return best;
+}
+function sgCalc(){
+  var h=parseFloat(($('sgHeight')||{}).value)||0;
+  var w=parseFloat(($('sgWeight')||{}).value)||0;
+  if(!h||!w){toast('أدخل الطول والوزن');return;}
+  var sz=sgSizeFromHW(h,w);
+  if(!sz){toast('تحقق من القيم');return;}
+  var res=$('sgResult');if(res) res.style.display='block';
+  var szEl=$('sgResultSize');if(szEl){szEl.textContent=sz;szEl.className='sg-result-size sg-pop';}
+  var wEl=$('sgRWeight');if(wEl) wEl.textContent=w+' '+SG_KG;
+  var hEl=$('sgRHeight');if(hEl) hEl.textContent=h+' '+SG_CM;
+  /* Adjacent sizes */
+  var idx=SG_ORDER.indexOf(sz);
+  var adj=[];
+  if(idx>0) adj.push({sz:SG_ORDER[idx-1],label:'أوسع قليلًا'});
+  if(idx<SG_ORDER.length-1) adj.push({sz:SG_ORDER[idx+1],label:'المقاس الأقرب'});
+  var adjBox=$('sgAdjacent');var adjCards=$('sgAdjCards');
+  if(adjBox&&adjCards&&adj.length){
+    adjBox.style.display='block';
+    adjCards.innerHTML=adj.map(function(a){
+      return '<div class="sg-adj-card'+(a.label.indexOf('الأقرب')>-1?' on':'')+'">'
+        +'<div class="sg-adj-sz">'+a.sz+'</div>'
+        +'<div class="sg-adj-lbl">'+a.label+'</div></div>';
+    }).join('');
+  }
+  /* Products */
+  var prodBox=$('sgProducts');var prodGrid=$('sgProdGrid');var prodSz=$('sgProdSize');
+  if(prodBox&&prodGrid){
+    prodBox.style.display='block';
+    if(prodSz) prodSz.textContent='('+sz+')';
+    prodGrid.innerHTML=SG_PRODS.slice(0,6).map(function(p){
+      return '<div class="pcard" data-id="'+p.id+'">'
+        +'<a href="/product/'+p.id+'"><div class="pimg" style="background:var(--card2)">'
+        +'<img src="/img/'+p.img+'" alt="'+p.name+'" loading="lazy"></div></a>'
+        +'<div class="pbody"><span class="pcat">'+p.club+'</span>'
+        +'<h3>'+p.name+'</h3>'
+        +'<div class="pfoot"><b>'+p.price.toFixed(3)+' '+SG_CUR+'</b>'
+        +'<a class="pview" href="/product/'+p.id+'">←</a></div></div></div>';
+    }).join('');
+  }
+  /* Scroll to result */
+  if(res) res.scrollIntoView({behavior:'smooth',block:'center'});
+}
+</script>""".format(size_chart_json, size_order_json, prods_json,
+                  d.get("szt_cm", "سم"), d.get("szt_kg", "كجم"), cur())
+    return base_page(body, page_js=page_js, active="sizes")
+
+
 def info_page(kind):
     en = lang() == "en"
     d = cfg.L[lang()]
     if kind == "size":
-        title, sub = d["szp_title"], d["szp_sub"]
-        inner = ("<p class='mnote'>{note}</p>".format(note=d["szt_note"]) + size_table_html(cfg.SIZE_CHART)
-                 + "<h4 class='msec'>{m}</h4>".format(m=d["szt_measure"]) + "<div class='szill-wrap'>" + size_diagram() + "</div>"
-                 + "<ol class='steps'><li>{a}</li><li>{b}</li></ol>".format(a=d["szt_measure_1"], b=d["szt_measure_2"])
-                 + "<div class='mwarning'>💡 {t}<br>{x}</div>".format(t=d["szt_between"], x=d["szt_between_txt"]))
+        return size_guide_premium()
     elif kind == "care":
         title, sub = d["care_title"], d["care_sub"]
         steps = "".join("<li><b>{n}</b> {txt}</li>".format(n=i + 1, txt=d["wash_" + str(i + 1)]) for i in range(8))
@@ -3713,6 +4183,42 @@ def product_body(pid):
            '<div class="grid">{cards}</div></div>').format(t=d["you_may_like"],
            cards="".join(product_card(x) for x in others[:4]))
 
+    # Matchday Mode toggle
+    matchday_btn = ('<button class="btn ghost matchday-btn" id="matchdayBtn" onclick="toggleMatchday()">'
+                    '⚽ MATCHDAY</button>')
+
+    # Outfit Builder (only for jerseys)
+    outfit_html = ""
+    if not is_mug:
+        outfit_html = (
+            '<div class="outfit-sec" id="outfitSec">'
+            '<div class="outfit-title"> BUILD YOUR MATCHDAY LOOK </div>'
+            '<div class="outfit-items">'
+            '<div class="outfit-item active"><span class="outfit-ic">{emoji}</span>'
+            '<div class="outfit-info"><b>{name}</b><span>{cat}</span></div></div>'
+            '<div class="outfit-plus">+</div>'
+            '<div class="outfit-item dim"><span class="outfit-ic">🩳</span>'
+            '<div class="outfit-info"><b>{shorts}</b><span>{na}</span></div></div>'
+            '<div class="outfit-plus">+</div>'
+            '<div class="outfit-item dim"><span class="outfit-ic">🧦</span>'
+            '<div class="outfit-info"><b>{socks}</b><span>{na}</span></div></div>'
+            '</div>'
+            '<div class="outfit-total"><span>{total_lbl}</span><b>{price}</b></div>'
+            '</div>'
+        ).format(
+            emoji=p.get("emoji", "⚽"), name=name, cat=cat,
+            shorts=d.get("outfit_shorts", "الشورت") if not en else "Shorts",
+            socks=d.get("outfit_socks", "الجوارب") if not en else "Socks",
+            na=d.get("outfit_na", "غير متوفر حاليًا") if not en else "Coming soon",
+            total_lbl=d.get("outfit_total", "إجمالي اللوك") if not en else "LOOK TOTAL",
+            price=pr
+        )
+
+    # Live Drop badge
+    live_drop = ""
+    if "new" in p.get("badges", []):
+        live_drop = '<div class="live-drop-badge"><span class="live-dot"></span>LIVE DROP</div>'
+
     page_js = ('<script>var GARR=' + arr + ';' + ('selSize=' + json_d(my_sz) + ';' if my_sz else '') +
                'document.addEventListener("DOMContentLoaded",function(){ setGal(0,GARR); buildReviews("%s"); });</script>') % p["id"]
 
@@ -3726,8 +4232,9 @@ def product_body(pid):
 
     body = (
         atmos_html("light")
-        + '<div class="wrap">'
+        + '<div class="wrap pg-wrap">'
         '<input type="hidden" id="prod_id" value="{id}">'
+        '{live_drop}'
         '<a class="back" href="/home">← {back}</a>'
         '<div class="pg">'
         '<div class="gal"><div class="gmain" onclick="openLB(document.getElementById(\'gmain\').src)">'
@@ -3740,6 +4247,7 @@ def product_body(pid):
         '{sizes}'
         '<div class="qtysec"><div class="lbl">{ql}</div>'
         '<div class="qty"><button onclick="chgQ(-1)">−</button><span class="qn" id="qty">1</span><button onclick="chgQ(1)">+</button></div></div>'
+        '{matchday_btn}'
         '<button class="btn pri orderbtn" onclick="var q=parseInt(document.getElementById(\'qty\').textContent,10);addCart(\'{id}\',selSize||\'\',q)">🛒 {add}</button>'
         '<button class="btn wa orderbtn" style="margin-top:10px" onclick="orderDirect(\'{id}\')">💬 {ow}</button>'
         '<button class="btn ghost orderbtn" style="margin-top:10px" onclick="openPriceDrop(\'{id}\')">🔔 {pd}</button>'
@@ -3749,6 +4257,7 @@ def product_body(pid):
         '<div class="link3" onclick="openModal(\'m-wash\')"><span class="ic">🧺</span>{b}</div>'
         '<div class="link3" onclick="openModal(\'m-ret\')"><span class="ic">🔄</span>{c}</div></div>'
         '</div></div>'
+        '{outfit}'
         '{ratings}{yml}'
         '</div>'
     ).format(back=d["back"], first=p["imgs"][0], name=name, gal_nav=gal_nav, thumbs_block=thumbs_block,
@@ -3756,7 +4265,8 @@ def product_body(pid):
              sizes=sizes, ql=d["qty_label"], id=p["id"], add=d["add"], ow=d["order_wa"],
              pd=d["pd_title"],
              notify=notify, a=d["prod_links_sz"], b=d["prod_links_wash"], c=d["prod_links_ret"],
-             ratings=ratings, yml=yml)
+             ratings=ratings, yml=yml, matchday_btn=matchday_btn, outfit=outfit_html,
+             live_drop=live_drop)
 
     extra_club = club_id or None
     return body, page_js, extra_club
@@ -4273,58 +4783,108 @@ def ticket_page(code):
     status_label = d.get("st_" + status, status)
     total = data.get("total", 0)
     def item_html(it):
-        return ('<div class="tk-item"><span>{e} {n}{s}</span>'
-                '<span>{q} × {pr} {c}</span></div>').format(
+        return ('<div class="mtk-item"><span class="mtk-item-ic">{e}</span>'
+                '<div class="mtk-item-info"><b>{n}</b><span>{s}{q} × {pr} {c}</span></div></div>').format(
             e=it.get("emoji", "⚽"), n=esc(it.get("name", "")),
-            s=(" · " + d["size_w"] + it["size"]) if it.get("size") and it.get("kind") != "mug" else "",
+            s=(d["size_w"] + esc(it["size"]) + " · ") if it.get("size") and it.get("kind") != "mug" else "",
             q=it.get("qty", 1), pr=fmt_cur(it.get("price", 0)), c=cur())
     items_html = "".join(item_html(i) for i in items)
     qr = "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" + url_for("track", code=code, _external=True)
-    cust = "".join("" for _ in [])
     wa_msg = d["tk_msg"].format(code=code)
     idx = ORDER_FLOW.index(status) if status in ORDER_FLOW else -1
+
+    # Status emoji mapping
+    status_emoji = {"received": "⚽", "preparing": "🧵", "ready": "📦", "out_for_delivery": "🚚", "delivered": "🏆", "cancelled": "❌"}
+    st_emoji = status_emoji.get(status, "⚽")
+
+    # Match Journey timeline
     tj = ""
     if status != "cancelled":
         tj_steps = [("tstage_ok", "⚽"), ("tstage_pay", "💳"), ("tstage_prep", "🧵"),
                     ("tstage_way", "🚚"), ("tstage_done", "🏆")]
         tj_inner = "".join(
-            '<div class="tj-step {cls}"><div class="tj-dot">{ic}</div><b>{lbl}</b></div>'.format(
+            '<div class="mtk-jstep {cls}"><div class="mtk-jdot">{ic}</div><b>{lbl}</b></div>'.format(
                 cls="done" if i <= idx else ("cur" if i == idx else ""), ic=ic, lbl=d[k])
             for i, (k, ic) in enumerate(tj_steps))
         pct = int(idx / 4 * 100) if idx >= 0 else 0
-        tj = ('<div style="margin-top:18px">'
-              '<div style="text-align:center;font-weight:900;font-size:.9rem;margin-bottom:12px">⚽ Match Journey</div>'
-              '<div class="tj">{inner}</div>'
-              '<div style="height:6px;border-radius:999px;background:rgba(25,195,125,.12);margin-top:14px;overflow:hidden">'
-              '<div style="height:100%;width:{pct}%;background:linear-gradient(90deg,var(--ac),var(--ac2));border-radius:999px;transition:width 1s ease"></div></div>'
-              '</div>').format(inner=tj_inner, pct=pct)
+        # Ball position on the timeline
+        ball_left = min(100, max(0, pct))
+        tj = ('<div class="mtk-journey">'
+              '<div class="mtk-jtitle">⚽ ORDER JOURNEY</div>'
+              '<div class="mtk-jtrack"><div class="mtk-jfill" style="width:{pct}%"></div>'
+              '<div class="mtk-jball" style="left:{ball}%">⚽</div></div>'
+              '<div class="mtk-jsteps">{inner}</div></div>').format(
+            inner=tj_inner, pct=pct, ball=ball_left)
+
+    # Delivered celebration
+    goal_celebration = ""
+    if status == "delivered":
+        goal_celebration = '<div class="mtk-goal" id="mtkGoal">🏆 GOOOOAL! ⚽<br><span>طلبك وصل بنجاح!</span></div>'
+
     body = (
-        '<div class="wrap ticket">'
-        '<div class="tk"><div class="tk-top"><span class="tlogo">⚽ GOLAZOX</span><span>{store}</span></div>'
-        '<div class="tk-stub"><div class="tk-code">{code}</div>'
-        '<div class="tk-row"><span>{date}: <b>{dt}</b></span><span>{time}: <b>{tm}</b></span></div>'
-        '<div class="tk-row"><span>{cust}: <b>{cname}</b></span></div></div>'
-        '<div class="tk-items">{items}</div>'
-        '<div class="tk-total"><span>{total}</span><span style="color:var(--ac)">{t}</span></div>'
-        '<div class="tk-status"><span>{st}:</span><span class="pill">{sl}</span></div>'
+        '<div class="mtk-page">'
+        # Stadium lights effect
+        '<div class="mtk-lights"><div class="mtk-light"></div><div class="mtk-light"></div></div>'
+        '<div class="wrap mtk-wrap">'
+        '<div class="mtk-ticket" id="mtkTicket">'
+        # Ticket top branding
+        '<div class="mtk-header">'
+        '<div class="mtk-brand">⚽ GOLAZOX</div>'
+        '<div class="mtk-matchday">MATCHDAY TICKET</div></div>'
+        # Perforation line
+        '<div class="mtk-perf"></div>'
+        # Ticket code
+        '<div class="mtk-code-section">'
+        '<div class="mtk-code">{code}</div>'
+        '<div class="mtk-code-label">MATCH ID</div></div>'
+        # Perforation line
+        '<div class="mtk-perf"></div>'
+        # Order items
+        '<div class="mtk-items-section">'
+        '<div class="mtk-section-title">YOUR ORDER</div>'
+        '{items}</div>'
+        # Status
+        '<div class="mtk-status-section">'
+        '<div class="mtk-status-label">STATUS</div>'
+        '<div class="mtk-status-pill">{st_emoji} {sl}</div></div>'
+        # Journey
         '{journey}'
-        '<div class="tk-qr"><img src="{qr}" alt="QR" width="150"></div>'
-        '<div class="tk-btns">'
+        # Goal celebration
+        '{goal}'
+        # QR Code
+        '<div class="mtk-qr">'
+        '<img src="{qr}" alt="QR" width="120">'
+        '<div class="mtk-qr-label">.Scan to track</div></div>'
+        # Perforation line
+        '<div class="mtk-perf"></div>'
+        # Footer
+        '<div class="mtk-footer">'
+        '<div class="mtk-footer-brand">GOLAZOX STADIUM</div>'
+        '<div class="mtk-footer-date">{dt} · {tm}</div></div>'
+        '</div>'
+        # Buttons
+        '<div class="mtk-btns">'
         '<button class="btn ghost" onclick="shareTk()">{sh}</button>'
         '<button class="btn ghost" onclick="window.print()">{sv}</button>'
         '<button class="btn ghost" onclick="location.href=\'/track?code={code}\'">{tr}</button>'
-        '<a class="btn tg" target="_blank" rel="noopener" href="https://t.me/{tg}?text={wm}">{cw}</a>'
-        '</div><div class="tk-foot">© 2026 golazox</div></div>'
+        '<a class="btn tg" target="_blank" rel="noopener" href="https://t.me/{tg}?text={wm}">{cw}</a></div>'
         '<div style="text-align:center;margin-top:18px"><a class="back" href="/home">← {b}</a></div>'
-        '</div>'
-    ).format(store=d["tk_store"], code=code, date=d["tk_date"], dt=data.get("date", ""),
-             time=d["tk_time"], tm=data.get("time", ""), cust=d["tk_customer"], cname=esc(data.get("name", "—")),
-             items=items_html, total=d["tk_total"], t=fmt_cur(total), st=d["tk_status"],
-             sl=status_label, journey=tj, qr=qr, sh=d["tk_share"], sv=d["tk_save"], tr=d["tk_track"],
+        '</div></div>'
+    ).format(code=code, items=items_html, st_emoji=st_emoji, sl=status_label,
+             journey=tj, goal=goal_celebration, qr=qr,
+             dt=data.get("date", ""), tm=data.get("time", ""),
+             sh=d["tk_share"], sv=d["tk_save"], tr=d["tk_track"],
              tg=cfg.TELEGRAM, wm=esc(wa_msg), cw=d["tk_wa"], b=d["back"])
+
     page_js = """<script>
 function shareTk(){ var url=location.href;
-  if(navigator.share){ navigator.share({title:'golazox',url:url}); } else { navigator.clipboard.writeText(url); toast(url); } }
+  if(navigator.share){ navigator.share({title:'GOLAZOX Match Ticket',url:url}); } else { navigator.clipboard.writeText(url); toast(url); } }
+document.addEventListener('DOMContentLoaded',function(){
+  var ticket=document.getElementById('mtkTicket');
+  if(ticket){ ticket.classList.add('mtk-reveal'); }
+  var goal=document.getElementById('mtkGoal');
+  if(goal){ setTimeout(function(){ goal.classList.add('show'); confetti(20); },600); setTimeout(function(){ goal.classList.remove('show'); },3000); }
+});
 </script>"""
     return base_page(body, page_js=page_js)
 

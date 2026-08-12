@@ -2938,7 +2938,7 @@ function renderCartPage(){
     +'<div class="cart-penalty-pitch">'
     +'<div class="cart-penalty-goal"></div>'
     +'<div class="cart-penalty-zones">'
-    +'<button onclick="cartPenaltyShoot('left')">↖</button><button onclick="cartPenaltyShoot('center')">↑</button><button onclick="cartPenaltyShoot('right')">↗</button>'
+    +'<button onclick="cartPenaltyShoot(\"left\")">↖</button><button onclick="cartPenaltyShoot(\"center\")">↑</button><button onclick="cartPenaltyShoot(\"right\")">↗</button>'
     +'</div><div class="cart-penalty-keeper" id="cartPenaltyKeeper">🧤</div>'
     +'<div class="cart-penalty-ball" id="cartPenaltyBall">⚽</div></div>'
     +'<div class="cart-penalty-result" id="cartPenaltyResult"></div></div>';
@@ -3623,6 +3623,11 @@ function syncServerFavs(){
     renderFavs();
   }).catch(function(){});
 }
+/* Intro fail-safe: secondary JS errors must never leave the full-screen intro blocking the app. */
+window.setTimeout(function(){
+  try{ var intro=$('gxIntro'); if(intro){ intro.classList.add('done'); intro.style.pointerEvents='none'; } }catch(e){}
+}, 3500);
+
 document.addEventListener('DOMContentLoaded',function(){
   applyPrefs(); syncPrefs(); gxDev(); renderFavs(); syncServerFavs();
   if($('sq')){ $('sq').addEventListener('input',applyFilters); }
@@ -3841,6 +3846,7 @@ def base_page(body, active="", page_js="", extra_club=None):
     if extra_club:
         gx["club_page"] = extra_club
     gx_json = json_d(gx)
+    gx_json = gx_json.replace("</script>", "<\\/script>")
     js = BASE_JS.replace("__GX__", gx_json)
     head_extra = "<style>" + club_theme_css() + "</style>"
     if extra_club:
@@ -3916,8 +3922,8 @@ MODALS
 <div class="mkmode-pitch"></div>
 <div class="mkmode-lights"><div class="mkl"></div><div class="mkl"></div><div class="mkl"></div><div class="mkl"></div></div>
 <a class="fab" target="_blank" rel="noopener" href="https://wa.me/{WA}" title="WhatsApp">💬</a>
-__PAGEJS_SLOT__
 __BASEJS_SLOT__
+__PAGEJS_SLOT__
 </body>
 </html>""".replace("LANG", "en" if en else "ar") \
         .replace("DIR", "ltr" if en else "rtl") \
@@ -5142,13 +5148,15 @@ def product_body(pid):
     if "new" in p.get("badges", []):
         live_drop = '<div class="live-drop-badge"><span class="live-dot"></span>LIVE DROP</div>'
 
-    page_js = ('<script>var GARR=' + arr + ';' + ('selSize=' + json_d(my_sz) + ';' if my_sz else '') +
-               'document.addEventListener("DOMContentLoaded",function(){ setGal(0,GARR); buildReviews("%s");'
+    # Build product-page JavaScript safely. Never interpolate raw product text into JS strings.
+    pid_js = json_d(p["id"])
+    page_js = ('<script>var GARR=' + arr + ';' + (('selSize=' + json_d(my_sz) + ';') if my_sz else '') +
+               'document.addEventListener("DOMContentLoaded",function(){ window.setGal(0,GARR); buildReviews(' + pid_js + ');'
                'if(selSize){var om=document.getElementById("omSizeVal");if(om)om.textContent=selSize;} });'
                'function triggerReveal(){var r=document.getElementById("jeReveal");if(r)r.classList.add("open");}'
                'function initJerseyExp(){var r=document.getElementById("jeReveal");if(!r)return;'
                'var io=new IntersectionObserver(function(e){if(e[0].isIntersecting){setTimeout(function(){triggerReveal()},800);io.disconnect();}},{threshold:0.4});io.observe(r);}'
-               'document.addEventListener("DOMContentLoaded",function(){initJerseyExp();});</script>') % p["id"]
+               'document.addEventListener("DOMContentLoaded",function(){initJerseyExp();});</script>')
 
     one = len(p["imgs"]) <= 1
     gal_nav = "" if one else (
@@ -6307,7 +6315,9 @@ def product(pid):
     if not p:
         return redirect("/home")
     body, page_js, club = product_body(pid)
-    return base_page(body, page_js=page_js + order_direct_js(), extra_club=club)
+    page_js = page_js.replace("</script>", "<\\/script>")
+    order_js = order_direct_js().replace("</script>", "<\\/script>")
+    return base_page(body, page_js=page_js + order_js, extra_club=club)
 
 
 @app.route("/ticket")

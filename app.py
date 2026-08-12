@@ -390,8 +390,6 @@ html[data-theme="dark"][data-club] .hero { background:linear-gradient(120deg, va
 .pfoot b { font-size:1.05rem; color:var(--ac); }
 .pview { font-size:.8rem; font-weight:800; color:var(--mut); }
 .pcard:hover .pview { color:var(--ac); }
-.tryme { width:100%; margin-top:10px; padding:8px 10px; border:1.5px dashed var(--ac,#E11D48); background:rgba(225,29,72,.05); color:var(--ac,#E11D48); border-radius:12px; font-family:inherit; font-size:.82rem; font-weight:800; cursor:pointer; }
-.tryme:hover { background:var(--ac,#E11D48); color:#fff; }
 .badges { position:absolute; top:10px; inset-inline-start:10px; display:flex; flex-direction:column; gap:5px; z-index:2; }
 .badge { font-size:.68rem; font-weight:900; padding:4px 9px; border-radius:999px; color:#fff; width:max-content; }
 .badge.new { background:linear-gradient(90deg,#8B5CF6,#A78BFA); }
@@ -760,13 +758,6 @@ html[data-theme="dark"] .mwarning { background:#3B1D0B; border-color:#7C2D12; co
 .pen-result .big { font-size:2.6rem; font-weight:900; }
 .pen-result .pts { background:rgba(255,255,255,.14); border-radius:999px; padding:8px 20px; font-weight:900; }
 .pen-note { color:var(--mut); font-size:.82rem; margin-top:10px; }
-/* try it on */
-.try-stage { position:relative; border-radius:16px; overflow:hidden; background:#0F172A; min-height:180px; display:flex; align-items:center; justify-content:center; }
-.try-stage canvas { display:block; width:100%; max-height:380px; }
-.try-ai { position:absolute; top:10px; inset-inline-start:10px; background:rgba(0,0,0,.65); color:#fff; font-size:.72rem; font-weight:900; padding:5px 12px; border-radius:999px; }
-.try-ph { color:rgba(255,255,255,.55); font-size:.85rem; font-weight:700; padding:30px 16px; text-align:center; }
-.try-err { }
-.try-result-head { font-size:1.05rem; font-weight:900; color:var(--ac); margin-bottom:10px; }
 /* reviews v2 */
 .rat-dims { flex:1; min-width:220px; display:flex; flex-direction:column; gap:7px; }
 .rv2-dim { display:flex; align-items:center; gap:10px; font-size:.8rem; font-weight:700; }
@@ -1273,8 +1264,6 @@ html[data-theme="dark"] .list-search .ls-box input { background:var(--card2); }
 .pfoot b { font-size:1rem; color:#0B0B0C; }
 .pview { color:#6B6B74; }
 .pcard:hover .pview { color:#A8852E; }
-.tryme { width:100%; margin-top:10px; padding:8px 10px; border:1.5px dashed #0B0B0C; background:#F7F3E9; color:#0B0B0C; border-radius:12px; font-family:inherit; font-size:.82rem; font-weight:800; cursor:pointer; }
-.tryme:hover { background:#0B0B0C; color:#fff; }
 .sizes-row { display:flex; gap:6px; flex-wrap:wrap; margin-top:9px; }
 .sz-pill { min-width:30px; text-align:center; font-size:.68rem; font-weight:800; padding:4px 5px;
   border-radius:7px; border:1px solid var(--line); color:var(--mut); background:#fff; }
@@ -1893,136 +1882,6 @@ function submitPriceDrop(){
     body:JSON.stringify({product:pid,phone:ph,device:gxDev()})}).then(function(r){return r.json();}).then(function(d){
     closeModal('m-pricedrop'); toast(gxT('pd_ok'));
   });
-}
-/* ---------- try it on (FASHN VTON v1.5 backend) ---------- */
-var TRY={img:null,imgDataUrl:'',pid:null,size:'',result:null,jobId:null,pollTimer:null};
-function tryOpen(pid){ TRY.pid=pid; TRY.size=''; TRY.result=null; TRY.jobId=null; TRY.img=null; TRY.imgDataUrl='';
-  if(TRY.pollTimer){clearInterval(TRY.pollTimer); TRY.pollTimer=null;}
-  var sel=$('try_sel'); if(sel){ sel.value=pid; }
-  var prev=$('tryPrev'); if(prev){ prev.style.display='none'; prev.src=''; }
-  var res=$('tryResultWrap'); if(res) res.style.display='none';
-  var stage=$('tryStage'); if(stage) stage.style.display='block';
-  var btn=$('tryRun'); if(btn){ btn.style.display='block'; btn.disabled=false; }
-  var err=$('tryErr'); if(err){ err.style.display='none'; err.textContent=''; }
-  document.querySelectorAll('#try_sizes .sz-pill').forEach(function(x){ x.classList.remove('on'); });
-  openModal('m-tryit');
-}
-function tryPickSize(el,sz){ TRY.size=sz;
-  document.querySelectorAll('#try_sizes .sz-pill').forEach(function(x){ x.classList.remove('on'); });
-  if(el) el.classList.add('on');
-}
-function trySwitch(pid){ TRY.pid=pid; }
-function tryCompress(file,cb){
-  var fr=new FileReader();
-  fr.onerror=function(){ cb(null); };
-  fr.onload=function(){
-    var img=new Image();
-    img.onerror=function(){ cb(null); };
-    img.onload=function(){
-      var maxS=1024, w=img.naturalWidth||img.width, h=img.naturalHeight||img.height;
-      if(!w || !h){ cb(null); return; }
-      var scale=Math.min(1,maxS/Math.max(w,h));
-      w=Math.max(1,Math.round(w*scale)); h=Math.max(1,Math.round(h*scale));
-      var cv=document.createElement('canvas'); cv.width=w; cv.height=h;
-      var ctx=cv.getContext('2d'); if(!ctx){ cb(null); return; }
-      ctx.fillStyle='#fff'; ctx.fillRect(0,0,w,h); ctx.drawImage(img,0,0,w,h);
-      try { cb(cv.toDataURL('image/jpeg',0.86)); } catch(e) { cb(null); }
-    };
-    img.src=fr.result;
-  };
-  fr.readAsDataURL(file);
-}
-function tryHandle(input,cam){
-  var f=input.files[0]; if(!f) return;
-  if(!/^image\//.test(f.type)){ toast(gxT('is_bad_photo')); input.value=''; return; }
-  var err=$('tryErr'); if(err){ err.style.display='none'; err.textContent=''; }
-  tryCompress(f,function(dataUrl){
-    if(!dataUrl){ if(err){ err.style.display='block'; err.textContent='تعذر قراءة الصورة. جربي صورة JPG أو PNG واضحة.'; } return; }
-    var img=new Image();
-    img.onload=function(){
-      TRY.img=img; TRY.imgDataUrl=dataUrl;
-      var prev=$('tryPrev'); if(prev){ prev.src=dataUrl; prev.style.display='block'; }
-      if(err) err.style.display='none';
-    };
-    img.onerror=function(){ if(err){ err.style.display='block'; err.textContent='تعذر تجهيز الصورة للمعاينة.'; } };
-    img.src=dataUrl;
-  });
-}
-function tryRun(){
-  if(!TRY.imgDataUrl){ toast(gxT('try_up')); return; }
-  if(!TRY.pid){ toast(gxT('try_product')); return; }
-  var prod=null, i;
-  for(i=0;i<GX.products.length;i++){ if(GX.products[i].id===TRY.pid){ prod=GX.products[i]; break; } }
-  if(!prod){ toast(gxT('try_product')); return; }
-  var run=$('tryRun'), load=$('tryLoading');
-  if(run) run.disabled=true;
-  if(load) load.style.display='block';
-  var err=$('tryErr'); if(err) err.style.display='none';
-  fetch('/api/tryon/run',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({pid:TRY.pid,img:TRY.imgDataUrl||''})
-  }).then(function(r){ return r.text().then(function(txt){ var d={}; try{d=JSON.parse(txt||'{}');}catch(e){d={ok:false,error:'invalid_response'};} return d; });
-  }).then(function(d){
-    if(!d.ok){ console.error('[TRYON] run failed:',d); tryFail(d.error==='unavailable'?'try_not_configured':'try_error'); return; }
-    if(d.result&&d.result.image){ tryDone(tryImageDataUrl(d.result.image)); return; }
-    if(!d.job_id){ console.error('[TRYON] missing job_id:',d); tryFail('try_error'); return; }
-    TRY.jobId=d.job_id; TRY.pollTimer=setInterval(function(){ tryPoll(); },2500);
-  },function(e){ console.error('[TRYON] request failed:',e); tryFail('try_error'); });
-}
-function tryImageDataUrl(image){
-  if(!image) return '';
-  if(/^data:image\//i.test(image) || /^https?:\/\//i.test(image)) return image;
-  return 'data:image/jpeg;base64,'+image;
-}
-function tryPoll(){
-  if(!TRY.jobId) return;
-  fetch('/api/tryon/status?job='+encodeURIComponent(TRY.jobId))
-  .then(function(r){ return r.text().then(function(txt){ var d={}; try{d=JSON.parse(txt||'{}');}catch(e){d={status:'error'};} return d; }); })
-  .then(function(d){
-    if(d.status==='done' && d.result && d.result.image){
-      clearInterval(TRY.pollTimer); TRY.pollTimer=null; tryDone(tryImageDataUrl(d.result.image));
-    } else if(d.status==='error'){
-      console.error('[TRYON] poll failed:',d); clearInterval(TRY.pollTimer); TRY.pollTimer=null; tryFail('try_error');
-    }
-  },function(e){ console.error('[TRYON] poll request failed:',e); });
-}
-function tryFail(msgKey){
-  var run=$('tryRun'), load=$('tryLoading'); if(run) run.disabled=false; if(load) load.style.display='none';
-  if(TRY.pollTimer){clearInterval(TRY.pollTimer); TRY.pollTimer=null;}
-  var err=$('tryErr'); if(err){ err.style.display='block'; err.textContent=gxT(msgKey); }
-}
-function tryDone(dataUrl){
-  TRY.result=dataUrl;
-  var run=$('tryRun'), load=$('tryLoading'); if(run) run.disabled=false; if(load) load.style.display='none';
-  var stage=$('tryStage'); if(stage) stage.style.display='none';
-  var res=$('tryResultWrap'); if(res){ res.style.display='block'; }
-  var img=$('tryResultImg'); if(img){ img.src=dataUrl; }
-  var err=$('tryErr'); if(err) err.style.display='none';
-}
-function tryAnother(){ TRY.result=null; TRY.img=null; TRY.imgDataUrl='';
-  var res=$('tryResultWrap'); if(res) res.style.display='none';
-  var stage=$('tryStage'); if(stage) stage.style.display='block';
-  var run=$('tryRun'); if(run){ run.style.display='block'; run.disabled=false; }
-}
-function tryAdd(){ if(!TRY.pid) return;
-  if(!TRY.size){ toast(gxT('size_required')); return; }
-  var q=1; addCart(TRY.pid, TRY.size, q);
-}
-function tryShare(){
-  var src=TRY.result||(TRY.img?TRY.img.src:null); if(!src) return;
-  try{
-    var a=document.createElement('a'); a.href=src; a.download='golazox-tryon.jpg'; a.click(); toast(gxT('try_share'));
-  }catch(e){}
-}
-function tryReset(){ TRY.img=null; TRY.result=null; TRY.size=''; TRY.jobId=null;
-  if(TRY.pollTimer){clearInterval(TRY.pollTimer); TRY.pollTimer=null;}
-  var f=$('tryfile'); if(f) f.value='';
-  var prev=$('tryPrev'); if(prev){ prev.style.display='none'; prev.src=''; }
-  var res=$('tryResultWrap'); if(res) res.style.display='none';
-  var stage=$('tryStage'); if(stage) stage.style.display='block';
-  var run=$('tryRun'); if(run){ run.disabled=false; run.style.display='block'; }
-  var err=$('tryErr'); if(err){ err.style.display='none'; err.textContent=''; }
-  var load=$('tryLoading'); if(load) load.style.display='none';
-  document.querySelectorAll('#try_sizes .sz-pill').forEach(function(x){ x.classList.remove('on'); });
 }
 /* ---------- drop remind ---------- */
 function submitDropRemind(){
@@ -2780,43 +2639,6 @@ def modals_html():
 
     points_body = '<div id="ptsBox"></div>'
 
-    try_opts = "".join('<option value="{id}">{name}</option>'.format(
-        id=x["id"], name=x.get("name_ar", x["id"])) for x in cfg.PRODUCTS if x["kind"] == "jersey")
-    try_sizes = "".join('<button class="sz-pill" data-sz="{sz}" onclick="tryPickSize(this,\'{sz}\')">{sz}</button>'.format(sz=s)
-                        for s in cfg.SIZE_ORDER[:5])
-    tryit_body = ('<p class="mnote">{sub}</p>'
-                  '<div style="display:flex;gap:10px;flex-wrap:wrap">'
-                  '<label class="btn pri" style="flex:1;justify-content:center">{cam}<input id="tryfile" type="file" accept="image/*" capture="environment" onchange="tryHandle(this,true)" style="display:none"></label>'
-                  '<label class="btn ghost" style="flex:1;justify-content:center">{up}<input type="file" accept="image/*" onchange="tryHandle(this,false)" style="display:none"></label></div>'
-                  '<img id="tryPrev" alt="" style="display:none;max-width:150px;max-height:150px;border-radius:16px;margin-top:10px;border:2px solid var(--ac)">'
-                  '<p class="img-search-tip">{hint}</p>'
-                  '<p class="try-err" id="tryErr" style="display:none;margin-top:8px;background:#FEE2E2;border:1px solid #FCA5A5;color:#B91C1C;border-radius:12px;padding:10px 14px;font-weight:800"></p>'
-                  '<div class="fld" style="margin-top:8px"><label>{prod}</label>'
-                  '<select id="try_sel" onchange="trySwitch(this.value)">{opts}</select></div>'
-                  '<div class="sizes-row" id="try_sizes" style="margin-top:8px">{sizes}</div>'
-                  '<div class="try-stage" id="tryStage"><span class="try-ai">{ai}</span>'
-                  '<div class="try-ph" id="tryPh">{ph}</div></div>'
-                  '<p class="try-load" id="tryLoading" style="display:none;margin-top:8px;font-weight:800">⚙️ {loading}</p>'
-                  '<div class="mwarning">⚠️ {dis}</div>'
-                  '<div id="tryResultWrap" style="display:none;margin-top:12px">'
-                  '<div class="try-result-head">✨ {done}</div>'
-                  '<img id="tryResultImg" alt="' + esc(d["try_result_alt"]) + '" style="display:block;width:100%;max-height:440px;object-fit:contain;border-radius:16px;border:2px solid var(--ac)">'
-                  '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">'
-                  '<button class="btn ghost" style="flex:1" onclick="tryAnother()">{another}</button>'
-                  '<button class="btn pri" style="flex:1" onclick="tryAdd()">{add}</button>'
-                  '<button class="btn ghost" style="flex:1" onclick="tryReset()">{redo}</button></div>'
-                  '<p class="img-search-tip">{fine}</p></div>'
-                  '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px" id="tryRunRow">'
-                  '<button class="btn pri" style="flex:1" id="tryRun" onclick="tryRun()">{run}</button>'
-                  '<button class="btn ghost" style="flex:1" onclick="tryShare()">{sh}</button></div>'
-                  '<p class="img-search-tip">{priv}</p>'
-                  ).format(sub=d["try_sub"], cam=d["try_cam"], up=d["try_up"], hint=d["try_hint"],
-                           prod=d["try_product"], opts=try_opts, sizes=try_sizes,
-                           ai=d["try_ai"], ph=d["try_ph"], loading=d["try_loading"],
-                           dis=d["try_dis"], done=d["try_done"], another=d["try_another"],
-                           add=d["try_add"], redo=d["try_again"], fine=d["try_fine"],
-                           run=d["try_run"], sh=d["try_share"], priv=d["try_priv"])
-
     pricedrop_body = ('<p class="mnote">{sub}</p>'
                       '<input type="hidden" id="pd_prod">'
                       '<div class="fld"><label>{ph}</label><input id="pd_phone" inputmode="tel" placeholder="+973 ________"></div>'
@@ -2839,7 +2661,6 @@ def modals_html():
             + modal("m-request", d["req_title"], req_body, True)
             + modal("m-imgsearch", d["is_title"], img_body)
             + modal("m-points", d["pts_title"], points_body)
-            + modal("m-tryit", d["try_title"], tryit_body, True)
             + modal("m-pricedrop", d["pd_title"], pricedrop_body)
             + modal("m-login", d["auth_title"], login_body)
             + modal("m-reorder", d["ro_title"], reorder_body))
@@ -3327,9 +3148,6 @@ def product_card(p):
         p.get("desc_ar", ""), p.get("desc_en", ""),
         p["id"], p["kind"],
     ])).replace('"', "&quot;").lower()
-    trybtn = ""
-    if p["kind"] == "jersey":
-        trybtn = '<button class="tryme" onclick="tryOpen(\'{id}\')">📸 {tr}</button>'.format(id=p["id"], tr=d["try_title"])
     return (
         '<div class="pcard" data-id="{id}" data-kind="{kind}" data-club="{cid}" data-clubn="{cn}" data-search="{search}" data-stock="{csv}" data-price="{price}" data-name="{name}" data-order="{order}" data-badge="{bcsv}" data-col="{ncol}" style="--pc:{pc};--pc2:{pc2}">'
         '<div class="badges">{badges}</div>'
@@ -3341,13 +3159,12 @@ def product_card(p):
         '{low}'
         '{sizes_row}'
         '<div class="pcols">{pdots}</div>'
-        '{trybtn}'
         '<div class="pfoot"><b>{pr}</b><a class="pview" href="/product/{id}">{view} ←</a></div></div></div>'
     ).format(id=p["id"], kind=p["kind"], cid=club_id, cn=clubn.replace('"', "&quot;"), search=searchable,
              csv=stock_csv, price=eff_price(p), name=name.replace('"', "&quot;"), badges=badges_html,
              on="on" if fav else "", h="❤" if fav else "🤍",
              c1=p["colors"][0], c2=p["colors"][1], first=first, cat=cat, pr=pr, view=d["view"], low=low,
-             order=order, bcsv=b_csv, ncol=ncol, sizes_row=sizes_row, pdots=pdots, trybtn=trybtn,
+             order=order, bcsv=b_csv, ncol=ncol, sizes_row=sizes_row, pdots=pdots,
              pc=pc, pc2=pc2)
 
 
@@ -3479,10 +3296,6 @@ def product_body(pid):
     page_js = ('<script>var GARR=' + arr + ';' + ('selSize=' + json_d(my_sz) + ';' if my_sz else '') +
                'document.addEventListener("DOMContentLoaded",function(){ setGal(0,GARR); buildReviews("%s"); });</script>') % p["id"]
 
-    trybtn = ""
-    if not is_mug:
-        trybtn = '<button class="btn ghost orderbtn" style="margin-top:10px" onclick="tryOpen(\'{id}\')">📸 {tr}</button>'.format(id=p["id"], tr=d["try_title"])
-
     one = len(p["imgs"]) <= 1
     gal_nav = "" if one else (
         '<span class="gcount" id="gcount">1 {of} {n}</span>'
@@ -3509,7 +3322,6 @@ def product_body(pid):
         '<div class="qty"><button onclick="chgQ(-1)">−</button><span class="qn" id="qty">1</span><button onclick="chgQ(1)">+</button></div></div>'
         '<button class="btn pri orderbtn" onclick="var q=parseInt(document.getElementById(\'qty\').textContent,10);addCart(\'{id}\',selSize||\'\',q)">🛒 {add}</button>'
         '<button class="btn wa orderbtn" style="margin-top:10px" onclick="orderDirect(\'{id}\')">💬 {ow}</button>'
-        '{trybtn}'
         '<button class="btn ghost orderbtn" style="margin-top:10px" onclick="openPriceDrop(\'{id}\')">🔔 {pd}</button>'
         '{notify}'
         '<div class="links3">'
@@ -3522,7 +3334,7 @@ def product_body(pid):
     ).format(back=d["back"], first=p["imgs"][0], name=name, gal_nav=gal_nav, thumbs_block=thumbs_block,
              gthumbs=gthumbs, zh=d["zoom_hint"], cat=cat, pr=pr, trust=trust, trust_info=trust_info,
              sizes=sizes, ql=d["qty_label"], id=p["id"], add=d["add"], ow=d["order_wa"],
-             trybtn=trybtn, pd=d["pd_title"],
+             pd=d["pd_title"],
              notify=notify, a=d["prod_links_sz"], b=d["prod_links_wash"], c=d["prod_links_ret"],
              ratings=ratings, yml=yml)
 
@@ -5726,217 +5538,6 @@ a{text-decoration:none;color:inherit}
 .anbox tr.un td{font-weight:800}
 </style></head>
 <body><div class="wrap2">BODY</div></body></html>""".replace("BODY", body)
-
-
-# ---------- virtual try-on (FASHN VTON v1.5 backend proxy) ----------
-import base64 as _b64_tyon
-
-
-def _tryon_backend_url():
-    return (os.environ.get("TRYON_BACKEND_URL", "") or "").strip().rstrip("/")
-
-
-@app.route("/api/tryon/debug")
-def api_tryon_debug():
-    hf = _hf_token()
-    backend = _tryon_backend_url()
-    gc = False
-    try:
-        from gradio_client import Client
-        gc = True
-    except Exception as e:
-        gc = str(e)[:80]
-    return json_d({"hf_token": bool(hf), "hf_len": len(hf), "backend": bool(backend), "gradio_client": gc})
-
-
-def _replicate_token():
-    return (os.environ.get("REPLICATE_API_TOKEN", "") or "").strip()
-
-
-def _hf_token():
-    return (os.environ.get("HF_TOKEN", "") or "").strip()
-
-
-def _tryon_idm_vton(person_bytes, garment_bytes, garment_photo_type="flat-lay"):
-    hf_token = _hf_token()
-    import sys
-
-    try:
-        from gradio_client import Client
-        sys.stderr.write("[TRYON] gradio_client imported OK\n")
-    except ImportError as e:
-        sys.stderr.write("[TRYON] gradio_client NOT installed: %s\n" % repr(e))
-        return None, "gradio_client not installed"
-
-    try:
-        sys.stderr.write("[TRYON] connecting to yisol/IDM-VTON (token=%s)...\n" % ("yes" if hf_token else "no"))
-        client = Client("yisol/IDM-VTON", hf_token=hf_token or None)
-        sys.stderr.write("[TRYON] connected OK\n")
-    except Exception as e:
-        sys.stderr.write("[TRYON] client connect failed: %s\n" % repr(e)[:200])
-        return None, "connect_failed: " + str(e)[:80]
-
-    import tempfile, os
-    person_path = None
-    garment_path = None
-    try:
-        with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as pf:
-            pf.write(person_bytes)
-            person_path = pf.name
-        with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as gf:
-            gf.write(garment_bytes)
-            garment_path = gf.name
-
-        sys.stderr.write("[TRYON] calling predict (person=%d bytes, garment=%d bytes)...\n" % (len(person_bytes), len(garment_bytes)))
-        result = client.predict(
-            dict={"background": open(person_path, "rb"), "layers": [], "composite": None},
-            garm_img=open(garment_path, "rb"),
-            garment_des="football jersey",
-            is_checked=True,
-            is_checked_crop=False,
-            denoise_steps=30,
-            seed=42,
-            api_name="/tryon",
-        )
-        sys.stderr.write("[TRYON] predict returned: %s\n" % repr(result)[:200])
-
-        if isinstance(result, tuple):
-            result = result[0]
-        if isinstance(result, dict):
-            result = result.get("path", result.get("url", result.get("image", "")))
-
-        sys.stderr.write("[TRYON] result path: %s\n" % str(result)[:200])
-        return result, None
-    except Exception as e:
-        sys.stderr.write("[TRYON] predict failed: %s\n" % repr(e)[:300])
-        return None, str(e)[:120]
-    finally:
-        for p in [person_path, garment_path]:
-            if p:
-                try:
-                    os.unlink(p)
-                except Exception:
-                    pass
-
-
-@app.route("/api/tryon/run", methods=["POST"])
-def api_tryon_run():
-    backend = _tryon_backend_url()
-    replicate_token = _replicate_token()
-    hf_token = _hf_token()
-    if not backend and not replicate_token and not hf_token:
-        return json_d({"ok": False, "error": "unavailable"})
-    data = request.get_json(force=True)
-    pid = data.get("pid", "")
-    person_b64 = data.get("img", "")
-    if not pid or not person_b64:
-        return json_d({"ok": False, "error": "bad_request"})
-    prod = next((x for x in cfg.PRODUCTS if x["id"] == pid), None)
-    if not prod or prod["kind"] != "jersey":
-        return json_d({"ok": False, "error": "not_jersey"})
-    garment_photo_type = prod.get("garment_photo_type", "flat-lay")
-    garment_path = os.path.join(os.path.dirname(__file__), "static", "img", prod["imgs"][0] + ".jpg")
-    if not os.path.exists(garment_path):
-        return json_d({"ok": False, "error": "garment_missing"})
-    try:
-        if "," in person_b64:
-            person_b64 = person_b64.split(",", 1)[1]
-        person_bytes = _b64_tyon.b64decode(person_b64, validate=True)
-        if len(person_bytes) < 128:
-            raise ValueError("image_too_small")
-    except Exception:
-        return json_d({"ok": False, "error": "bad_image"})
-    try:
-        with open(garment_path, "rb") as gf:
-            garment_bytes = gf.read()
-        import sys
-        sys.stderr.write("[TRYON] start: hf=%s backend=%s garment=%s\n" % (bool(hf_token), bool(backend), garment_path))
-        if backend:
-            import urllib.request as _tryon_ur
-            boundary = "----GOLAZOX" + str(int(time.time()))
-            parts = []
-            parts.append(("--"+boundary+"\r\nContent-Disposition: form-data; name=\"person_image\"\r\n\r\n").encode()+person_bytes)
-            parts.append(("\r\n--"+boundary+"\r\nContent-Disposition: form-data; name=\"garment_image\"\r\n\r\n").encode()+garment_bytes)
-            for field,val in [("category","tops"),("garment_photo_type",garment_photo_type),("num_timesteps","30"),("guidance_scale","1.5"),("segmentation_free","true")]:
-                parts.append(("\r\n--"+boundary+"\r\nContent-Disposition: form-data; name=\"%s\"\r\n\r\n%s"%(field,val)).encode())
-            parts.append(("\r\n--"+boundary+"--\r\n").encode())
-            req=_tryon_ur.Request(backend+"/tryon/jobs",data=b"".join(parts),headers={"Content-Type":"multipart/form-data; boundary="+boundary},method="POST")
-            with _tryon_ur.urlopen(req,timeout=60) as resp:
-                raw=resp.read().decode("utf-8","replace")
-            result=json.loads(raw or "{}")
-            job_id=result.get("job_id") or result.get("id") or result.get("jobId")
-            if result.get("status")=="done" and result.get("result"):
-                return json_d({"ok":True,"result":result.get("result")})
-            if not job_id:
-                sys.stderr.write("[TRYON] backend missing job id: %s\n"%raw[:500])
-                return json_d({"ok":False,"error":"backend_error"})
-            return json_d({"ok":True,"job_id":job_id})
-        if hf_token:
-            result_image, err = _tryon_idm_vton(person_bytes, garment_bytes, garment_photo_type)
-            if err:
-                sys.stderr.write("[TRYON] idm-vton FAILED: %s\n" % err[:300])
-                return json_d({"ok": False, "error": "backend_error"})
-            sys.stderr.write("[TRYON] idm-vton OK, result type=%s\n" % type(result_image).__name__)
-            import base64 as _b64_out
-            if isinstance(result_image, str) and result_image.startswith("http"):
-                import urllib.request as _dl
-                with _dl.urlopen(result_image, timeout=60) as resp:
-                    img_bytes = resp.read()
-                img_b64 = _b64_out.b64encode(img_bytes).decode()
-            elif isinstance(result_image, str) and os.path.exists(result_image):
-                with open(result_image, "rb") as f:
-                    img_b64 = _b64_out.b64encode(f.read()).decode()
-            elif isinstance(result_image, str) and "base64" in result_image:
-                img_b64 = result_image.split(",", 1)[1] if "," in result_image else result_image
-            else:
-                sys.stderr.write("[TRYON] bad result: %s\n" % repr(result_image)[:200])
-                return json_d({"ok": False, "error": "backend_error"})
-            sys.stderr.write("[TRYON] SUCCESS b64 len=%d\n" % len(img_b64))
-            return json_d({"ok": True, "result": {"image": img_b64}})
-        if replicate_token:
-            # Replicate integration is not implemented in this file; fail cleanly instead of raising NameError.
-            sys.stderr.write("[TRYON] REPLICATE_API_TOKEN is set but no Replicate adapter is implemented.\n")
-            return json_d({"ok": False, "error": "unavailable"})
-        return json_d({"ok": False, "error": "unavailable"})
-    except Exception as e:
-        import sys
-        sys.stderr.write("[TRYON] run error: %s\n" % repr(e)[:200])
-        return json_d({"ok": False, "error": "backend_error"})
-
-
-@app.route("/api/tryon/status")
-def api_tryon_status():
-    backend = _tryon_backend_url()
-    replicate_token = _replicate_token()
-    if not backend and not replicate_token:
-        return json_d({"status": "error", "error": {"code": "unavailable"}})
-    job_id = request.args.get("job", "")
-    if not job_id:
-        return json_d({"status": "error", "error": {"code": "no_job"}})
-    if replicate_token and not backend:
-        return json_d({"status": "error", "error": {"code": "unavailable"}})
-    try:
-        import urllib.request as _tryon_ur
-        req = _tryon_ur.Request(backend + "/tryon/jobs/" + job_id, method="GET")
-        with _tryon_ur.urlopen(req, timeout=30) as resp:
-            result = json.loads(resp.read().decode("utf-8", "replace"))
-        status = result.get("status", "")
-        if status == "done":
-            payload = result.get("result") or result.get("output") or result.get("image")
-            if isinstance(payload, dict):
-                image = payload.get("image") or payload.get("url") or payload.get("path")
-            else:
-                image = payload
-            if not image:
-                return json_d({"status":"error","error":{"code":"missing_result"}})
-            return json_d({"status":"done","result":{"image":image}})
-        if status in ("error", "failed", "failure"):
-            return json_d({"status":"error","error":result.get("error") or {"code":"backend_error"}})
-        return json_d(result)
-    except Exception as e:
-        import sys
-        sys.stderr.write("[TRYON] status error: %s\n" % repr(e)[:250])
-        return json_d({"status": "error", "error": {"code": "backend_error"}})
 
 
 if __name__ == "__main__":

@@ -785,17 +785,18 @@ html[data-theme="light"] .radio { background:var(--card); border-color:var(--lin
 .radio.on { background:var(--ac); border-color:transparent; color:var(--bg); }
 /* cart */
 /* Dedicated cart-page layout: compact and stable on mobile; never reserve a huge empty viewport. */
-#cartPage { width:100%; max-width:900px; margin:0 auto; min-height:0 !important; height:auto !important; }
-#cartPage .ci { background:rgba(255,255,255,.025); border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:14px 16px; margin-bottom:10px; }
-#cartPage .cart-page-summary { margin-top:16px; padding:16px; border:1px solid rgba(24,232,117,.10); border-radius:18px; background:rgba(11,23,18,.72); }
-#cartPage .cart-page-actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
-#cartPage .cart-page-actions .btn { flex:1 1 180px; justify-content:center; }
+#cartPage { width:100%; max-width:900px; margin:0 auto; min-height:0 !important; height:auto !important; display:block !important; position:relative; }
+#cartPage .ci { display:flex; width:100%; min-height:0 !important; height:auto !important; flex:none !important; align-items:center; background:rgba(255,255,255,.025); border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:14px 16px; margin:0 0 10px !important; }
+#cartPage .cart-page-summary { display:block !important; width:100%; min-height:0 !important; height:auto !important; margin:12px 0 0 !important; padding:16px; border:1px solid rgba(24,232,117,.10); border-radius:18px; background:rgba(11,23,18,.72); }
+#cartPage .cart-page-actions { display:flex; gap:10px; flex-wrap:wrap; margin:14px 0 0 !important; }
+#cartPage .cart-page-actions .btn { flex:1 1 180px; justify-content:center; min-height:48px; }
+#cartPage + * { margin-top:12px !important; }
 @media (max-width:768px) {
-  #cartPage { min-height:0 !important; height:auto !important; margin:0; }
-  #cartPage .ci { display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:9px; align-items:center; padding:12px; margin-bottom:8px; }
+  #cartPage { min-height:0 !important; height:auto !important; margin:0; display:block !important; }
+  #cartPage .ci { display:grid !important; grid-template-columns:auto minmax(0,1fr) auto; gap:9px; align-items:center; padding:12px; margin:0 0 8px !important; min-height:0 !important; height:auto !important; }
   #cartPage .ci > b[style*="color:var(--ac)"] { grid-column:2 / 4; justify-self:end; font-size:.95rem; }
   #cartPage .ci-x { grid-column:3; grid-row:1; }
-  #cartPage .cart-page-summary { margin-top:12px; padding:14px; border-radius:16px; }
+  #cartPage .cart-page-summary { margin:10px 0 0 !important; padding:14px; border-radius:16px; min-height:0 !important; height:auto !important; }
   #cartPage .cart-page-actions { flex-direction:column; gap:8px; }
   #cartPage .cart-page-actions .btn { width:100%; flex:0 0 auto; }
 }
@@ -2560,7 +2561,7 @@ function gxSet(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){}
 function gxDev(){ var d=gxGet('gx_device',null); if(!d){ d='d'+Math.random().toString(36).slice(2)+Date.now().toString(36); gxSet('gx_device',d); } return d; }
 /* ---------- theme & font ---------- */
 function applyPrefs(){
-  var th=gxGet('gx_theme','light'); document.documentElement.setAttribute('data-theme',th);
+  var th='dark'; gxSet('gx_theme','dark'); document.documentElement.setAttribute('data-theme','dark');
   var fs=gxGet('gx_font','b'); document.documentElement.setAttribute('data-font',fs);
   var club=gxGet('gx_club',null); if(club) document.documentElement.setAttribute('data-club',club);
 }
@@ -2568,7 +2569,7 @@ function setTheme(t){ gxSet('gx_theme',t); applyPrefs(); syncPrefs(); }
 function setFont(f){ gxSet('gx_font',f); applyPrefs(); syncPrefs(); }
 function setMyClub(cid){ gxSet('gx_club',cid); applyPrefs(); syncPrefs(); if(cid) toast(gxT('md_choice_ok')); }
 function syncPrefs(){
-  var th=gxGet('gx_theme','light'), fs=gxGet('gx_font','b'), club=gxGet('gx_club',null);
+  var th='dark', fs=gxGet('gx_font','b'), club=gxGet('gx_club',null); gxSet('gx_theme','dark');
   var rows=document.querySelectorAll('.seg[data-seg]');
   rows.forEach(function(row){
     var name=row.getAttribute('data-seg'); var val = name==='theme'?th:(name==='font'?fs:club);
@@ -2875,7 +2876,7 @@ function fillFoot(){
     }
   }
   html+='<button class="btn wa block" '+(cart.length?'':'disabled style="opacity:.5"')+' onclick="openCheckout()">'+gxT('cart_checkout')+'</button>'
-    +'<button class="btn tg block" '+(cart.length?'':'disabled style="opacity:.5"')+' onclick="orderCartTG()" style="margin-top:8px">💬 '+gxT('order_wa')+'</button>'
+    +'<button class="btn wa block" '+(cart.length?'':'disabled style="opacity:.5"')+' onclick="orderCartTG()" style="margin-top:8px">💬 '+gxT('order_wa')+'</button>'
     +'<div style="text-align:center;margin-top:8px"><button class="hbtn" onclick="clearCart()">🗑 '+gxT('cart_clear')+'</button></div>';
   ft.innerHTML=html;
 }

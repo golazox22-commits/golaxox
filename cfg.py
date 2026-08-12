@@ -5,7 +5,7 @@ golazox — configuration, products, clubs, size chart, rewards, translations.
 import os
 
 # ============================== STORE CONFIG ==============================
-TELEGRAM = os.environ.get("TELEGRAM", "")  # legacy only; customer contact is WhatsApp
+TELEGRAM = os.environ.get("TELEGRAM", "rms_2o")
 WHATSAPP = os.environ.get("WHATSAPP", "97338818226")
 ADMIN_PASS = os.environ.get("ADMIN_PASS", "golazox2026")
 ADMIN_EMAIL = "golazox22@gmail.com"
@@ -231,26 +231,26 @@ PRODUCTS = [
      "desc_ar": "قميص الأخضر والأبيض الرسمي. قماش رياضي خفيف ومريح.", "desc_en": "Official Green & White jersey. Light athletic fabric.",
      "colors": ["#1B7A3D", "#0E4D26"], "emoji": "👕", "imgs": ["j11_1"],
      "garment_photo_type": "flat-lay", "badges": ["new"], "stock": dict(DEFAULT_JERSEY_STOCK)},
-    # ---- المقّات: 4 أنواع فقط (2 برشلونة + 2 ريال مدريد) ----
-    {"id": "m1", "kind": "mug", "club_id": "barca", "price": PRICE_MUG,
-     "name_ar": "مق برشلونة — التصميم الأول", "name_en": "Barcelona Mug — Design 01",
-     "desc_ar": "مق رياضي بتصميم برشلونة الأول.", "desc_en": "Barcelona sports mug — Design 01.",
-     "colors": ["#A50044", "#004D98"], "emoji": "☕", "imgs": ["m1_1"],
-     "badges": ["new"], "stock": {MUG_SIZE: 10}},
-    {"id": "m2", "kind": "mug", "club_id": "barca", "price": PRICE_MUG,
-     "name_ar": "مق برشلونة — التصميم الثاني", "name_en": "Barcelona Mug — Design 02",
-     "desc_ar": "مق رياضي بتصميم برشلونة الثاني.", "desc_en": "Barcelona sports mug — Design 02.",
-     "colors": ["#004D98", "#A50044"], "emoji": "☕", "imgs": ["m2_1"],
-     "badges": [], "stock": {MUG_SIZE: 8}},
+    # ---- المقّات ----
+    {"id": "m1", "kind": "mug", "price": PRICE_MUG,
+     "name_ar": "مق كأس العالم", "name_en": "World Cup Mug",
+     "desc_ar": "مق سيراميك فاخر بتصميم كأس العالم.", "desc_en": "Premium ceramic mug, World Cup design.",
+     "colors": ["#1B1B1B", "#C9A24B"], "emoji": "☕", "imgs": ["m1_1"],
+     "badges": [], "stock": {MUG_SIZE: 10}},
+    {"id": "m2", "kind": "mug", "price": PRICE_MUG,
+     "name_ar": "مق الكرة", "name_en": "Football Mug",
+     "desc_ar": "مق سيراميك بشكل كرة القدم.", "desc_en": "Football-shaped ceramic mug.",
+     "colors": ["#C8102E", "#7A0C20"], "emoji": "☕", "imgs": ["m2_1"],
+     "badges": ["best"], "stock": {MUG_SIZE: 8}},
     {"id": "m3", "kind": "mug", "club_id": "real", "price": PRICE_MUG,
-     "name_ar": "مق ريال مدريد — التصميم الأول", "name_en": "Real Madrid Mug — Design 01",
-     "desc_ar": "مق رياضي بتصميم ريال مدريد الأول.", "desc_en": "Real Madrid sports mug — Design 01.",
+     "name_ar": "مق ريال مدريد", "name_en": "Real Madrid Mug",
+     "desc_ar": "مق بشعار ريال مدريد.", "desc_en": "Real Madrid branded mug.",
      "colors": ["#F8F9FA", "#C9A24B"], "emoji": "☕", "imgs": ["m3_1"],
      "badges": ["new"], "stock": {MUG_SIZE: 6}},
-    {"id": "m4", "kind": "mug", "club_id": "real", "price": PRICE_MUG,
-     "name_ar": "مق ريال مدريد — التصميم الثاني", "name_en": "Real Madrid Mug — Design 02",
-     "desc_ar": "مق رياضي بتصميم ريال مدريد الثاني.", "desc_en": "Real Madrid sports mug — Design 02.",
-     "colors": ["#1F3864", "#F8F9FA"], "emoji": "☕", "imgs": ["m4_1"],
+    {"id": "m4", "kind": "mug", "club_id": "hilal", "price": PRICE_MUG,
+     "name_ar": "مق الهلال", "name_en": "Al-Hilal Mug",
+     "desc_ar": "مق بشعار الهلال.", "desc_en": "Al-Hilal branded mug.",
+     "colors": ["#1E4FA3", "#0C2D6E"], "emoji": "☕", "imgs": ["m4_1"],
      "badges": [], "stock": {MUG_SIZE: 12}},
 ]
 

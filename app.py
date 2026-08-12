@@ -462,6 +462,10 @@ html[data-theme="light"] .pcard-inner { background:var(--card); border-color:var
   border-color:color-mix(in srgb, var(--pc, var(--ac)) 40%, var(--glass-border));
   box-shadow:var(--sh), 0 0 30px color-mix(in srgb, var(--pc, var(--ac)) 15%, transparent);
 }
+.pcard:hover .pcard-inner{transform:translateY(-4px) perspective(600px) rotateY(1deg) rotateX(-1deg)}
+.pcard-inner::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--card-radius) var(--card-radius) 0 0;
+  background:linear-gradient(90deg,var(--pc,var(--ac)),var(--pc2,var(--ac2)));opacity:.6;z-index:5;transition:opacity .3s}
+.pcard:hover .pcard-inner::before{opacity:1}
 /* Stadium glow behind product */
 .pcard-glow {
   position:absolute; top:15%; left:10%; right:10%; bottom:10%;
@@ -471,6 +475,8 @@ html[data-theme="light"] .pcard-inner { background:var(--card); border-color:var
 }
 .pcard:hover .pcard-glow { opacity:1; }
 html[data-theme="light"] .pcard:hover .pcard-glow { opacity:.6; }
+.pcard-edition{font-size:.55rem;font-weight:900;letter-spacing:2px;text-transform:uppercase;
+  color:var(--pc,var(--ac));opacity:.5;margin-top:2px;margin-bottom:4px}
 /* Product image scene */
 .pimg {
   position:relative; height:260px; display:flex; align-items:center; justify-content:center;
@@ -1662,6 +1668,40 @@ html[data-theme="light"] .sec-stadium::before { background:radial-gradient(ellip
   animation:goalPulse 1s ease infinite; }
 @keyframes goalPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
 @media (prefers-reduced-motion: reduce) { .gx-goal-fx .goal-txt { animation:none; } }
+/* ============================== MATCHDAY MODE ============================== */
+.mkmode-toggle{position:fixed;top:14px;inset-inline-end:14px;z-index:88;display:flex;align-items:center;gap:8px;
+  background:rgba(3,7,8,.8);border:1px solid rgba(24,232,117,.15);border-radius:999px;padding:6px 14px 6px 10px;
+  cursor:pointer;transition:all .3s;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.mkmode-toggle:hover{border-color:rgba(24,232,117,.35);box-shadow:0 0 20px rgba(24,232,117,.1)}
+.mkmode-toggle .mkmode-ic{font-size:1rem}
+.mkmode-toggle .mkmode-lbl{font-size:.7rem;font-weight:800;color:rgba(255,255,255,.6);letter-spacing:1px}
+.mkmode-toggle.active{background:rgba(24,232,117,.12);border-color:rgba(24,232,117,.3)}
+.mkmode-toggle.active .mkmode-lbl{color:#18E875}
+html.mkmode{--bg:#030708;--bg2:#050907;--card:rgba(5,12,9,.85);--card2:rgba(7,16,13,.6);
+  --txt:#F5F7F6;--mut:#6B7A73;--line:rgba(24,232,117,.08);--ac:#18E875;--ac2:#0B9F50;
+  --glass:rgba(5,12,9,.7);--glass-border:rgba(24,232,117,.08)}
+html.mkmode::before{content:'';position:fixed;inset:0;z-index:-2;
+  background:radial-gradient(900px 500px at 50% 0%,rgba(24,232,117,.06),transparent 50%),
+  radial-gradient(600px 300px at 20% 100%,rgba(24,232,117,.03),transparent 50%),
+  radial-gradient(600px 300px at 80% 100%,rgba(24,232,117,.03),transparent 50%),
+  linear-gradient(180deg,#030708 0%,#050D09 40%,#07100C 100%);pointer-events:none}
+html.mkmode::after{content:'';position:fixed;top:0;left:0;right:0;height:200px;z-index:-1;
+  background:linear-gradient(180deg,rgba(24,232,117,.04),transparent);pointer-events:none;
+  animation:mkFlicker 6s ease-in-out infinite}
+@keyframes mkFlicker{0%,100%{opacity:.4}50%{opacity:.7}}
+.mkmode-pitch{display:none;position:fixed;bottom:0;left:0;right:0;height:120px;z-index:-1;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent 0 8px,rgba(24,232,117,.015) 8px 16px),
+  linear-gradient(180deg,transparent,rgba(27,94,58,.08))}
+html.mkmode .mkmode-pitch{display:block}
+.mkmode-lights{display:none;position:fixed;top:0;left:0;right:0;height:300px;z-index:-1;pointer-events:none}
+html.mkmode .mkmode-lights{display:block}
+.mkmode-lights .mkl{position:absolute;width:2px;height:80px;top:0;background:linear-gradient(180deg,rgba(255,255,255,.3),transparent);border-radius:0 0 2px 2px;animation:mklPulse 4s ease-in-out infinite}
+.mkmode-lights .mkl:nth-child(1){left:10%;animation-delay:0s}
+.mkmode-lights .mkl:nth-child(2){left:30%;animation-delay:1s;height:60px}
+.mkmode-lights .mkl:nth-child(3){right:30%;animation-delay:2s;height:70px}
+.mkmode-lights .mkl:nth-child(4){right:10%;animation-delay:3s}
+@keyframes mklPulse{0%,100%{opacity:.15}50%{opacity:.4}}
+@media (max-width:768px){.mkmode-toggle{top:auto;bottom:60px;inset-inline-end:10px;padding:5px 10px 5px 8px}.mkmode-toggle .mkmode-lbl{font-size:.6rem}}
 /* ============================== PAGE TRANSITIONS ============================== */
 .gx-page-in { animation:gxPageIn .35s ease both; }
 @keyframes gxPageIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:none; } }
@@ -2017,6 +2057,22 @@ html[data-theme="light"] .sg-adj-sz { color: #0F172A; }
 html[data-theme="light"] .sg-table-section h3 { color: #0F172A; }
 /* Products Section */
 .sg-products { max-width: 1120px; margin: 30px auto 0; padding: 0 18px; }
+/* Asian Fit Note */
+.sg-asian-note {
+  background: rgba(24,232,117,.06); border: 1px solid rgba(24,232,117,.18);
+  border-radius: 16px; padding: 18px 22px; margin-bottom: 20px;
+  font-size: .85rem; line-height: 1.7; color: #B9C4BE;
+  position: relative; overflow: hidden;
+}
+.sg-asian-note::before {
+  content: '⚠️'; position: absolute; top: 16px; inset-inline-end: 16px;
+  font-size: 1.4rem; opacity: .2;
+}
+html[data-theme="light"] .sg-asian-note { background: rgba(24,232,117,.04); border-color: rgba(24,232,117,.15); color: #4A5A54; }
+.sg-disclaimer {
+  margin-top: 14px; padding-top: 14px; border-top: 1px dashed rgba(24,232,117,.12);
+  font-size: .78rem; color: #6B7A73; text-align: center;
+}
 /* Trust Bar */
 .sg-trust-bar {
   max-width: 1120px; margin: 36px auto 0; padding: 0 18px;
@@ -2993,6 +3049,15 @@ function afterLogin(){
   location.href='/account';
 }
 function authOut(){ fetch('/api/auth/logout').then(function(){ location.href='/home'; }); }
+/* ---------- matchday mode ---------- */
+function mkModeToggle(){
+  var on=document.documentElement.classList.toggle('mkmode');
+  var btn=$('mkModeToggle');if(btn) btn.classList.toggle('active',on);
+  try{localStorage.setItem('mkmode',on?'1':'0');}catch(e){}
+}
+(function(){
+  try{if(localStorage.getItem('mkmode')==='1'){document.documentElement.classList.add('mkmode');var b=$('mkModeToggle');if(b) b.classList.add('active');}}catch(e){}
+})();
 /* ---------- reorder ---------- */
 function openReorder(code){
   fetch('/api/reorder?code='+encodeURIComponent(code)).then(function(r){return r.json();}).then(function(d){
@@ -3490,6 +3555,9 @@ MODALS
 <div class="cd-body" id="cdb"></div><div class="cd-foot" id="cdf"></div></div>
 <div class="lb" id="lb" onclick="closeLB()"><img id="lbimg" alt=""></div>
 <div class="gx-goal-fx" id="gxGoalFx"><div class="goal-txt">⚽ GOAL!</div></div>
+<div class="mkmode-toggle" id="mkModeToggle" onclick="mkModeToggle()" title="Matchday Mode"><span class="mkmode-ic">⚽</span><span class="mkmode-lbl">MATCHDAY</span></div>
+<div class="mkmode-pitch"></div>
+<div class="mkmode-lights"><div class="mkl"></div><div class="mkl"></div><div class="mkl"></div><div class="mkl"></div></div>
 <a class="fab" target="_blank" rel="noopener" href="https://t.me/rms_2o" title="Telegram">💬</a>
 __PAGEJS_SLOT__
 __BASEJS_SLOT__
@@ -4129,10 +4197,9 @@ def listing_page(kind):
 
 
 def size_guide_premium():
-    """Premium dark stadium size guide with calculator."""
+    """Premium dark stadium size guide with calculator — Asian Fit."""
     en = lang() == "en"
     d = cfg.L[lang()]
-    # Size chart JSON for JS
     size_chart_json = json_d(cfg.SIZE_CHART)
     size_order_json = json_d(cfg.SIZE_ORDER)
     prods = [p for p in cfg.PRODUCTS if not p.get("hidden") and p["kind"] == "jersey"]
@@ -4141,7 +4208,6 @@ def size_guide_premium():
                           "img": p["imgs"][0] if p.get("imgs") else "",
                           "club": p.get("club_id", ""), "badges": p.get("badges", [])} for p in prods[:12]])
 
-    # Trust badges
     trust_items = [
         ("💬", d.get("sg_trust_support_t", "دعم 24/7"), d.get("sg_trust_support_d", "خدمتك في أي وقت")),
         ("🔄", d.get("sg_trust_exchange_t", "سهولة الاستبدال"), d.get("sg_trust_exchange_d", "استبدال سهل في حال عدم المقاس")),
@@ -4153,18 +4219,31 @@ def size_guide_premium():
         '<div><b>{t}</b><span>{x}</span></div></div>'.format(ic=ic, t=t, x=x)
         for ic, t, x in trust_items)
 
+    asian_note_ar = ("ملاحظة: مقاسات GOLAZOX تعتمد على الـ Asian Fit، وقد تكون أصغر من المقاسات المعتادة في بعض الدول. "
+                     "استخدم الجدول والحاسبة كمرجع مساعد لاختيار المقاس الأقرب لك. "
+                     "وللاحتياط، إذا كنت مترددًا بين مقاسين، ننصح باختيار المقاس الأكبر، "
+                     "خصوصًا إذا كنت تفضل لبسًا أكثر راحة واتساعًا.")
+    asian_note_en = ("Note: GOLAZOX sizes are based on Asian Fit and may run smaller than standard sizes in some regions. "
+                     "Use the chart and calculator as a guide to find your closest size. "
+                     "If you're between sizes, we recommend sizing up, "
+                     "especially if you prefer a more relaxed or looser fit.")
+    disclaimer_ar = "⚠️ المقاس المقترح تقديری وقد يختلف حسب شكل الجسم وطريقة اللبس."
+    disclaimer_en = "⚠️ The suggested size is an estimate and may vary depending on body shape and fit preference."
+    between_ar = "أنت بين مقاسين. للاحتياط، ننصح باختيار المقاس الأكبر {sz}، خصوصًا إذا كنت تفضل لبسًا مريحًا أو أوسع."
+    between_en = "You're between sizes. We recommend sizing up to {sz} for a more comfortable fit."
+
     body = (
         '<div class="sg-page">'
-        # Hero Section
         '<div class="sg-hero">'
         '<div class="sg-hero-inner">'
         '<div class="sg-hero-visual"><span class="sg-hero-jersey">👕</span>'
         '<span class="sg-hero-glow"></span></div>'
         '<div class="sg-hero-text">'
-        '<h1>{title_accent} <span class="sg-green">{title_word}</span></h1>'
+        '<h1><span class="sg-green">{title_word}</span> — Asian Fit</h1>'
         '<p>{sub}</p></div></div></div>'
-        # Calculator Card
         '<div class="wrap sg-wrap">'
+        # Asian Fit disclaimer banner
+        '<div class="sg-asian-note">{asian_note}</div>'
         '<div class="sg-calc-card" id="sgCalcCard">'
         '<div class="sg-calc-header"><h2>{calc_title} 👕</h2><p>{calc_sub}</p></div>'
         '<div class="sg-calc-inputs">'
@@ -4175,55 +4254,50 @@ def size_guide_premium():
         '<div class="sg-input-wrap"><input type="number" id="sgWeight" placeholder="70" min="30" max="200">'
         '<span class="sg-unit">{kg}</span></div></div></div>'
         '<button class="btn pri big sg-calc-btn" onclick="sgCalc()">{calc_btn} ⚽</button>'
-        # Result (hidden initially)
         '<div class="sg-result" id="sgResult" style="display:none">'
         '<div class="sg-result-size" id="sgResultSize">M</div>'
         '<div class="sg-result-label">{result_label}</div>'
         '<div class="sg-result-details">'
         '<div class="sg-rdetail"><span>{weight_lbl}</span><b id="sgRWeight">70 {kg}</b></div>'
         '<div class="sg-rdetail"><span>{height_lbl}</span><b id="sgRHeight">170 {cm}</b></div></div>'
-        '<div class="sg-result-badge">✓ {result_badge}</div></div>'
-        # Adjacent sizes (hidden initially)
+        '<div class="sg-result-badge">✓ {result_badge}</div>'
+        '<div class="sg-disclaimer">{disclaimer}</div></div>'
         '<div class="sg-adjacent" id="sgAdjacent" style="display:none">'
-        '<h3>{adj_title}</h3><p>{adj_sub}</p>'
+        '<h3>{adj_title}</h3><p id="sgAdjAdvice"></p>'
         '<div class="sg-adj-cards" id="sgAdjCards"></div></div>'
-        # Size table reference
         '<div class="sg-table-section">'
         '<h3>{table_title}</h3>'
         '{table}</div></div>'
-        # Products matching size
         '<div class="sg-products" id="sgProducts" style="display:none">'
         '<div class="sec-head"><h2><span class="bar"></span>{prod_title} <span id="sgProdSize"></span></h2></div>'
         '<div class="grid" id="sgProdGrid"></div>'
         '<div style="text-align:center;margin-top:18px"><a class="btn ghost" href="/products">{prod_all}</a></div></div>'
-        # Trust bar
         '<div class="sg-trust-bar">{trust}</div>'
         '</div></div>'
     ).format(
-        title_accent=d.get("sg_hero_t1", "دليل") if en else "دليل",
-        title_word=d.get("sg_hero_t2", "المقاسات") if en else "المقاسات",
-        sub=d.get("sg_hero_sub", "اعثر على المقاس المثالي لك") if en else "اعثر على المقاس المثالي لك",
-        calc_title=d.get("sg_calc_title", "وش مقاسك؟") if en else "وش مقاسك؟",
-        calc_sub=d.get("sg_calc_sub", "أدخل طولك ووزنك، ونقترح لك المقاس الأقرب لك") if en else "أدخل طولك ووزنك، ونقترح لك المقاس الأقرب لك",
-        height_lbl=d.get("sg_height", "الطول") if en else "الطول",
-        weight_lbl=d.get("sg_weight", "الوزن") if en else "الوزن",
+        title_word=d.get("sg_hero_t2", "المقاسات"),
+        sub=d.get("sg_hero_sub", "اعثر على المقاس المثالي لك"),
+        asian_note=asian_note_ar if not en else asian_note_en,
+        calc_title=d.get("sg_calc_title", "وش مقاسك؟"),
+        calc_sub="أدخل طولك ووزنك، ونقترح لك المقاس الأقرب لك",
+        height_lbl=d.get("sg_height", "الطول"),
+        weight_lbl=d.get("sg_weight", "الوزن"),
         cm=d.get("szt_cm", "سم"), kg=d.get("szt_kg", "كجم"),
-        calc_btn=d.get("sg_calc_btn", "اعرف مقاسي") if en else "اعرف مقاسي",
-        result_label=d.get("sg_result_label", "المقاس الأقرب لك") if en else "المقاس الأقرب لك",
-        result_badge=d.get("sg_result_badge", "توصية قوية") if en else "توصية قوية",
-        adj_title=d.get("sg_adj_title", "بين مقاسين؟") if en else "بين مقاسين؟",
-        adj_sub=d.get("sg_adj_sub", "أنت بين مقاسين، اختر الأنسب لك") if en else "أنت بين مقاسين، اختر الأنسب لك",
-        table_title=d.get("sg_table_title", "جدول المقاسات الكامل") if en else "جدول المقاسات الكامل",
+        calc_btn=d.get("sg_calc_btn", "اعرف مقاسي"),
+        result_label="المقاس المقترح لك" if not en else "Suggested Size",
+        result_badge="توصية تقديرية — للمساعدة فقط" if not en else "Estimate — for guidance only",
+        disclaimer=disclaimer_ar if not en else disclaimer_en,
+        adj_title=d.get("sg_adj_title", "بين مقاسين؟"),
+        table_title="جدول المقاسات — Asian Fit" if not en else "Size Chart — Asian Fit",
         table=size_table_html(cfg.SIZE_CHART),
-        prod_title=d.get("sg_prod_title", "منتجات تناسب مقاسك") if en else "منتجات تناسب مقاسك",
+        prod_title=d.get("sg_prod_title", "منتجات تناسب مقاسك"),
         prod_all=d.get("view_all", "عرض الكل"),
         trust=trust_html,
     )
-    page_js = '<script>\nvar SG_CHART=' + size_chart_json + ';\nvar SG_ORDER=' + size_order_json + ';\nvar SG_PRODS=' + prods_json + ';\nvar SG_CM=\'' + d.get("szt_cm", "سم") + '\';\nvar SG_KG=\'' + d.get("szt_kg", "كجم") + '\';\nvar SG_CUR=\'' + cur() + '\';\n' + r"""
+    page_js = '<script>\nvar SG_CHART=' + size_chart_json + ';\nvar SG_ORDER=' + size_order_json + ';\nvar SG_PRODS=' + prods_json + ';\nvar SG_CM=\'' + d.get("szt_cm", "سم") + '\';\nvar SG_KG=\'' + d.get("szt_kg", "كجم") + '\';\nvar SG_CUR=\'' + cur() + '\';\nvar SG_BETWEEN=' + json_d({"ar": between_ar, "en": between_en}) + ';\nvar SG_LANG=\'' + ("en" if en else "ar") + '\';\n' + r"""
 function sgSizeFromHW(h,w){
   if(!h||!w) return null;
-  var bmi=w/((h/100)*(h/100));
-  var best=null,bestDist=9999;
+  var best=null,bestDist=9999,bestSz=null;
   SG_ORDER.forEach(function(sz){
     var c=SG_CHART[sz]; if(!c) return;
     var hw=c.height.split('\u2013');
@@ -4234,27 +4308,48 @@ function sgSizeFromHW(h,w){
     var dist=Math.abs(h-hMid)*0.6+Math.abs(w-wMid)*0.4;
     if(dist<bestDist){bestDist=dist;best=sz;}
   });
-  return best;
+  var idx=SG_ORDER.indexOf(best);
+  var prev=(idx>0)?SG_ORDER[idx-1]:null;
+  var prevDist=9999;
+  if(prev){
+    var c2=SG_CHART[prev];if(c2){
+      var hw2=c2.height.split('\u2013');var ww2=c2.weight.split('\u2013');
+      var hMid2=(parseFloat(hw2[0])+parseFloat(hw2[1]))/2;
+      var wMid2=(parseFloat(ww2[0])+parseFloat(ww2[1]))/2;
+      prevDist=Math.abs(h-hMid2)*0.6+Math.abs(w-wMid2)*0.4;
+    }
+  }
+  var between=(prev && bestDist-prevDist<1.2 && prevDist<bestDist*1.1);
+  return {size:best, between:between, lower:prev};
 }
 function sgCalc(){
   var h=parseFloat(($('sgHeight')||{}).value)||0;
   var w=parseFloat(($('sgWeight')||{}).value)||0;
   if(!h||!w){toast('\u0623\u062f\u062e\u0644 \u0627\u0644\u0637\u0648\u0644 \u0648\u0627\u0644\u0648\u0632\u0646');return;}
-  var sz=sgSizeFromHW(h,w);
-  if(!sz){toast('\u062a\u062d\u0642\u0642 \u0645\u0646 \u0627\u0644\u0642\u064a\u0645');return;}
+  var result=sgSizeFromHW(h,w);
+  if(!result||!result.size){toast('\u062a\u062d\u0642\u0642 \u0645\u0646 \u0627\u0644\u0642\u064a\u0645');return;}
+  var sz=result.size;
   var res=$('sgResult');if(res) res.style.display='block';
   var szEl=$('sgResultSize');if(szEl){szEl.textContent=sz;szEl.className='sg-result-size sg-pop';}
   var wEl=$('sgRWeight');if(wEl) wEl.textContent=w+' '+SG_KG;
   var hEl=$('sgRHeight');if(hEl) hEl.textContent=h+' '+SG_CM;
   var idx=SG_ORDER.indexOf(sz);
   var adj=[];
-  if(idx>0) adj.push({sz:SG_ORDER[idx-1],label:'\u0623\u0648\u0633\u0639 \u0642\u0644\u064a\u0644\u064b\u0627'});
-  if(idx<SG_ORDER.length-1) adj.push({sz:SG_ORDER[idx+1],label:'\u0627\u0644\u0645\u0642\u0627\u0633 \u0627\u0644\u0623\u0642\u0631\u0628'});
+  if(idx>0) adj.push({sz:SG_ORDER[idx-1],label:SG_LANG==='ar'?'\u0623\u0648\u0633\u0639 \u0642\u0644\u064a\u0644\u064b\u0627':'Smaller'});
+  if(idx<SG_ORDER.length-1) adj.push({sz:SG_ORDER[idx+1],label:SG_LANG==='ar'?'\u0627\u0644\u0645\u0642\u0627\u0633 \u0627\u0644\u0623\u0642\u0631\u0628':'Larger'});
   var adjBox=$('sgAdjacent');var adjCards=$('sgAdjCards');
+  var adjAdvice=$('sgAdjAdvice');
   if(adjBox&&adjCards&&adj.length){
     adjBox.style.display='block';
+    if(adjAdvice){
+      if(result.between){
+        adjAdvice.textContent=SG_BETWEEN[SG_LANG].replace('{sz}',adj[adj.length-1].sz);
+      } else {
+        adjAdvice.textContent=SG_LANG==='ar'?'أنت بين مقاسين، اختر الأنسب لك':'Choose the size that fits you best';
+      }
+    }
     adjCards.innerHTML=adj.map(function(a){
-      return '<div class="sg-adj-card'+(a.label.indexOf('\u0627\u0644\u0623\u0642\u0631\u0628')>-1?' on':'')+'">'
+      return '<div class="sg-adj-card'+(a.label.indexOf('\u0627\u0644\u0623\u0642\u0631\u0628')>-1||a.label==='Larger'?' on':'')+'">'
         +'<div class="sg-adj-sz">'+a.sz+'</div>'
         +'<div class="sg-adj-lbl">'+a.label+'</div></div>';
     }).join('');
@@ -4462,6 +4557,7 @@ def product_card(p):
         p.get("desc_ar", ""), p.get("desc_en", ""),
         p["id"], p["kind"],
     ])).replace('"', "&quot;").lower()
+    edition_html = ('<div class="pcard-edition">GOLAZOX EDITION</div>' if club_id else "")
     return (
         '<div class="pcard" data-id="{id}" data-kind="{kind}" data-club="{cid}" data-clubn="{cn}" data-search="{search}" data-stock="{csv}" data-price="{price}" data-name="{name}" data-order="{order}" data-badge="{bcsv}" data-col="{ncol}" style="--pc:{pc};--pc2:{pc2}">'
         '<div class="pcard-inner">'
@@ -4472,6 +4568,7 @@ def product_card(p):
         '<img src="/img/{first}" alt="{name}" loading="lazy" onerror="this.onerror=null;this.style.display=\'none\';var f=document.createElement(\'div\');f.className=\'pimg-fallback\';f.textContent=\'⚽\';this.parentElement.appendChild(f)"></div></a>'
         '<div class="pover"><a class="pover-btn" href="/product/{id}">{view} ←</a></div>'
         '<div class="pbody"><span class="pcat">{cat}</span><h3>{name}</h3>'
+        '{edition}'
         '{low}'
         '{sizes_row}'
         '<div class="pcols">{pdots}</div>'
@@ -4481,7 +4578,7 @@ def product_card(p):
              on="on" if fav else "", h="❤" if fav else "🤍",
              c1=p["colors"][0], c2=p["colors"][1], first=first, cat=cat, pr=pr, view=d["view"], low=low,
              order=order, bcsv=b_csv, ncol=ncol, sizes_row=sizes_row, pdots=pdots,
-             pc=pc, pc2=pc2)
+             pc=pc, pc2=pc2, edition=edition_html)
 
 
 def gx_fav_marker(pid):

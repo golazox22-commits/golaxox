@@ -559,7 +559,10 @@ select.sort { font-weight:800; }
 .chip:hover { border-color:var(--ac); }
 .chip.on { background:var(--ac); border-color:transparent; color:#fff; }
 .sel { background:var(--card); border:1.5px solid var(--line); color:var(--txt); border-radius:12px; padding:8px 12px;
-  font-size:.82rem; font-weight:700; font-family:inherit; }
+  font-size:.82rem; font-weight:700; font-family:inherit; color-scheme:dark; }
+html[data-theme="light"] .sel { color-scheme:light; }
+.sel option { background:#0B1712; color:#F4F7F5; }
+html[data-theme="light"] .sel option { background:#fff; color:#0F172A; }
 /* info cards */
 .quick { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:18px; }
 .qcard { background:rgba(10,13,12,.80); border:1px solid rgba(24,232,117,.06); border-radius:20px; padding:22px; cursor:pointer;
@@ -1149,7 +1152,10 @@ html[data-theme="light"] .os-seg { background:var(--line); }
 .auth-demo b { font-size:1.3rem; letter-spacing:3px; }
 .auth-new { display:none; font-size:.8rem; color:var(--mut); margin-top:8px; }
 .phone-row { display:flex; gap:8px; }
-.phone-row .cc-sel { flex:0 0 112px; border:1.5px solid var(--line); border-radius:12px; padding:0 10px; font-size:.9rem; font-weight:800; background:var(--card2); color:var(--txt); font-family:inherit; }
+.phone-row .cc-sel { flex:0 0 112px; border:1.5px solid var(--line); border-radius:12px; padding:0 10px; font-size:.9rem; font-weight:800; background:var(--card2); color:var(--txt); font-family:inherit; color-scheme:dark; }
+html[data-theme="light"] .phone-row .cc-sel { color-scheme:light; }
+.phone-row .cc-sel option { background:#0B1712; color:#F4F7F5; }
+html[data-theme="light"] .phone-row .cc-sel option { background:#fff; color:#0F172A; }
 .phone-row input { flex:1; min-width:0; }
 .auth-sent { font-size:.88rem; color:var(--mut); margin-bottom:12px; line-height:1.7; }
 .auth-sent b { color:var(--txt); font-weight:900; }
@@ -8101,7 +8107,8 @@ a{text-decoration:none;color:inherit}
 /* ---- Forms / Inputs ---- */
 .adm-input-sm{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text);font-family:inherit;font-size:.85rem;width:100%;max-width:100%}
 .adm-input-xs{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--text);font-family:inherit;font-size:.82rem;width:72px}
-.adm-sel-sm{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:8px;padding:6px 8px;color:var(--text);font-family:inherit;font-size:.82rem}
+.adm-sel-sm{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:8px;padding:6px 8px;color:var(--text);font-family:inherit;font-size:.82rem;color-scheme:dark}
+.adm-sel-sm option{background:#0B1712;color:#F4F7F5}
 .adm-btn-sm{background:rgba(255,255,255,.08);border:1px solid var(--border);border-radius:8px;padding:6px 14px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--text);font-size:.82rem;transition:all .15s}
 .adm-btn-sm:hover{background:rgba(255,255,255,.14)}
 .adm-btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}

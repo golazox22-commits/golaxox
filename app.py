@@ -8205,6 +8205,75 @@ a{text-decoration:none;color:inherit}
   .adm-pp-label{width:100%;}
   .adm-nav-item{padding:12px 16px;}
 }
+
+/* ==============================
+   GOLAZOX — FINAL MOBILE CART FLOW
+   ============================== */
+#cartPage {
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:stretch !important;
+  justify-content:flex-start !important;
+  gap:0 !important;
+  width:100% !important;
+  min-height:0 !important;
+  height:auto !important;
+  margin:0 !important;
+  padding:0 !important;
+}
+#cartPage > * {
+  flex:0 0 auto !important;
+  position:static !important;
+}
+#cartPage .ci {
+  width:100% !important;
+  min-height:0 !important;
+  height:auto !important;
+  margin:0 !important;
+  padding:8px 0 !important;
+}
+#cartPage .row-t {
+  width:100% !important;
+  min-height:0 !important;
+  height:auto !important;
+  margin:0 0 5px !important;
+  padding:0 !important;
+}
+#cartPage .row-t.total {
+  margin:3px 0 0 !important;
+  padding:7px 0 0 !important;
+}
+#cartPage .cart-page-actions {
+  width:100% !important;
+  display:flex !important;
+  flex-direction:column !important;
+  gap:6px !important;
+  margin:8px 0 0 !important;
+  padding:0 !important;
+}
+#cartPage .cart-page-actions .btn {
+  width:100% !important;
+  min-height:48px !important;
+  margin:0 !important;
+}
+#cartPage .cart-clear-btn {
+  min-height:38px !important;
+  padding:7px 14px !important;
+}
+#cartPage .cart-penalty {
+  width:100% !important;
+  margin:10px 0 0 !important;
+  padding:12px !important;
+}
+@media (max-width:768px) {
+  .cart-page-shell { margin:0 !important; padding-top:0 !important; }
+  .cart-page-shell .page-head { margin-bottom:10px !important; }
+  #cartPage .ci { padding:6px 0 !important; }
+  #cartPage .row-t { margin-bottom:4px !important; }
+  #cartPage .row-t.total { margin-top:2px !important; padding-top:6px !important; }
+  #cartPage .cart-page-actions { margin-top:7px !important; gap:5px !important; }
+  #cartPage .cart-penalty { margin-top:9px !important; }
+}
 </style></head>
 <body>
 <button class="adm-hamburger" onclick="document.querySelector('.adm-sidebar').classList.toggle('open');document.querySelector('.adm-overlay').classList.toggle('show')">☰</button>

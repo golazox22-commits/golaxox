@@ -6062,6 +6062,26 @@ def admin_order_page(code):
     if not o:
         return admin_page("<div class='msg'>طلب غير موجود</div>")
     dta = o["data"]
+    # Resolve the real customer linked to this order. Orders created after
+    # checkout carry user_id; keep a safe fallback for older orders.
+    customer = None
+    customer_id = dta.get("user_id")
+    if customer_id:
+        try:
+            customer = db.user_by_id(customer_id)
+        except Exception:
+            customer = None
+    if not customer:
+        phone_fallback = str(dta.get("phone", "") or "").strip()
+        if phone_fallback:
+            try:
+                customer = db.user_by_phone(phone_fallback)
+                if customer:
+                    customer_id = customer.get("id")
+            except Exception:
+                customer = None
+    customer_orders = db.orders_by_user(customer_id) if customer_id else []
+    customer_spent = sum(x["data"].get("total", 0) for x in customer_orders if x["status"] != "cancelled")
     st_opts = "".join('<option value="%s"%s>%s</option>' % (v, " selected" if o["status"] == v else "", lb)
                       for v, lb in [("pending", "جديد"), ("confirmed", "مؤكد"), ("preparing", "قيد التجهيز"),
                                     ("delivering", "تم الشحن"), ("delivered", "مكتمل"), ("cancelled", "ملغي")])
@@ -6087,6 +6107,9 @@ def admin_order_page(code):
             '<form method="post"><input type="hidden" name="act" value="order_save">'
             '<input type="hidden" name="code" value="{c}">'
             '<div class="adm-card"><h3>👤 بيانات العميل</h3><div style="display:grid;gap:8px;max-width:520px">'
+            '<div style="display:flex;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid rgba(255,255,255,.08);border-radius:12px;background:rgba(255,255,255,.03)"><span>معرّف العميل</span><b>{cid}</b></div>'
+            '<div style="display:flex;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid rgba(255,255,255,.08);border-radius:12px;background:rgba(255,255,255,.03)"><span>عدد الطلبات</span><b>{cn}</b></div>'
+            '<div style="display:flex;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid rgba(255,255,255,.08);border-radius:12px;background:rgba(255,255,255,.03)"><span>إجمالي مشتريات العميل</span><b>{cspent} {cu}</b></div>'
             '<label>الاسم</label><input class="sel" name="name" value="{n}">'
             '<label>الهاتف</label><input class="sel" name="phone" value="{p}" dir="ltr">'
             '<label>المنطقة</label><input class="sel" name="area" value="{a}">'
@@ -6099,7 +6122,9 @@ def admin_order_page(code):
             '<label>الحالة</label><select class="sel" name="status">{st}</select>'
             '<label>الدفع</label><select class="sel" name="payment">{pay}</select>'
             '<button class="btn pri">💾 حفظ الطلب</button></div></div>'
-            '</form></div>').format(c=code, n=esc(dta.get("name", "—")), p=esc(dta.get("phone", "—")),
+            '</form></div>').format(c=code, cid=esc(str(customer_id) if customer_id else "غير مرتبط"),
+                                    cn=len(customer_orders), cspent=fmt_cur(customer_spent),
+                                    n=esc(dta.get("name", "—")), p=esc(dta.get("phone", "—")),
                                     a=esc(dta.get("area", "—")), ad=esc(dta.get("address", "—")),
                                     no=esc(dta.get("notes", "")), items=item_rows, tot=fmt_cur(dta.get("total", 0)),
                                     cu=cur(), st=st_opts, pay=pay_opts)
@@ -6605,9 +6630,38 @@ def api_order():
     disc = min(max(0, float(data.get("discount", 0))), sub)
     data["delivery"] = deliv
     data["total"] = max(0, sub + deliv - disc)
+    # Always attach a completed order to a real customer account.
+    # Logged-in customers are linked directly; the fallback reuses/creates
+    # a customer by phone so an order is not left without a customer.
     u = current_user()
+    phone = str(data.get("phone", "") or "").strip()
+    name = str(data.get("name", "") or "").strip()
     if u:
         data["user_id"] = u["id"]
+        try:
+            db.user_update(u["id"],
+                           name=name or u.get("name", ""),
+                           area=str(data.get("area", "") or "").strip(),
+                           address=str(data.get("address", "") or "").strip())
+        except Exception:
+            pass
+    elif phone:
+        try:
+            u = db.user_by_phone(phone)
+            if not u:
+                uid = db.user_create(phone, name, "customer", lang())
+                u = db.user_by_id(uid) if uid else None
+            if u and u.get("role") == "customer":
+                data["user_id"] = u["id"]
+                try:
+                    db.user_update(u["id"],
+                                   name=name or u.get("name", ""),
+                                   area=str(data.get("area", "") or "").strip(),
+                                   address=str(data.get("address", "") or "").strip())
+                except Exception:
+                    pass
+        except Exception:
+            pass
     code = db.order_create(data)
     try:
         nm = data.get("name", "")

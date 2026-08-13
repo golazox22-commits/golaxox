@@ -2646,26 +2646,24 @@ html[data-theme="light"] .mtk-jstep.done b, html[data-theme="light"] .mtk-jstep.
   .pen-pitch { height:260px; }
   .pen-goal { width:200px; height:90px; }
 }
-</style>
-/* ===== FIX: CART SPACING ON MOBILE ===== */
+/* ===== CART MOBILE — SINGLE FINAL COMPACT LAYOUT (previously sat OUTSIDE </style>, so it never applied) ===== */
 @media (max-width: 768px) {
-  #cartPage { padding: 0 !important; margin: 0 !important; width: 100% !important; }
+  #cartPage { padding: 0 !important; margin: 0 !important; width: 100% !important; height: auto !important; min-height: 0 !important; }
   #cartPage > * { margin-top: 0 !important; }
-  #cartPage .ci { padding: 10px 0 !important; min-height: 60px !important; gap: 8px !important; border-bottom: 1px solid var(--glass-border) !important; }
+  #cartPage .ci { padding: 10px 0 !important; min-height: 0 !important; height: auto !important; gap: 8px !important; margin: 0 !important; border-bottom: 1px solid var(--glass-border) !important; }
   #cartPage .ci-emoji { font-size: 1.2rem !important; }
   #cartPage .ci-tx b { font-size: 0.82rem !important; }
   #cartPage .ci-tx span { font-size: 0.72rem !important; }
   #cartPage .row-t { margin: 0 !important; padding: 6px 0 !important; font-size: 0.85rem !important; }
   #cartPage .row-t.total { margin-top: 8px !important; padding-top: 8px !important; border-top: 1px solid var(--glass-border) !important; }
-  .cart-page-actions { margin-top: 8px !important; gap: 8px !important; }
-  .cart-page-actions .btn { min-height: 48px !important; font-size: 0.9rem !important; padding: 10px !important; }
-  .cd-body { padding: 8px 12px !important; }
-  .cd-body .ci { padding: 8px 0 !important; min-height: 50px !important; }
-  .cd-foot { padding: 10px 12px !important; }
-  .cd-foot .row-t { margin: 0 !important; padding: 4px 0 !important; }
-  .wrap { padding-left: 10px !important; padding-right: 10px !important; }
   #cartPage .pfoot b { font-size: 0.9rem !important; }
+  .cart-page-actions { display: flex !important; flex-direction: column !important; height: auto !important; margin-top: 12px !important; gap: 10px !important; }
+  .cart-page-actions .btn { width: 100% !important; max-width: 100% !important; min-height: 46px !important; font-size: 0.9rem !important; padding: 10px !important; box-sizing: border-box !important; margin: 0 !important; }
+  .cart-page-actions .cpa-clear { align-self: center !important; margin-top: 2px !important; }
+  #cartPenalty { margin-top: 20px !important; height: auto !important; }
+  #cartPenalty .pc-goal-wrap { height: 130px !important; }
 }
+</style>
 """
 
 BASE_JS = """<script>
@@ -3044,10 +3042,10 @@ function renderCartPage(){
   html+='<div class="row-t"><span>'+gxT('cart_subtotal')+'</span><b>'+pmoney(tot.sub)+' '+GX.cur+'</b></div>'
     +'<div class="row-t"><span>'+gxT('cart_delivery')+'</span><b>'+pmoney(tot.delivery)+' '+GX.cur+'</b></div>'
     +'<div class="row-t total"><span>'+gxT('cart_total')+'</span><b>'+pmoney(tot.total)+' '+GX.cur+'</b></div>'
-    +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">'
-    +'<button class="btn wa" style="flex:1" onclick="openCheckout()">'+gxT('cart_checkout')+'</button>'
-    +'<button class="btn wa2" style="flex:1" onclick="orderCartTG()">💬 '+gxT('order_wa')+'</button>'
-    +'<button class="btn ghost" onclick="clearCart()">🗑 '+gxT('cart_clear')+'</button></div>';
+    +'<div class="cart-page-actions">'
+    +'<button class="btn wa" onclick="openCheckout()">'+gxT('cart_checkout')+'</button>'
+    +'<button class="btn wa2" onclick="orderCartTG()">💬 '+gxT('order_wa')+'</button>'
+    +'<button class="btn ghost cpa-clear" onclick="clearCart()">🗑 '+gxT('cart_clear')+'</button></div>';
   box.innerHTML=html;
 }
 var rewardSel=null;
@@ -4945,10 +4943,27 @@ def info_page(kind):
 
 def cart_page():
     d = cfg.L[lang()]
+    en = lang() == "en"
+    cart_penalty = (
+        '<div class="sec rv" id="cartPenalty"><div class="pc-sec">'
+        '<div class="pc-fog"></div><div class="pc-crowd"></div>'
+        '<div class="pc-goal-wrap"><div class="pc-goal"></div>'
+        '<div class="pc-keeper"><div class="kb"></div><div class="kh"></div></div>'
+        '<div class="pc-ball">⚽</div></div>'
+        '<div class="pc-title">🎯 {t}</div>'
+        '<div class="pc-sub">{s}</div>'
+        '<a class="pc-cta" href="/penalty">{cta}</a>'
+        '</div></div>'
+    ).format(
+        t="PENALTY CHALLENGE",
+        s=("هل تقدر تسجل ضد الحارس؟" if not en else "Can you score past the keeper?"),
+        cta=d.get("pen_start", "⚡ ابدأ التحدي" if not en else "Start the Challenge ⚡"),
+    )
     body = ('<div class="wrap"><div class="page-head"><h1>{t}</h1><p>{s}</p></div>'
             '<div id="cartPage"></div>'
+            '{pen}'
             '<div style="text-align:center;margin-top:26px"><a class="back" href="/home">← {b}</a></div>'
-            '</div>').format(t=d["cart_page_title"], s=d["cart_page_sub"], b=d["back"])
+            '</div>').format(t=d["cart_page_title"], s=d["cart_page_sub"], b=d["back"], pen=cart_penalty)
     js = "<script>document.addEventListener('DOMContentLoaded',function(){ renderCartPage(); });</script>"
     return base_page(body, page_js=js, active="")
 

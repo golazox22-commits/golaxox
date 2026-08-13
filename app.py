@@ -3118,7 +3118,7 @@ function tgOrderMsg(code,items,name,phone,area,addr,del,disc,total,notes){
   l.push('📱 '+gxT('co_phone').replace(/[^\u0600-\u06FF\w\s]/g,'')+': '+phone);
   l.push('📍 '+gxT('co_area').replace(/[^\u0600-\u06FF\w\s]/g,'')+': '+area);
   l.push('🏠 '+gxT('co_address').replace(/[^\u0600-\u06FF\w\s]/g,'')+': '+addr);
-  return l.join('\n');
+  return l.join('\\n');
 }
 /* ---------- order via WhatsApp ---------- */
 function orderCartTG(){

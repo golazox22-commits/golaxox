@@ -3941,7 +3941,7 @@ MODALS
 <div class="mkmode-toggle" id="mkModeToggle" onclick="mkModeToggle()" title="Matchday Mode"><span class="mkmode-ic">⚽</span><span class="mkmode-lbl">MATCHDAY</span></div>
 <div class="mkmode-pitch"></div>
 <div class="mkmode-lights"><div class="mkl"></div><div class="mkl"></div><div class="mkl"></div><div class="mkl"></div></div>
-<a class="fab" target="_blank" rel="noopener" href="https://wa.me/{WA}" title="WhatsApp">💬</a>
+<a class="fab" target="_blank" rel="noopener" href="https://wa.me/message/KZFSQ7ONXMY2M1" title="WhatsApp">💬</a>
 __PAGEJS_SLOT__
 __BASEJS_SLOT__
 </body>
@@ -3956,7 +3956,6 @@ __BASEJS_SLOT__
         .replace("FOOTER", footer_html()) \
         .replace("MODALS", ads_html("banner") + modals_html()) \
         .replace("T_CART", d["cart_title"]) \
-        .replace("WA", cfg.WHATSAPP) \
         .replace("BNAV_HOME", " on" if active == "home" else "") \
         .replace("BNAV_SHOP", " on" if active in ("products", "mugs", "clubs") else "") \
         .replace("BNAV_CART", " on" if active == "cart" else "") \

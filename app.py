@@ -1909,16 +1909,48 @@ html[data-theme="light"] .adm-msg.err { color: #DC2626; }
 .mk-mini-price{font-size:.9rem;font-weight:900;color:#fff}
 .mk-mini-date{font-size:.7rem;color:rgba(255,255,255,.35)}
 /* --- Fan Card --- */
-.mk-fan{max-width:600px;margin:0 auto 24px;border-radius:18px;overflow:hidden;position:relative;background:linear-gradient(135deg,rgba(10,13,12,.9),rgba(5,6,7,.95));border:1px solid var(--mk-border,rgba(24,232,117,.12));padding:24px}
-.mk-fan::before{content:'';position:absolute;top:-30px;inset-inline-end:-30px;width:140px;height:140px;background:var(--mk-ac,#18E875);opacity:.04;border-radius:50%}
+.mk-fan{max-width:900px;margin:0 auto 24px;border-radius:20px;overflow:hidden;position:relative;
+  display:flex; background:linear-gradient(135deg,rgba(255,255,255,.045),rgba(255,255,255,.015)),
+  linear-gradient(160deg,rgba(10,13,12,.95),rgba(5,6,7,.98));
+  border:1px solid rgba(255,255,255,.12); box-shadow:0 20px 60px rgba(0,0,0,.45),0 0 35px var(--mk-glow,rgba(0,230,118,.05));
+  backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); animation:ticketIn .6s ease-out}
+.mk-fan-strip{flex:0 0 46px; background:linear-gradient(180deg,var(--mk-ac,#00E676),var(--mk-ac2,#16A765));
+  display:flex; flex-direction:column; align-items:center; justify-content:space-between; padding:18px 0; gap:10px}
+.mk-fan-strip-title{writing-mode:vertical-rl; transform:rotate(180deg); font-weight:900; letter-spacing:5px;
+  font-size:.85rem; color:#030605}
+.mk-fan-strip-sub{writing-mode:vertical-rl; transform:rotate(180deg); font-weight:800; letter-spacing:3px;
+  font-size:.62rem; color:rgba(3,6,5,.65)}
+.mk-fan-body{flex:1; padding:22px 24px; min-width:0; position:relative; border-inline-end:2px dashed rgba(255,255,255,.14)}
+.mk-fan-body::after{content:'';position:absolute;bottom:-11px;inset-inline-end:-11px;width:22px;height:22px;background:var(--bg);border-radius:50%;z-index:2}
+.mk-fan-body::before{content:'';position:absolute;top:-11px;inset-inline-end:-11px;width:22px;height:22px;background:var(--bg);border-radius:50%;z-index:2}
+.mk-fan-brand{font-size:.68rem;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:var(--mk-ac,#00E676);margin-bottom:2px}
+.mk-fan-sub{font-size:.98rem;font-weight:900;color:#F4F7F5;letter-spacing:1px;margin-bottom:14px}
 .mk-fan-header{display:flex;align-items:center;gap:14px;margin-bottom:16px}
-.mk-fan-avatar{width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,var(--mk-ac,#18E875),var(--mk-ac2,#0B9F50));display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:#050607;font-weight:900}
-.mk-fan-name{font-size:1.2rem;font-weight:900;color:#fff}
-.mk-fan-id{font-size:.7rem;color:rgba(255,255,255,.4);font-family:monospace;letter-spacing:1px}
-.mk-fan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.mk-fan-stat{text-align:center;padding:12px 8px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.04)}
-.mk-fan-stat-val{font-size:1.2rem;font-weight:900;color:#fff}
-.mk-fan-stat-lbl{font-size:.65rem;font-weight:700;color:rgba(255,255,255,.4);margin-top:2px;letter-spacing:1px;text-transform:uppercase}
+.mk-fan-avatar{width:56px;height:56px;border-radius:50%;flex:none;background:rgba(255,255,255,.04);
+  border:2px solid var(--mk-ac,#00E676);display:flex;align-items:center;justify-content:center;
+  font-size:1.5rem;color:var(--mk-ac,#00E676);font-weight:900;overflow:hidden}
+.mk-fan-avatar img{width:100%;height:100%;object-fit:cover}
+.mk-fan-name{font-size:1.15rem;font-weight:900;color:#F4F7F5}
+.mk-fan-id{font-size:.72rem;color:#AAB4AF;font-family:monospace;letter-spacing:.5px;margin-top:2px}
+.mk-fan-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;border-top:1px dashed rgba(255,255,255,.12);padding-top:16px}
+.mk-fan-stat{text-align:center}
+.mk-fan-stat-val{font-size:1.05rem;font-weight:900;color:#F4F7F5;direction:ltr}
+.mk-fan-stat-lbl{font-size:.6rem;font-weight:800;color:#AAB4AF;margin-top:3px;letter-spacing:1px;text-transform:uppercase}
+.mk-fan-qr{flex:0 0 150px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:22px 16px}
+.mk-fan-qr-lbl{font-size:.62rem;font-weight:800;letter-spacing:2px;color:#AAB4AF;text-transform:uppercase}
+.mk-fan-qr-box{width:88px;height:88px;border-radius:10px;background:#F4F7F5 repeating-linear-gradient(90deg,#030605 0 6px,transparent 6px 12px),
+  repeating-linear-gradient(0deg,#030605 0 6px,transparent 6px 12px); background-blend-mode:multiply; opacity:.92}
+.mk-fan-qr-code{font-size:.66rem;font-weight:800;color:#F4F7F5;font-family:monospace;letter-spacing:.5px;text-align:center;direction:ltr}
+@media (max-width:768px){
+  .mk-fan{flex-direction:column}
+  .mk-fan-strip{flex-direction:row;width:100%;padding:8px 16px;gap:14px}
+  .mk-fan-strip-title,.mk-fan-strip-sub{writing-mode:horizontal-tb;transform:none}
+  .mk-fan-body{border-inline-end:none;border-bottom:2px dashed rgba(255,255,255,.14)}
+  .mk-fan-body::after,.mk-fan-body::before{inset-inline-end:auto;left:50%;transform:translateX(-50%);bottom:-11px;top:auto}
+  .mk-fan-body::before{display:none}
+  .mk-fan-grid{grid-template-columns:repeat(2,1fr);gap:12px}
+  .mk-fan-qr{flex:none;padding:18px}
+}
 /* --- Acc tabs (simplified) --- */
 .mk-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;justify-content:center}
 .mk-tab{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:8px 16px;font-size:.8rem;font-weight:800;color:rgba(255,255,255,.5);cursor:pointer;transition:all .2s}
@@ -5411,7 +5443,7 @@ def account_page():
                     "name": cfg.CLUBS.get(cid, {}).get(en and "en" or "ar", ""),
                     "emoji": cfg.CLUBS.get(cid, {}).get("emoji", "⚽"),
                     "cid": cid}
-        return {"ac": "#18E875", "ac2": "#0B9F50", "glow": "#18E875", "tint": "#18E875",
+        return {"ac": "#00E676", "ac2": "#16A765", "glow": "#00E676", "tint": "#00E676",
                 "name": "GOLAZOX", "emoji": "⚽", "cid": ""}
 
     def _mk_css(ac, glow):
@@ -5591,29 +5623,46 @@ def account_page():
         if c:
             fav_names.append(c.get("emoji", "⚽") + " " + c.get(en and "en" or "ar", ""))
     fav_str = " · ".join(fav_names[:5]) if fav_names else "—"
+    member_since = (u.get("created") or "")[:4] or "—"
+    pass_code = "GX-%s-%s" % (str(u["id"]).zfill(4), str(abs(hash(u.get("phone",""))) % 9999).zfill(4))
     fan_card = (
         '<div class="mk-fan" style="{css}">'
+        '<div class="mk-fan-strip">'
+        '<div class="mk-fan-strip-title">GOLAZOX</div>'
+        '<div class="mk-fan-strip-sub">FAN PASS</div>'
+        '</div>'
+        '<div class="mk-fan-body">'
+        '<div class="mk-fan-brand">GOLAZOX STADIUM</div>'
+        '<div class="mk-fan-sub">FAN TICKET</div>'
         '<div class="mk-fan-header">'
         '<div class="mk-fan-avatar">{initial}</div>'
         '<div><div class="mk-fan-name">{name}</div>'
-        '<div class="mk-fan-id">GX-FAN-{uid}</div></div>'
+        '<div class="mk-fan-id">{phone}</div></div>'
         '</div>'
         '<div class="mk-fan-grid">'
+        '<div class="mk-fan-stat"><div class="mk-fan-stat-val">#{uid}</div><div class="mk-fan-stat-lbl">{fanid_lbl}</div></div>'
+        '<div class="mk-fan-stat"><div class="mk-fan-stat-val">{since}</div><div class="mk-fan-stat-lbl">{since_lbl}</div></div>'
         '<div class="mk-fan-stat"><div class="mk-fan-stat-val">{orders}</div><div class="mk-fan-stat-lbl">{orders_lbl}</div></div>'
         '<div class="mk-fan-stat"><div class="mk-fan-stat-val">{spent}</div><div class="mk-fan-stat-lbl">{spent_lbl}</div></div>'
-        '<div class="mk-fan-stat"><div class="mk-fan-stat-val">{clubs}</div><div class="mk-fan-stat-lbl">{clubs_lbl}</div></div>'
         '</div>'
-        '<div style="margin-top:14px;font-size:.82rem;color:rgba(255,255,255,.5)">{fav_lbl}: {favs}</div>'
+        '</div>'
+        '<div class="mk-fan-qr">'
+        '<div class="mk-fan-qr-lbl">GOLAZOX FAN</div>'
+        '<div class="mk-fan-qr-box"></div>'
+        '<div class="mk-fan-qr-code">{pass_code}</div>'
+        '</div>'
         '</div>'
     ).format(
         css=_mk_css(main_theme["ac"], main_theme["glow"]),
         initial=esc((u.get("name") or "P")[0].upper()),
         name=esc(u.get("name", "") or "Player"),
+        phone=esc(u.get("phone", "") or ""),
         uid=u["id"],
-        orders=len(orders), orders_lbl="طلبات" if not en else "Orders",
-        spent=fmt_cur(spent) + " " + cur(), spent_lbl="المصروف" if not en else "Spent",
-        clubs=len(clubs), clubs_lbl="أندية" if not en else "Clubs",
-        fav_lbl="الأندية المفضلة" if not en else "Favorite clubs", favs=esc(fav_str)
+        fanid_lbl="FAN ID" if en else "رقم العضوية",
+        since=esc(member_since), since_lbl="MEMBER SINCE" if en else "عضو منذ",
+        orders=len(orders), orders_lbl="ORDERS" if en else "الطلبات",
+        spent=fmt_cur(spent), spent_lbl="TOTAL SPENT" if en else "إجمالي الصرف",
+        pass_code=esc(pass_code)
     )
 
     # Tabs

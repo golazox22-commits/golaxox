@@ -416,6 +416,52 @@ html[data-theme="light"] .hd { background:rgba(255,255,255,.92); backdrop-filter
 .hicon { position:relative; }
 .hcount { position:absolute; top:-6px; inset-inline-end:-6px; background:var(--brand1); color:#fff; font-size:.62rem;
   font-weight:900; min-width:18px; height:18px; border-radius:999px; display:none; align-items:center; justify-content:center; padding:0 4px; }
+/* ============================== MATCHDAY TICKER ============================== */
+.md-ticker { overflow:hidden; background:#07140F; border-top:1px solid rgba(0,230,118,.20);
+  border-bottom:1px solid rgba(0,230,118,.20); height:44px; display:flex; align-items:center; margin:0 0 24px; }
+.md-ticker-track { display:flex; gap:40px; white-space:nowrap; animation:mdTick 24s linear infinite; }
+.md-ticker span { color:#F4F7F5; font-weight:800; font-size:.82rem; letter-spacing:1.5px; flex:none; }
+.md-ticker span b { color:#00E676; text-shadow:0 0 12px rgba(0,230,118,.35); }
+@keyframes mdTick { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+@media (max-width:640px) { .md-ticker { height:38px; margin-bottom:18px; } .md-ticker span { font-size:.74rem; letter-spacing:1px; } }
+@media (prefers-reduced-motion:reduce) { .md-ticker-track { animation:none; } }
+/* ============================== PENALTY CHALLENGE (home teaser) ============================== */
+.pc-sec { position:relative; border-radius:26px; overflow:hidden; padding:48px 24px; text-align:center;
+  min-height:0; background:
+    radial-gradient(ellipse at 20% 0%, rgba(255,255,255,.07), transparent 30%),
+    radial-gradient(ellipse at 80% 0%, rgba(255,255,255,.06), transparent 30%),
+    radial-gradient(circle at 50% 0%, rgba(0,230,118,.08), transparent 35%),
+    linear-gradient(180deg, #030605 0%, #07140F 50%, #030605 100%);
+  border:1px solid rgba(255,255,255,.08); animation:pcLights 8s ease-in-out infinite; }
+@keyframes pcLights { 0%,100% { filter:brightness(1); } 50% { filter:brightness(1.06); } }
+.pc-fog { position:absolute; inset:-20% -10%; background:radial-gradient(ellipse at 50% 100%, rgba(255,255,255,.05), transparent 60%);
+  filter:blur(20px); opacity:.6; pointer-events:none; animation:pcFog 16s linear infinite; }
+@keyframes pcFog { from { transform:translateX(-4%); } to { transform:translateX(4%); } }
+.pc-crowd { position:absolute; top:0; left:0; right:0; height:26px; opacity:.5;
+  background:repeating-linear-gradient(90deg,#0b3d23 0 24px,#123f2b 24px 48px); }
+.pc-goal-wrap { position:relative; height:150px; margin:20px auto 8px; max-width:340px; }
+.pc-goal { position:absolute; left:50%; top:0; transform:translateX(-50%); width:220px; height:96px;
+  border:4px solid rgba(244,247,245,.85); border-top:none; border-radius:0 0 8px 8px;
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,.22) 0 14px,transparent 14px 28px),
+    repeating-linear-gradient(0deg,rgba(255,255,255,.22) 0 14px,transparent 14px 28px);
+  box-shadow:0 0 40px rgba(0,230,118,.10); }
+.pc-keeper { position:absolute; left:50%; bottom:10px; transform:translateX(-50%); width:44px; height:70px;
+  animation:pcBreathe 2.6s ease-in-out infinite; }
+.pc-keeper .kb { position:absolute; bottom:0; width:44px; height:56px; border-radius:14px 14px 6px 6px; background:linear-gradient(180deg,#0F172A,#1E293B); }
+.pc-keeper .kh { position:absolute; top:0; left:50%; transform:translateX(-50%); width:22px; height:20px; border-radius:50%; background:#1E293B; }
+@keyframes pcBreathe { 0%,100% { transform:translateX(-50%) translateY(0); } 50% { transform:translateX(-50%) translateY(-2px); } }
+.pc-ball { position:absolute; left:50%; bottom:2px; transform:translateX(-50%); font-size:26px; filter:drop-shadow(0 6px 6px rgba(0,0,0,.4));
+  transition:transform .3s ease; }
+.pc-sec:hover .pc-ball { transform:translateX(-50%) translateY(-3px); }
+.pc-title { font-size:1.6rem; font-weight:900; color:#F4F7F5; margin-top:4px; }
+.pc-sub { color:#AEB8B3; font-size:.95rem; margin-top:6px; }
+.pc-cta { display:inline-flex; align-items:center; gap:8px; margin-top:20px; background:#00E676; color:#031008;
+  border-radius:14px; padding:14px 30px; font-weight:800; font-size:.95rem; text-decoration:none;
+  box-shadow:0 8px 30px rgba(0,230,118,.18); transition:transform .2s ease, box-shadow .2s ease; }
+.pc-cta:hover { transform:translateY(-2px); box-shadow:0 12px 35px rgba(0,230,118,.28); }
+.pc-cta:active { transform:scale(.98); }
+@media (max-width:640px) { .pc-sec { padding:32px 16px; } .pc-goal-wrap { height:120px; max-width:260px; } .pc-goal { width:170px; height:76px; }
+  .pc-title { font-size:1.25rem; } .pc-cta { width:100%; justify-content:center; } }
 /* hero */
 .hero { position:relative; overflow:hidden; border:1px solid rgba(255,255,255,.06); border-radius:26px;
   background:
@@ -3031,7 +3077,7 @@ function submitOrder(){
       var earned=Math.floor(fin*GX.points_per); addPoints(earned, gxT('pts_earn'));
       var msg=tgOrderMsg(d.code, items, name, phone, area, addr, tot.delivery, disc, fin);
       clearCart(); closeModal('m-checkout');
-      window.open('https://wa.me/message/KZFSQ7ONXMY2M1','_blank');
+      window.open('https://wa.me/message/KZFSQ7ONXMY2M1?text='+encodeURIComponent(msg),'_blank');
       location.href='/order/success?code='+d.code;
     } else { toast('Error'); }
   });
@@ -3064,11 +3110,12 @@ function orderCartTG(){
   .then(function(r){return r.json();}).then(function(d){
     if(d.code){
       var msg=gxT('hello').trim()+' 👋\\n'+gxT('wa_intro')+'\\n';
+      msg+=gxT('code_w')+d.code+'\\n';
       items.forEach(function(it){
         msg+='- '+it.emoji+' '+it.name+(it.kind!=='mug'?' ('+it.size+')':'')+' × '+it.qty+'\\n';
       });
       msg+='\\n'+gxT('cart_total')+': '+pmoney(fin)+' '+GX.cur;
-      window.open('https://wa.me/message/KZFSQ7ONXMY2M1','_blank');
+      window.open('https://wa.me/message/KZFSQ7ONXMY2M1?text='+encodeURIComponent(msg),'_blank');
       location.href='/order/success?code='+d.code;
     } else { toast('Error'); }
   });
@@ -3117,7 +3164,7 @@ function submitRequest(){
     if(size) msg+='• '+gxT('req_size')+': '+size+'\\n';
     msg+='• '+gxT('req_qty')+': '+qty+'\\n';
     if(notes) msg+='• '+gxT('req_notes')+': '+notes;
-    window.open('https://wa.me/message/KZFSQ7ONXMY2M1','_blank');
+    window.open('https://wa.me/message/KZFSQ7ONXMY2M1?text='+encodeURIComponent(msg),'_blank');
     closeModal('m-request'); toast(gxT('req_ok')+' — '+d.ref);
   });
 }
@@ -4472,6 +4519,27 @@ def home_body():
                  '<div class="steps-grid">{steps}</div></div>'
                  ).format(t=d["steps_title"], steps=steps)
 
+    ticker_txt = "⚡ MATCHDAY" if en else "⚡ ماتش داي"
+    md_ticker = ('<div class="md-ticker"><div class="md-ticker-track">' + (
+        ('<span>{t} • <b>GOLAZOX</b> • FOOTBALL •</span>' * 8).format(t=ticker_txt)
+    ) + '</div></div>')
+
+    pc_sec = (
+        '<div class="sec rv"><div class="pc-sec">'
+        '<div class="pc-fog"></div><div class="pc-crowd"></div>'
+        '<div class="pc-goal-wrap"><div class="pc-goal"></div>'
+        '<div class="pc-keeper"><div class="kb"></div><div class="kh"></div></div>'
+        '<div class="pc-ball">⚽</div></div>'
+        '<div class="pc-title">🎯 {t}</div>'
+        '<div class="pc-sub">{s}</div>'
+        '<a class="pc-cta" href="/penalty">{cta}</a>'
+        '</div></div>'
+    ).format(
+        t="PENALTY CHALLENGE",
+        s=("هل تقدر تسجل ضد الحارس؟" if not en else "Can you score past the keeper?"),
+        cta=d.get("pen_start", "⚡ ابدأ التحدي" if not en else "Start the Challenge ⚡"),
+    )
+
     pitch_sec = ('<div class="sec rv"><div class="pitch-sec">'
                  '<span class="pitch-lines"></span><span class="pitch-half"></span><span class="pitch-mid"></span>'
                  '<span class="pitch-ball">⚽</span>'
@@ -4554,6 +4622,9 @@ def home_body():
     return (atmos_html("full")
             + '<div class="wrap">'
             + hero
+            + pc_sec
+            + md_ticker
+            + clubs_sec
             + ads_html("home")
             + features_html()
             + spotlight_html(prods)
@@ -4561,7 +4632,6 @@ def home_body():
             + shop_section_html(jgrid, "gridJ")
             + best_sec
             + new_sec
-            + clubs_sec
             + loyal_sec
             + '<div class="sec rv" id="mugs"><div class="sec-head"><h2><span class="bar"></span>{sm}</h2><span class="sec-sub">{sm_sub}</span></div>'
             + '<div class="grid" id="gridM">{mgrid}</div></div>'
@@ -5374,7 +5444,7 @@ function orderDirect(pid){
       var msg=gxT('hello').trim()+':\\n'+items[0].emoji+' '+items[0].name;
       if(sz) msg+='\\n'+gxT('size_w')+sz;
       msg+='\\n'+gxT('qty_w')+q+' · '+pmoney(p.price*q)+' '+GX.cur+'\\n\\n'+gxT('code_w')+dd.code;
-      window.open('https://wa.me/message/KZFSQ7ONXMY2M1','_blank');
+      window.open('https://wa.me/message/KZFSQ7ONXMY2M1?text='+encodeURIComponent(msg),'_blank');
       location.href='/order/success?code='+dd.code;
     }
   });
@@ -5845,17 +5915,23 @@ PEN_ZONES = {"tl": (-110, 92), "tc": (0, 92), "tr": (110, 92), "bl": (-110, 172)
 def penalty_page(code):
     en = lang() == "en"
     d = cfg.L[lang()]
-    o = db.order_get(code)
-    if not o:
-        return base_page('<div class="wrap"><h2>404</h2></div>')
+    practice = not code
+    if not practice:
+        o = db.order_get(code)
+        if not o:
+            return base_page('<div class="wrap"><h2>404</h2></div>')
     zones = "".join(
         ("<button class='pen-zone' data-z='{z}' style='left:calc(50% {dx});top:{dy}px' onclick='penShoot(this)'>{lb}</button>"
          ).format(z=z, dx=("+ 110px" if x > 0 else ("- 110px" if x < 0 else "")), dy=y, lb=d["pen_" + z])
         for z, (x, y) in PEN_ZONES.items())
+    head_title = ("🎯 " + ("PENALTY CHALLENGE" if en else "تحدي البنالتي")) if practice else ("⚽ PENALTY — " + code)
+    head_link = "" if practice else '<a class="hbtn" href="/ticket?code={code}">{tk}</a>'.format(code=esc(code), tk=d["ok_ticket"])
+    note = (d.get("pen_practice_note", "العب بلا حدود — تدرب على تسديداتك.") if not en
+            else d.get("pen_practice_note_en", "Free practice — sharpen your aim, no limit.")) if practice else d["pen_once"]
     body = (
         '<div class="wrap pen-std">'
-        '<div class="pen-head"><span class="pen-code">⚽ PENALTY — {code}</span>'
-        '<a class="hbtn" href="/ticket?code={code}">{tk}</a></div>'
+        '<div class="pen-head"><span class="pen-code">{title}</span>'
+        '{link}</div>'
         '<div class="pen-pitch">'
         '<div class="pen-stripes"></div><div class="pen-crowd"></div>'
         '<div class="pen-lights"></div><div class="pen-lights right"></div>'
@@ -5865,45 +5941,63 @@ def penalty_page(code):
         '<div class="pen-result" id="penRes"></div>'
         '</div>'
         '<p class="pen-note">{once}</p></div>'
-    ).format(code=code, tk=d["ok_ticket"], zones=zones, once=d["pen_once"])
+    ).format(title=esc(head_title), link=head_link, zones=zones, once=esc(note))
     page_js = """<script>
-var PEN_CODE={code};
-var ZP={{tl:['calc(50% - 110px)','92px'],tc:['50%','92px'],tr:['calc(50% + 110px)','92px'],bl:['calc(50% - 110px)','172px'],br:['calc(50% + 110px)','172px']}};
-var PEN_DONE=(localStorage.getItem('pen_'+PEN_CODE)=='1');
-function penShow(goal,once){{
+var PEN_CODE=__PEN_CODE_JSON__;
+var PEN_PRACTICE=__PEN_PRACTICE_JS__;
+var ZP={tl:['calc(50% - 110px)','92px'],tc:['50%','92px'],tr:['calc(50% + 110px)','92px'],bl:['calc(50% - 110px)','172px'],br:['calc(50% + 110px)','172px']};
+var PEN_DONE=PEN_PRACTICE?false:(localStorage.getItem('pen_'+PEN_CODE)=='1');
+function penShow(goal,once){
   var t=goal?gxT('pen_goal'):gxT('pen_saved');
   var sub=goal?('+10 '+gxT('pen_pts')):(once?gxT('pen_once'):gxT('pen_saved_t'));
   var res=$('penRes');
-  res.innerHTML='<span class="big">'+t+'</span><span class="pts">'+sub+'</span>'
-    +'<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:6px">'
-    +'<a class="btn" style="background:#25D366;color:#fff" href="/track?code='+PEN_CODE+'">'+gxT('pen_track')+'</a>'
-    +'<a class="btn ghost" href="/home">'+gxT('pen_back')+'</a></div>';
+  var actions = PEN_PRACTICE
+    ? '<button class="btn pri" onclick="penAgain()">'+gxT('pen_go')+'</button><a class="btn ghost" href="/home">'+gxT('pen_back')+'</a>'
+    : '<a class="btn" style="background:#25D366;color:#fff" href="/track?code='+PEN_CODE+'">'+gxT('pen_track')+'</a><a class="btn ghost" href="/home">'+gxT('pen_back')+'</a>';
+  res.innerHTML='<span class="big">'+t+'</span><span class="pts">'+(PEN_PRACTICE?'':sub)+'</span>'
+    +'<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:6px">'+actions+'</div>';
   res.classList.add('show');
   if(goal&&!once) confetti(50);
-}}
-function penShoot(btn){{
+}
+function penAgain(){
+  PEN_DONE=false; $('penRes').classList.remove('show'); $('penRes').innerHTML='';
+  $('penBall').style.left='50%'; $('penBall').style.top='352px';
+  $('penKeeper').style.left='50%'; $('penKeeper').style.top='168px';
+}
+function penShoot(btn){
   if(PEN_DONE) return;
   var z=btn.getAttribute('data-z');
-  fetch('/api/penalty/play',{{method:'POST',headers:{{'Content-Type':'application/json'}},body:JSON.stringify({{code:PEN_CODE,shot:z,device:gxDev()}})}})
-  .then(function(r){{return r.json();}}).then(function(dd){{
-    if(dd.error==='notfound'){{ toast('404'); return; }}
+  if(PEN_PRACTICE){
+    PEN_DONE=true;
+    var zones=['tl','tc','tr','bl','br'];
+    var keeper=zones[Math.floor(Math.random()*zones.length)];
+    var goal = z!==keeper || Math.random()<0.22;
+    var ball=$('penBall'), keep=$('penKeeper');
+    ball.style.left=ZP[z][0]; ball.style.top=ZP[z][1];
+    keep.style.left=ZP[keeper][0]; keep.style.top=ZP[keeper][1];
+    setTimeout(function(){ penShow(goal,false); }, 480);
+    return;
+  }
+  fetch('/api/penalty/play',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:PEN_CODE,shot:z,device:gxDev()})})
+  .then(function(r){return r.json();}).then(function(dd){
+    if(dd.error==='notfound'){ toast('404'); return; }
     PEN_DONE=true; localStorage.setItem('pen_'+PEN_CODE,'1');
     var ball=$('penBall'), keep=$('penKeeper');
-    if(dd.fresh){{
+    if(dd.fresh){
       ball.style.left=ZP[z][0]; ball.style.top=ZP[z][1];
-      if(dd.keeper&&ZP[dd.keeper]){{ keep.style.left=ZP[dd.keeper][0]; keep.style.top=ZP[dd.keeper][1]; }}
+      if(dd.keeper&&ZP[dd.keeper]){ keep.style.left=ZP[dd.keeper][0]; keep.style.top=ZP[dd.keeper][1]; }
       penShow(dd.goal,false);
-    }} else {{ penShow(dd.goal,true); }}
-  }});
-}}
-document.addEventListener('DOMContentLoaded',function(){{
-  if(PEN_DONE){{
-    fetch('/api/penalty/status?code='+PEN_CODE).then(function(r){{return r.json();}}).then(function(dd){{
+    } else { penShow(dd.goal,true); }
+  });
+}
+document.addEventListener('DOMContentLoaded',function(){
+  if(PEN_DONE && !PEN_PRACTICE){
+    fetch('/api/penalty/status?code='+PEN_CODE).then(function(r){return r.json();}).then(function(dd){
       if(dd.done) penShow(dd.goal,true);
-    }});
-  }}
-}});
-</script>""".format(code=code)
+    });
+  }
+});
+</script>""".replace("__PEN_CODE_JSON__", json.dumps(code)).replace("__PEN_PRACTICE_JS__", "true" if practice else "false")
     return base_page(body, page_js=page_js)
 
 

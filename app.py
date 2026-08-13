@@ -2646,7 +2646,7 @@ html[data-theme="light"] .mtk-jstep.done b, html[data-theme="light"] .mtk-jstep.
   .pen-pitch { height:260px; }
   .pen-goal { width:200px; height:90px; }
 }
-/* ===== CART MOBILE — SINGLE FINAL COMPACT LAYOUT (previously sat OUTSIDE </style>, so it never applied) ===== */
+/* ===== CART MOBILE — SINGLE FINAL COMPACT LAYOUT (previously sat outside the closing style tag, so it never applied) ===== */
 @media (max-width: 768px) {
   #cartPage { padding: 0 !important; margin: 0 !important; width: 100% !important; height: auto !important; min-height: 0 !important; }
   #cartPage > * { margin-top: 0 !important; }

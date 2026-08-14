@@ -4208,9 +4208,10 @@ def header_html(active=""):
 def footer_html():
     en = lang() == "en"
     d = cfg.L[lang()]
+    clubs_with_products = {p.get("club_id") for p in cfg.PRODUCTS if p.get("club_id")}
     club_links = "".join('<a href="/club/{cid}">{em} {nm}</a>'.format(
         cid=cid, em=c.get("emoji", ""), nm=c.get(en and "en" or "ar", ""))
-        for cid, c in cfg.CLUBS.items())
+        for cid, c in cfg.CLUBS.items() if cid in clubs_with_products)
     col_links = ("<a href='/home'>{h}</a><a href='/products'>{j}</a><a href='/mugs'>{m}</a>"
                  "<a href='/size-guide'>{s}</a><a href='/how-to-order'>{o}</a>").format(
         h=d["nav_home"], j=d["nav_jerseys"], m=d["nav_mugs"], s=d["nav_sizes"], o=d["nav_order"])
@@ -4458,7 +4459,8 @@ def filters_panel_html():
         % (k, d["cat_" + k]) for k in ("best", "new", "offer"))
     clubs = "".join(
         '<button class="club-opt" data-v="%s" onclick="setFilter(\'club\',this.getAttribute(\'data-v\'),this)">%s %s</button>'
-        % (cid, c.get("emoji", "⚽"), c.get(en and "en" or "ar")) for cid, c in cfg.CLUBS.items())
+        % (cid, c.get("emoji", "⚽"), c.get(en and "en" or "ar"))
+        for cid, c in cfg.CLUBS.items() if cid in {p.get("club_id") for p in cfg.PRODUCTS if p.get("club_id")})
     sizes = "".join(
         '<button class="sz-btn" onclick="setFilter(\'size\',\'%s\',this)">%s</button>' % (s, s)
         for s in cfg.SIZE_ORDER[:5])
@@ -4582,9 +4584,11 @@ def home_body():
     clubs_html = ""
     loy_btns = ""
     for cid, c in cfg.CLUBS.items():
+        cnt = sum(1 for p in prods if p.get("club_id") == cid)
+        if cnt == 0:
+            continue
         th = club_themes().get(cid, {})
         ac = th.get("ac", "#E11D48"); ac2 = th.get("ac2", "#F97316")
-        cnt = sum(1 for p in prods if p.get("club_id") == cid)
         nm = c.get(en and "en" or "ar", "")
         em = c.get("emoji", "⚽")
         clubs_html += ('<a class="clubcard" href="/club/{cid}" style="--cc:{ac};--cc2:{ac2}">'

@@ -2646,6 +2646,107 @@ html[data-theme="light"] .mtk-jstep.done b, html[data-theme="light"] .mtk-jstep.
   .pen-pitch { height:260px; }
   .pen-goal { width:200px; height:90px; }
 }
+/* ===== PENALTY GAME ARENA V2 (new free-play 5-shot challenge) ===== */
+.pga-wrap { --pga-black:#050607; --pga-dark:#0A0D0C; --pga-stadium:#0B1712; --pga-green:#16A34A; --pga-green2:#22C55E; --pga-text:#F5F7F5; --pga-mut:#78817D; --pga-gold:#F5C542;
+  max-width:560px; margin:0 auto; text-align:center; color:var(--pga-text); }
+.pga-screen { display:flex; flex-direction:column; align-items:center; }
+.pga-intro-emoji { font-size:3rem; margin-bottom:6px; filter:drop-shadow(0 0 14px rgba(34,197,94,.35)); }
+.pga-title { font-size:1.5rem; font-weight:900; letter-spacing:.5px; margin-bottom:6px; }
+.pga-sub { color:var(--pga-mut); font-size:.9rem; margin-bottom:16px; max-width:380px; }
+.pga-diff-row { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:6px; }
+.pga-diff { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12); color:var(--pga-text);
+  padding:8px 14px; border-radius:999px; font-weight:700; font-size:.78rem; cursor:pointer; transition:.15s; }
+.pga-diff.on { background:var(--pga-green); border-color:var(--pga-green2); box-shadow:0 0 14px rgba(34,197,94,.4); color:#04150a; }
+.pga-shots-label { color:var(--pga-gold); font-weight:800; font-size:.85rem; margin:10px 0 16px; }
+.pga-start-btn { min-width:200px; font-size:1rem; padding:14px 20px; }
+.pga-sound-toggle { margin-top:14px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14);
+  color:var(--pga-text); width:42px; height:42px; border-radius:50%; font-size:1.1rem; cursor:pointer; }
+.pga-sound-toggle.on { background:var(--pga-green); border-color:var(--pga-green2); }
+
+.pga-hud { width:100%; display:flex; align-items:center; justify-content:space-between; font-weight:900; font-size:.9rem; padding:0 4px; margin-bottom:4px; }
+.pga-hud-c { min-width:90px; text-align:center; }
+.pga-combo { color:var(--pga-gold); font-weight:900; text-shadow:0 0 10px rgba(245,197,66,.5); animation:pgaPop .3s ease; }
+.pga-hud2 { width:100%; display:flex; gap:14px; justify-content:center; font-size:.72rem; color:var(--pga-mut); margin-bottom:10px; }
+.pga-hud2 b { color:var(--pga-text); }
+
+.pga-arena { position:relative; width:100%; max-width:520px; aspect-ratio:4/5; max-height:72vh;
+  border-radius:20px; overflow:hidden; background:
+    radial-gradient(120% 60% at 50% 0%, rgba(22,163,74,.16), transparent 60%),
+    linear-gradient(180deg, var(--pga-black) 0%, var(--pga-stadium) 46%, #0d1f16 100%);
+  border:1px solid rgba(255,255,255,.08); box-shadow:0 20px 50px rgba(0,0,0,.55) inset; }
+.pga-stands { position:absolute; top:0; left:0; right:0; height:14%;
+  background:repeating-linear-gradient(90deg, #0b2417 0 18px, #0f2f1d 18px 36px); opacity:.75; }
+.pga-floodlight { position:absolute; top:-30px; width:36px; height:110px;
+  background:linear-gradient(180deg, rgba(255,255,255,.85), transparent); filter:blur(3px); opacity:.4; }
+.pga-floodlight.l { left:6%; } .pga-floodlight.r { right:6%; }
+.pga-pitch { position:absolute; inset:0; background:repeating-linear-gradient(0deg, transparent 0 40px, rgba(255,255,255,.035) 40px 80px); }
+
+.pga-goal-box { position:absolute; left:50%; top:16%; width:78%; height:34%; transform:translateX(-50%);
+  touch-action:none; cursor:crosshair; }
+.pga-net { position:absolute; inset:6px; background-image:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.16) 0 1px, transparent 1px 14px),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.16) 0 1px, transparent 1px 14px);
+  opacity:.55; transition:transform .18s ease; }
+.pga-net.wobble { animation:pgaNetWobble .5s ease; }
+.pga-post { position:absolute; background:#f5f7f5; box-shadow:0 0 10px rgba(255,255,255,.35); }
+.pga-post.top { top:0; left:0; right:0; height:6px; border-radius:3px; }
+.pga-post.left { top:0; bottom:0; left:0; width:6px; border-radius:3px; }
+.pga-post.right { top:0; bottom:0; right:0; width:6px; border-radius:3px; }
+
+.pga-keeper { position:absolute; left:50%; top:55%; width:15%; height:50%; transform:translate(-50%,-50%);
+  transition:transform .18s cubic-bezier(.2,.9,.3,1.4); z-index:4; }
+.pga-k-body { position:absolute; left:50%; bottom:0; width:100%; height:62%; transform:translateX(-50%);
+  border-radius:40% 40% 12px 12px; background:linear-gradient(180deg,#facc15,#ca8a04); }
+.pga-k-head { position:absolute; left:50%; top:0; width:55%; aspect-ratio:1; transform:translateX(-50%);
+  border-radius:50%; background:#fcd9b8; }
+.pga-k-arm { position:absolute; top:28%; width:20%; height:46%; border-radius:12px; background:#facc15; transition:transform .18s; }
+.pga-k-arm.l { left:-14%; transform-origin:top right; }
+.pga-k-arm.r { right:-14%; transform-origin:top left; }
+.pga-k-leg { position:absolute; bottom:0; width:22%; height:30%; border-radius:8px; background:#7c3aed22; background:#111; opacity:.001; }
+.pga-keeper.idle { animation:pgaKeeperIdle 2.2s ease-in-out infinite; }
+.pga-keeper.dive-l { transform:translate(-50%,-50%) translateX(-58%) rotate(-24deg); }
+.pga-keeper.dive-r { transform:translate(-50%,-50%) translateX(58%) rotate(24deg); }
+.pga-keeper.dive-tl { transform:translate(-50%,-50%) translate(-58%,-40%) rotate(-24deg); }
+.pga-keeper.dive-tr { transform:translate(-50%,-50%) translate(58%,-40%) rotate(24deg); }
+.pga-keeper.dive-bl { transform:translate(-50%,-50%) translate(-58%,26%) rotate(-16deg); }
+.pga-keeper.dive-br { transform:translate(-50%,-50%) translate(58%,26%) rotate(16deg); }
+.pga-keeper.dive-up { transform:translate(-50%,-50%) translateY(-30%) scale(1.06); }
+.pga-keeper.dive-stay { transform:translate(-50%,-50%) scale(1.04); }
+
+.pga-aim { position:absolute; width:26px; height:26px; margin:-13px 0 0 -13px; font-size:20px;
+  line-height:26px; pointer-events:none; z-index:5; filter:drop-shadow(0 0 4px rgba(0,0,0,.6)); }
+.pga-hint { position:absolute; bottom:-26px; left:50%; transform:translateX(-50%); font-size:.72rem;
+  color:var(--pga-mut); white-space:nowrap; }
+
+.pga-ball { position:absolute; left:50%; bottom:6%; width:9%; aspect-ratio:1; font-size:26px; line-height:1;
+  transform:translate(-50%,50%); z-index:6; filter:drop-shadow(0 6px 6px rgba(0,0,0,.5)); }
+.pga-ball.flying { transition:none; filter:drop-shadow(0 6px 6px rgba(0,0,0,.5)) blur(.4px); }
+
+.pga-flash { position:absolute; inset:0; background:rgba(34,197,94,.28); opacity:0; pointer-events:none; z-index:7; }
+.pga-flash.on { animation:pgaFlash .35s ease; }
+
+.pga-result { position:absolute; inset:0; display:none; align-items:center; justify-content:center;
+  flex-direction:column; gap:6px; background:rgba(2,6,23,.55); z-index:8; border-radius:20px; }
+.pga-result.show { display:flex; }
+.pga-result .big { font-size:2.2rem; font-weight:900; text-shadow:0 2px 10px rgba(0,0,0,.6); }
+.pga-result .tag { background:rgba(255,255,255,.14); border-radius:999px; padding:5px 16px; font-weight:800; font-size:.8rem; }
+
+.pga-stats { display:flex; gap:14px; flex-wrap:wrap; justify-content:center; margin:14px 0; font-size:.85rem; }
+.pga-stats b { color:var(--pga-gold); }
+.pga-rank { font-weight:900; font-size:1.15rem; color:var(--pga-gold); margin-bottom:14px; text-shadow:0 0 12px rgba(245,197,66,.35); }
+.pga-final-btns { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+
+@keyframes pgaKeeperIdle { 0%,100%{ transform:translate(-50%,-50%) translateX(0); } 50%{ transform:translate(-50%,-50%) translateX(6%); } }
+@keyframes pgaNetWobble { 0%{transform:scale(1);} 30%{transform:scale(1.04);} 60%{transform:scale(.98);} 100%{transform:scale(1);} }
+@keyframes pgaFlash { 0%{opacity:0;} 30%{opacity:1;} 100%{opacity:0;} }
+@keyframes pgaPop { 0%{transform:scale(.6);opacity:0;} 60%{transform:scale(1.15);opacity:1;} 100%{transform:scale(1);} }
+
+@media (max-width:768px) {
+  .pga-arena { max-height:58vh; aspect-ratio:3/4; }
+  .pga-title { font-size:1.25rem; }
+  .pga-diff { padding:7px 11px; font-size:.72rem; }
+  .pga-start-btn { min-width:0; width:100%; }
+}
 /* ===== CART MOBILE — SINGLE FINAL COMPACT LAYOUT (previously sat outside the closing style tag, so it never applied) ===== */
 @media (max-width: 768px) {
   #cartPage { padding: 0 !important; margin: 0 !important; width: 100% !important; height: auto !important; min-height: 0 !important; }
@@ -4558,9 +4659,10 @@ def home_body():
         '<a class="pc-cta" href="/penalty">{cta}</a>'
         '</div></div>'
     ).format(
-        t="PENALTY CHALLENGE",
-        s=("هل تقدر تسجل ضد الحارس؟" if not en else "Can you score past the keeper?"),
-        cta=d.get("pen_start", "⚡ ابدأ التحدي" if not en else "Start the Challenge ⚡"),
+        t=("هل تقدر تسجلها؟ 🥅" if not en else "Can you score it? 🥅"),
+        s=("واجه الحارس وسدد في الزاوية الصحيحة. هل تستطيع الوصول إلى 5 أهداف؟" if not en
+           else "Face the keeper and aim for the corner. Can you land 5 goals?"),
+        cta=("⚽ ابدأ التحدي" if not en else "⚽ Start the Challenge"),
     )
 
     pitch_sec = ('<div class="sec rv"><div class="pitch-sec">'
@@ -5956,6 +6058,8 @@ def penalty_page(code):
     en = lang() == "en"
     d = cfg.L[lang()]
     practice = not code
+    if practice:
+        return penalty_arena_page()
     if not practice:
         o = db.order_get(code)
         if not o:
@@ -6010,8 +6114,8 @@ function penShoot(btn){
   if(PEN_PRACTICE){
     PEN_DONE=true;
     var zones=['tl','tc','tr','bl','br'];
-    var keeper=zones[Math.floor(Math.random()*zones.length)];
-    var goal = z!==keeper || Math.random()<0.22;
+    var keeper = (Math.random()<0.22) ? z : zones[Math.floor(Math.random()*zones.length)];
+    var goal = z!==keeper;
     var ball=$('penBall'), keep=$('penKeeper');
     ball.style.left=ZP[z][0]; ball.style.top=ZP[z][1];
     keep.style.left=ZP[keeper][0]; keep.style.top=ZP[keeper][1];
@@ -6039,6 +6143,334 @@ document.addEventListener('DOMContentLoaded',function(){
 });
 </script>""".replace("__PEN_CODE_JSON__", json.dumps(code)).replace("__PEN_PRACTICE_JS__", "true" if practice else "false")
     return base_page(body, page_js=page_js)
+
+
+PGA_JS = r"""<script>
+(function(){
+var PGA_DIFF = {
+  rookie: { mult:0.45, predict:0.05, reaction:650 },
+  pro:    { mult:0.75, predict:0.14, reaction:480 },
+  world:  { mult:1.05, predict:0.24, reaction:340 },
+  legend: { mult:1.35, predict:0.34, reaction:220 }
+};
+var PGA_BASE_SAVE = { tl:0.30, tc:0.58, tr:0.30, ml:0.38, mc:0.68, mr:0.38, bl:0.26, bm:0.50, br:0.26 };
+var PGA_ZONES = { tl:[16.6,22], tc:[50,22], tr:[83.4,22], ml:[16.6,50], mc:[50,50], mr:[83.4,50], bl:[16.6,80], bm:[50,80], br:[83.4,80] };
+var PGA_DIVE = { tl:'dive-tl', tc:'dive-up', tr:'dive-tr', ml:'dive-l', mc:'dive-stay', mr:'dive-r', bl:'dive-bl', bm:'dive-stay', br:'dive-br' };
+var PGA_CORNERS = { tl:1, tr:1, bl:1, br:1 };
+
+var pga = { diff:'legend', attempt:1, score:0, goals:0, saves:0, misses:0, combo:0, accSum:0, locked:true, soundOn:false, aiming:false };
+var audioCtx = null;
+
+function pgaTone(freq,dur,type,vol){
+  if(!pga.soundOn) return;
+  try{
+    if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    var o = audioCtx.createOscillator(); var g = audioCtx.createGain();
+    o.type = type||'sine'; o.frequency.value = freq;
+    g.gain.value = vol||0.08;
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(); g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+dur);
+    o.stop(audioCtx.currentTime+dur);
+  }catch(e){}
+}
+function pgaSfx(kind){
+  if(kind==='kick') pgaTone(180,0.12,'square',0.09);
+  else if(kind==='goal'){ pgaTone(523,0.12,'sine',0.09); setTimeout(function(){pgaTone(659,0.12,'sine',0.09);},110); setTimeout(function(){pgaTone(784,0.18,'sine',0.1);},220); }
+  else if(kind==='save') pgaTone(120,0.22,'sawtooth',0.08);
+  else if(kind==='miss') pgaTone(200,0.25,'sawtooth',0.06);
+}
+
+function pgaClamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+
+document.addEventListener('DOMContentLoaded', function(){
+  var diffRow = document.getElementById('pgaDiffRow');
+  if(diffRow){
+    diffRow.addEventListener('click', function(e){
+      var b = e.target.closest('.pga-diff'); if(!b) return;
+      diffRow.querySelectorAll('.pga-diff').forEach(function(x){ x.classList.remove('on'); });
+      b.classList.add('on'); pga.diff = b.getAttribute('data-d');
+    });
+  }
+  var soundBtn = document.getElementById('pgaSoundBtn');
+  if(soundBtn){
+    soundBtn.addEventListener('click', function(){
+      pga.soundOn = !pga.soundOn;
+      soundBtn.classList.toggle('on', pga.soundOn);
+      soundBtn.textContent = pga.soundOn ? '🔊' : '🔇';
+    });
+  }
+  var startBtn = document.getElementById('pgaStartBtn');
+  if(startBtn) startBtn.addEventListener('click', pgaStartGame);
+  var retryBtn = document.getElementById('pgaRetryBtn');
+  if(retryBtn) retryBtn.addEventListener('click', pgaStartGame);
+
+  var box = document.getElementById('pgaGoalBox');
+  if(box){
+    box.addEventListener('pointerdown', function(e){
+      if(pga.locked) return;
+      pga.aiming = true;
+      pgaUpdateAim(e);
+    });
+    box.addEventListener('pointermove', function(e){
+      if(pga.locked) return;
+      if(pga.aiming || e.pointerType==='mouse') pgaUpdateAim(e);
+    });
+    box.addEventListener('pointerup', function(e){
+      if(pga.locked || !pga.aiming) return;
+      pga.aiming = false;
+      pgaShoot(e);
+    });
+    box.addEventListener('pointerleave', function(){ pga.aiming = false; });
+  }
+});
+
+function pgaUpdateAim(e){
+  var box = document.getElementById('pgaGoalBox'); if(!box) return;
+  var r = box.getBoundingClientRect();
+  var px = pgaClamp(((e.clientX - r.left) / r.width) * 100, 2, 98);
+  var py = pgaClamp(((e.clientY - r.top) / r.height) * 100, 2, 98);
+  var aim = document.getElementById('pgaAim');
+  aim.style.display = 'block';
+  aim.style.left = px + '%'; aim.style.top = py + '%';
+  aim._px = px; aim._py = py;
+}
+
+function pgaNearestZone(px,py){
+  var best=null, bestD=Infinity;
+  for(var z in PGA_ZONES){
+    var c = PGA_ZONES[z];
+    var dx = px-c[0], dy=(py-c[1])*0.72;
+    var d = dx*dx+dy*dy;
+    if(d<bestD){ bestD=d; best=z; }
+  }
+  return { zone:best, dist:Math.sqrt(bestD) };
+}
+
+function pgaStartGame(){
+  pga.diff = (document.querySelector('.pga-diff.on')||{}).getAttribute ? document.querySelector('.pga-diff.on').getAttribute('data-d') : pga.diff;
+  pga.attempt=1; pga.score=0; pga.goals=0; pga.saves=0; pga.misses=0; pga.combo=0; pga.accSum=0;
+  document.getElementById('pgaIntro').style.display='none';
+  document.getElementById('pgaFinal').style.display='none';
+  document.getElementById('pgaGame').style.display='flex';
+  pgaUpdateHud();
+  pgaResetRound();
+}
+
+function pgaUpdateHud(){
+  document.getElementById('pgaAttempt').textContent = '⚽ '+pga.attempt+'/5';
+  document.getElementById('pgaScore').textContent = 'SCORE: '+pga.score;
+  document.getElementById('pgaGoals').textContent = pga.goals;
+  document.getElementById('pgaSaves').textContent = pga.saves;
+  document.getElementById('pgaMisses').textContent = pga.misses;
+  var combo = document.getElementById('pgaCombo');
+  if(pga.combo>=2){ combo.style.display='inline'; combo.textContent = '🔥 '+pga.combo+'X COMBO'; }
+  else { combo.style.display='none'; combo.textContent=''; }
+}
+
+function pgaResetRound(){
+  pga.locked=false;
+  var ball=document.getElementById('pgaBall');
+  ball.style.transition='none'; ball.classList.remove('flying');
+  ball.style.left='50%'; ball.style.bottom='6%'; ball.style.opacity='1'; ball.style.transform='translate(-50%,50%) rotate(0deg)';
+  var keeper=document.getElementById('pgaKeeper');
+  keeper.className='pga-keeper idle';
+  var aim=document.getElementById('pgaAim'); aim.style.display='none';
+  var res=document.getElementById('pgaResult'); res.className='pga-result'; res.innerHTML='';
+  document.getElementById('pgaNet').classList.remove('wobble');
+}
+
+function pgaShoot(e){
+  var aim = document.getElementById('pgaAim');
+  var px = aim._px, py = aim._py;
+  if(px==null || py==null) return;
+  pga.locked = true;
+  pgaSfx('kick');
+  var nz = pgaNearestZone(px,py);
+  var zone = nz.zone;
+  var accuracy = pgaClamp(1 - (nz.dist/26), 0, 1);
+  var isCorner = !!PGA_CORNERS[zone];
+  var missChance = (accuracy<0.35 ? 0.16 : 0.03) + (isCorner ? 0.04 : 0);
+  var isMiss = Math.random() < missChance;
+
+  var diffCfg = PGA_DIFF[pga.diff] || PGA_DIFF.legend;
+  var outcome, saveChance=0;
+  if(!isMiss){
+    var base = pgaClamp(PGA_BASE_SAVE[zone]*diffCfg.mult*(1-accuracy*0.35), 0.04, 0.93);
+    saveChance = pgaClamp(diffCfg.predict + (1-diffCfg.predict)*base, 0.03, 0.95);
+    outcome = (Math.random() < saveChance) ? 'save' : 'goal';
+  } else {
+    outcome = 'miss';
+  }
+  pgaAnimateShot(zone, px, py, outcome, diffCfg, accuracy);
+}
+
+function pgaAnimateShot(zone, px, py, outcome, diffCfg, accuracy){
+  var ball = document.getElementById('pgaBall');
+  var box = document.getElementById('pgaGoalBox');
+  var arena = document.getElementById('pgaArena');
+  var boxRect = box.getBoundingClientRect(), arenaRect = arena.getBoundingClientRect();
+  var targetX, targetY;
+  if(outcome==='miss'){
+    targetX = px < 50 ? -12 : 112;
+    targetY = py < 40 ? -18 : py;
+  } else { targetX = px; targetY = py; }
+  var tXpx = boxRect.left - arenaRect.left + (targetX/100)*boxRect.width;
+  var tYpx = boxRect.top - arenaRect.top + (targetY/100)*boxRect.height;
+  var startXpx = arenaRect.width*0.5, startYpx = arenaRect.height*0.94;
+
+  setTimeout(function(){
+    var keeper = document.getElementById('pgaKeeper');
+    keeper.className = 'pga-keeper ' + (outcome==='save' ? PGA_DIVE[zone] : pgaWrongDive(zone));
+  }, diffCfg.reaction);
+
+  ball.style.transition='none'; ball.classList.add('flying');
+  var dur = 420 + Math.random()*160;
+  var t0 = performance.now();
+  function frame(now){
+    var p = Math.min(1, (now-t0)/dur);
+    var ease = 1-Math.pow(1-p,2);
+    var curX = startXpx + (tXpx-startXpx)*ease;
+    var arc = Math.sin(p*Math.PI) * -34;
+    var curY = startYpx + (tYpx-startYpx)*ease + arc;
+    ball.style.left = curX+'px'; ball.style.top = curY+'px'; ball.style.bottom='';
+    ball.style.transform = 'translate(-50%,-50%) rotate('+(p*720)+'deg)';
+    ball.style.opacity = outcome==='miss' ? (1-p*0.5) : 1;
+    if(p<1) requestAnimationFrame(frame);
+    else { ball.classList.remove('flying'); pgaResolveShot(outcome, zone, accuracy); }
+  }
+  requestAnimationFrame(frame);
+}
+
+function pgaWrongDive(actualZone){
+  var keys = Object.keys(PGA_DIVE).filter(function(z){ return z!==actualZone; });
+  return PGA_DIVE[keys[Math.floor(Math.random()*keys.length)]];
+}
+
+function pgaResolveShot(outcome, zone, accuracy){
+  pga.accSum += accuracy;
+  var res = document.getElementById('pgaResult');
+  var flash = document.getElementById('pgaFlash');
+  var points = 0, big='', tag='';
+  if(outcome==='goal'){
+    var perfect = accuracy>=0.85;
+    var isCorner = !!PGA_CORNERS[zone];
+    points = perfect ? 300 : (isCorner ? 200 : 100);
+    pga.goals++; pga.combo++;
+    big='⚽ GOAL!'; tag = perfect ? '🔥 PERFECT SHOT +'+points : '+'+points;
+    document.getElementById('pgaNet').classList.add('wobble');
+    flash.classList.remove('on'); void flash.offsetWidth; flash.classList.add('on');
+    pgaSfx('goal');
+    if(typeof confetti==='function'){ try{ confetti(30); }catch(e){} }
+  } else if(outcome==='save'){
+    points = 0; pga.saves++; pga.combo=0;
+    big='🧤 SAVED!'; tag='0 pts';
+    pgaSfx('save');
+  } else {
+    points = -25; pga.misses++; pga.combo=0;
+    big='❌ MISS!'; tag='-25 pts';
+    pgaSfx('miss');
+  }
+  pga.score += points;
+  res.innerHTML = '<span class="big">'+big+'</span><span class="tag">'+tag+'</span>';
+  res.classList.add('show');
+  pgaUpdateHud();
+  setTimeout(function(){
+    if(pga.attempt>=5){ pgaFinalize(); }
+    else { pga.attempt++; pgaUpdateHud(); pgaResetRound(); }
+  }, 900);
+}
+
+function pgaFinalize(){
+  document.getElementById('pgaGame').style.display='none';
+  var fin = document.getElementById('pgaFinal');
+  fin.style.display='flex';
+  var acc = Math.round((pga.accSum/5)*100);
+  document.getElementById('pgaStats').innerHTML =
+    '<span>Goals: <b>'+pga.goals+'/5</b></span>'+
+    '<span>Saves: <b>'+pga.saves+'</b></span>'+
+    '<span>Misses: <b>'+pga.misses+'</b></span>'+
+    '<span>Score: <b>'+pga.score+'</b></span>'+
+    '<span>Accuracy: <b>'+acc+'%</b></span>';
+  var rank, emoji;
+  if(pga.goals<=1){ rank='Beginner'; emoji='🥅'; }
+  else if(pga.goals===2){ rank='Striker'; emoji='⚽'; }
+  else if(pga.goals===3){ rank='Pro Striker'; emoji='🎯'; }
+  else if(pga.goals===4){ rank='Elite Striker'; emoji='🔥'; }
+  else { rank='👑 LEGENDARY STRIKER'; emoji='👑'; }
+  document.getElementById('pgaRank').textContent = rank;
+  document.getElementById('pgaFinalEmoji').textContent = emoji;
+}
+})();
+</script>"""
+
+
+def penalty_arena_page():
+    en = lang() == "en"
+    d = cfg.L[lang()]
+    t_title = "PENALTY CHALLENGE"
+    t_ready = "سجل أكبر عدد ممكن من الأهداف." if not en else "Score as many goals as you can."
+    t_shots = "5 ركلات" if not en else "5 PENALTIES"
+    t_start = "ابدأ المباراة" if not en else "Start Match"
+    t_hint = "اضغط للتسديد" if not en else "Tap to shoot"
+    t_retry = "🔄 حاول مرة أخرى" if not en else "🔄 Try Again"
+    t_home = ("🏠 " + d["back"]) if not en else "🏠 Home"
+    body = (
+        '<div class="wrap"><div class="pga-wrap" id="pgaWrap">'
+
+        '<div class="pga-screen pga-intro" id="pgaIntro">'
+        '<div class="pga-intro-emoji">🥅</div>'
+        '<h1 class="pga-title">{title}</h1>'
+        '<p class="pga-sub">{ready}</p>'
+        '<div class="pga-diff-row" id="pgaDiffRow">'
+        '<button class="pga-diff" data-d="rookie">🟢 ROOKIE</button>'
+        '<button class="pga-diff" data-d="pro">🟡 PRO</button>'
+        '<button class="pga-diff" data-d="world">🟠 WORLD CLASS</button>'
+        '<button class="pga-diff on" data-d="legend">🔴 LEGEND</button>'
+        '</div>'
+        '<div class="pga-shots-label">{shots}</div>'
+        '<button class="btn pri pga-start-btn" id="pgaStartBtn">{start}</button>'
+        '<button class="pga-sound-toggle" id="pgaSoundBtn" type="button">🔇</button>'
+        '</div>'
+
+        '<div class="pga-screen pga-game" id="pgaGame" style="display:none">'
+        '<div class="pga-hud"><span id="pgaAttempt">⚽ 1/5</span>'
+        '<span class="pga-hud-c"><span class="pga-combo" id="pgaCombo"></span></span>'
+        '<span id="pgaScore">SCORE: 0</span></div>'
+        '<div class="pga-hud2"><span>GOALS: <b id="pgaGoals">0</b></span>'
+        '<span>SAVES: <b id="pgaSaves">0</b></span>'
+        '<span>MISSES: <b id="pgaMisses">0</b></span></div>'
+        '<div class="pga-arena" id="pgaArena">'
+        '<div class="pga-stands"></div>'
+        '<div class="pga-floodlight l"></div><div class="pga-floodlight r"></div>'
+        '<div class="pga-pitch"></div>'
+        '<div class="pga-goal-box" id="pgaGoalBox">'
+        '<div class="pga-net" id="pgaNet"></div>'
+        '<div class="pga-post top"></div><div class="pga-post left"></div><div class="pga-post right"></div>'
+        '<div class="pga-keeper idle" id="pgaKeeper">'
+        '<div class="pga-k-arm l"></div><div class="pga-k-arm r"></div>'
+        '<div class="pga-k-body"></div><div class="pga-k-head"></div></div>'
+        '<div class="pga-aim" id="pgaAim" style="display:none">🎯</div>'
+        '<div class="pga-hint" id="pgaHint">{hint}</div>'
+        '</div>'
+        '<div class="pga-ball" id="pgaBall">⚽</div>'
+        '<div class="pga-flash" id="pgaFlash"></div>'
+        '<div class="pga-result" id="pgaResult"></div>'
+        '</div></div>'
+
+        '<div class="pga-screen pga-final" id="pgaFinal" style="display:none">'
+        '<div class="pga-intro-emoji" id="pgaFinalEmoji">🏆</div>'
+        '<h1 class="pga-title">CHALLENGE COMPLETE</h1>'
+        '<div class="pga-stats" id="pgaStats"></div>'
+        '<div class="pga-rank" id="pgaRank"></div>'
+        '<div class="pga-final-btns">'
+        '<button class="btn pri" id="pgaRetryBtn">{retry}</button>'
+        '<a class="btn ghost" href="/home">{home}</a>'
+        '</div></div>'
+
+        '</div></div>'
+    ).format(title=esc(t_title), ready=esc(t_ready), shots=esc(t_shots), start=esc(t_start),
+              hint=esc(t_hint), retry=esc(t_retry), home=esc(t_home))
+    return base_page(body, page_js=PGA_JS)
 
 
 def success_page(code):
@@ -6078,12 +6510,20 @@ def success_page(code):
         '<a class="btn ghost" href="/home">{b}</a></div></div>'
         + banner +
         '<div class="ok-card" style="margin-top:14px;padding:22px">'
-        '<div style="font-weight:900;font-size:1.05rem">' + d["pen_title"] + '</div>'
+        '<div style="font-weight:900;font-size:1.05rem">{pt}</div>'
         '<p class="mnote" style="margin-top:6px">{ps}</p>'
-        '<a class="btn pri" style="margin-top:14px" href="/penalty?code={c}">' + d["pen_go"] + '</a></div>'
+        '<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:14px">'
+        '<a class="btn pri" href="/penalty">{pg}</a>'
+        '<a class="btn ghost" href="/home">{pl}</a>'
+        '</div></div>'
         '</div>'
     ).format(t=d["ok_title"], w=d["ok_wa"], c=code, tk=d["ok_ticket"], tr=d["tr_title"],
-             b=d["back"], ps=d["pen_sub"])
+             b=d["back"],
+             pt=("🎯 جاهز لتحدي الركلة؟" if not en else "🎯 Ready for the Penalty Challenge?"),
+             ps=("بما أنك أتممت طلبك، عندك فرصة لتجربة Penalty Challenge." if not en
+                 else "Now that your order is placed, take on the Penalty Challenge."),
+             pg=("⚽ العب الآن" if not en else "⚽ Play Now"),
+             pl=("لاحقًا" if not en else "Later"))
     return base_page(body)
 
 

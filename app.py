@@ -2747,6 +2747,22 @@ html[data-theme="light"] .mtk-jstep.done b, html[data-theme="light"] .mtk-jstep.
   .pga-diff { padding:7px 11px; font-size:.72rem; }
   .pga-start-btn { min-width:0; width:100%; }
 }
+/* ===== MATCHDAY badge / number / stats (product page — addition only, existing sections untouched) ===== */
+.md-badge { display:inline-block; background:rgba(0,230,118,.1); color:#00E676; border:1px solid rgba(0,230,118,.32);
+  font-size:.62rem; font-weight:900; letter-spacing:1.8px; padding:4px 9px; border-radius:6px;
+  text-transform:uppercase; margin-inline-end:8px; vertical-align:middle; }
+.md-number { font-size:2.4rem; font-weight:900; line-height:1; margin:6px 0 4px; font-variant-numeric:tabular-nums; }
+.md-stats { margin-top:26px; background:#0B0F0D; border:1px solid rgba(0,230,118,.14); border-radius:16px; padding:18px; }
+.md-stats-title { font-size:.72rem; font-weight:900; letter-spacing:2.5px; color:#8A938E; margin-bottom:12px; }
+.md-stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+.md-stat { background:rgba(255,255,255,.03); border:1px solid rgba(0,230,118,.1); border-radius:10px;
+  padding:10px 6px; text-align:center; }
+.md-stat-lbl { display:block; font-size:.58rem; font-weight:800; letter-spacing:1.5px; color:#8A938E; margin-bottom:4px; }
+.md-stat b { font-size:.78rem; color:#F5F7F5; }
+@media (max-width:768px) {
+  .md-number { font-size:2rem; }
+  .md-stats-grid { grid-template-columns:repeat(2,1fr); }
+}
 /* ===== CART MOBILE — SINGLE FINAL COMPACT LAYOUT (previously sat outside the closing style tag, so it never applied) ===== */
 @media (max-width: 768px) {
   #cartPage { padding: 0 !important; margin: 0 !important; width: 100% !important; height: auto !important; min-height: 0 !important; }
@@ -2952,7 +2968,7 @@ function setGal(i,arr){ gi=i; gN=arr.length; var img=$('gmain'); if(!img) return
 }
 function movGal(d){ if(!gN) return; setGal((gi+d+gN)%gN,GARR); }
 /* ---------- lightbox: zoom / pan / pinch / keyboard ---------- */
-var lbIndex=0, lbZoomLv=1, lbPanX=0, lbPanY=0, lbDrag=null, lbPinchD=0, lbPinchZ=1;
+var lbIndex=0, lbZoomLv=1, lbPanX=0, lbPanY=0, lbDrag=null, lbPinchD=0, lbPinchZ=1, lbLastTap=0;
 function lbApply(){
   var img=$('lbimg'); if(!img) return;
   img.style.transform='translate('+lbPanX+'px,'+lbPanY+'px) scale('+lbZoomLv+')';
@@ -3000,6 +3016,7 @@ document.addEventListener('DOMContentLoaded',function(){
     lbZoom(e.deltaY<0?1:-1,.15); }, {passive:false});
   img.addEventListener('mousedown',function(e){ if(lbZoomLv<=1) return; e.preventDefault();
     lbDrag={x:e.clientX,y:e.clientY,px:lbPanX,py:lbPanY}; img.classList.add('dragging'); });
+  img.addEventListener('dblclick',function(e){ e.preventDefault(); lbZoomLv<=1 ? lbZoom(1,1) : lbReset(); });
   window.addEventListener('mousemove',function(e){ if(!lbDrag) return;
     lbPanX=lbDrag.px+(e.clientX-lbDrag.x); lbPanY=lbDrag.py+(e.clientY-lbDrag.y); lbClampPan(); lbApply(); });
   window.addEventListener('mouseup',function(){ if(lbDrag){ lbDrag=null; img.classList.remove('dragging'); } });
@@ -3020,7 +3037,17 @@ document.addEventListener('DOMContentLoaded',function(){
       lbClampPan(); lbApply();
     }
   }, {passive:false});
-  img.addEventListener('touchend',function(e){ if(e.touches.length<2) lbPinchD=0; if(e.touches.length<1) lbDrag=null; }, {passive:true});
+  img.addEventListener('touchend',function(e){
+    if(e.touches.length<2) lbPinchD=0;
+    if(e.touches.length<1){
+      lbDrag=null;
+      if(!lbPinchD){
+        var now=Date.now();
+        if(now-lbLastTap<320){ lbLastTap=0; lbZoomLv<=1 ? lbZoom(1,1) : lbReset(); }
+        else { lbLastTap=now; }
+      }
+    }
+  }, {passive:true});
   document.addEventListener('keydown',function(e){
     if(!lb.classList.contains('open')) return;
     if(e.key==='Escape') closeLB();
@@ -5431,6 +5458,7 @@ def product_body(pid):
     thumbs_block = "" if one else '<div class="gthumb" id="gthumbs">{gthumbs}</div>'
 
     # Team page theme
+    jersey_num = str(abs(hash(p["id"])) % 99 + 1)
     team_theme = cfg.TEAM_PAGE_THEMES.get(club_id, {})
     team_style = ""
     team_atmos = ""
@@ -5524,8 +5552,29 @@ def product_body(pid):
             t_shelf3=d.get("je_shelf3", "Gloves") if en else "القفازات",
             tunnel_t=d.get("je_tunnel_t", "Walk to Pitch") if en else "المشي نحو الملعب",
             pitch=d.get("je_pitch", "PITCH") if en else "الملعب",
-            num=str(abs(hash(p["id"])) % 99 + 1),
+            num=jersey_num,
         )
+
+    # MATCHDAY badge / big number / stats card (addition only — layered onto existing sections above)
+    md_badge = ""
+    md_number = ""
+    md_stats = ""
+    if not is_mug and club_id and club:
+        ac = cfg.CLUB_THEMES.get(club_id, {}).get("ac", "#00E676")
+        team_nm = club.get("en" if en else "ar", "")
+        md_badge = '<span class="md-badge">MATCHDAY</span>'
+        md_number = '<div class="md-number" style="color:{ac};text-shadow:0 0 16px {ac}66">#{num}</div>'.format(
+            ac=ac, num=jersey_num)
+        md_stats = (
+            '<div class="md-stats"><div class="md-stats-title">MATCHDAY STATS</div>'
+            '<div class="md-stats-grid">'
+            '<div class="md-stat"><span class="md-stat-lbl">TEAM</span><b>{team}</b></div>'
+            '<div class="md-stat"><span class="md-stat-lbl">SEASON</span><b>2025/26</b></div>'
+            '<div class="md-stat"><span class="md-stat-lbl">STYLE</span><b>{style}</b></div>'
+            '<div class="md-stat"><span class="md-stat-lbl">PLAYER</span><b>#{num}</b></div>'
+            '</div></div>'
+        ).format(team=esc(team_nm.upper() if en else team_nm),
+                  style=("HOME JERSEY" if en else "قميص أساسي"), num=jersey_num)
 
     body = (
         team_style + atmos_html("light")
@@ -5541,7 +5590,7 @@ def product_body(pid):
         '{gal_nav}</div>'
         '{thumbs_block}'
         '<p class="zoom-hint">🔍 {zh}</p></div>'
-        '<div class="pinfo">{team_label}<h1>{name}</h1><p class="pcatline">{cat}</p>'
+        '<div class="pinfo">{md_badge}{team_label}<h1>{name}</h1>{md_number}<p class="pcatline">{cat}</p>'
         '<div class="pprice">{pr}</div>{trust}{trust_info}'
         '{sizes}'
         '<div class="qtysec"><div class="lbl">{ql}</div>'
@@ -5558,6 +5607,7 @@ def product_body(pid):
         '</div></div>'
         '{outfit}'
         '{jersey_exp}'
+        '{md_stats}'
         '{ratings}{yml}'
         '</div>'
     ).format(back=d["back"], first=p["imgs"][0], name=name, gal_nav=gal_nav, thumbs_block=thumbs_block,
@@ -5566,7 +5616,8 @@ def product_body(pid):
              pd=d["pd_title"],
              notify=notify, a=d["prod_links_sz"], b=d["prod_links_wash"], c=d["prod_links_ret"],
              ratings=ratings, yml=yml, matchday_btn=matchday_btn, outfit=outfit_html,
-             jersey_exp=jersey_exp, live_drop=live_drop, team_label=team_label)
+             jersey_exp=jersey_exp, live_drop=live_drop, team_label=team_label,
+             md_badge=md_badge, md_number=md_number, md_stats=md_stats)
 
     extra_club = club_id or None
     return body, page_js, extra_club
@@ -5973,86 +6024,6 @@ def account_page():
     return base_page(body)
 
 
-def enter_page():
-    en = lang() == "en"
-    d = cfg.L[lang()]
-    return """<!DOCTYPE html>
-<html lang="LANG" dir="DIR">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>GOLAZOX — Stadium Entry</title>
-<meta name="theme-color" content="#050607">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'FONT','Segoe UI',sans-serif;background:#050607;color:#fff;min-height:100vh;overflow:hidden}
-.st{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px 20px;overflow:hidden}
-.st-bg{position:absolute;inset:0;background:radial-gradient(ellipse 120% 60% at 50% 100%,rgba(16,37,26,.6),transparent 60%),radial-gradient(ellipse 80% 40% at 50% 0%,rgba(16,37,26,.4),transparent 50%),linear-gradient(180deg,#050607 0%,#0A0D0C 40%,#0B1712 100%);z-index:0}
-.grass{position:absolute;bottom:0;left:0;right:0;height:28%;background:repeating-linear-gradient(0deg,transparent 0 44px,rgba(255,255,255,.03) 44px 88px),linear-gradient(180deg,rgba(16,37,26,.5),rgba(11,23,18,.8));z-index:1}
-.grass::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:160px;height:160px;border:2px solid rgba(255,255,255,.08);border-radius:50%;z-index:1}
-.grass::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:2px;height:60px;background:rgba(255,255,255,.06);z-index:1}
-.light{position:absolute;top:-40px;width:3px;height:100px;background:linear-gradient(180deg,rgba(255,255,255,.6),transparent);border-radius:0 0 2px 2px;z-index:2;animation:lPulse 4s ease-in-out infinite}
-.light:nth-child(1){left:8%;animation-delay:0s}
-.light:nth-child(2){left:25%;animation-delay:1.2s;height:80px}
-.light:nth-child(3){right:25%;animation-delay:2.4s;height:70px}
-.light:nth-child(4){right:8%;animation-delay:0.6s}
-.light::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:80px;height:160px;background:radial-gradient(ellipse,rgba(255,255,255,.08),transparent 70%);pointer-events:none}
-@keyframes lPulse{0%,100%{opacity:.2}50%{opacity:.55}}
-.crowd{position:absolute;bottom:28%;left:0;right:0;height:80px;z-index:1;background:linear-gradient(180deg,transparent,rgba(5,6,7,.9));mask-image:repeating-linear-gradient(90deg,transparent 0 6px,black 6px 12px,transparent 12px 18px);-webkit-mask-image:repeating-linear-gradient(90deg,transparent 0 6px,black 6px 12px,transparent 12px 18px)}
-.fog{position:absolute;bottom:20%;left:0;right:0;height:100px;z-index:2;background:linear-gradient(180deg,transparent,rgba(255,255,255,.015),transparent);pointer-events:none;animation:fogDrift 12s ease-in-out infinite}
-@keyframes fogDrift{0%,100%{transform:translateX(0)}50%{transform:translateX(20px)}}
-.vig{position:absolute;inset:0;z-index:3;pointer-events:none;background:radial-gradient(ellipse at center,transparent 40%,rgba(5,6,7,.7) 100%)}
-.content{position:relative;z-index:10;display:flex;flex-direction:column;align-items:center}
-.logo{font-size:2.8rem;font-weight:900;letter-spacing:6px;color:#F5F7F5;text-shadow:0 0 40px rgba(24,232,117,.15),0 0 80px rgba(24,232,117,.05);animation:logoIn 1s ease both}
-.logo-sub{font-size:.65rem;font-weight:800;letter-spacing:8px;color:rgba(24,232,117,.5);margin-top:4px;animation:logoIn 1s ease .2s both}
-@keyframes logoIn{from{opacity:0;transform:translateY(20px) scale(.95)}to{opacity:1;transform:none}}
-.welcome{font-size:1.1rem;font-weight:700;color:rgba(255,255,255,.7);margin-top:20px;letter-spacing:1px;animation:fadeUp .8s ease .4s both}
-.tagline{font-size:.82rem;color:rgba(255,255,255,.35);margin-top:8px;letter-spacing:2px;font-weight:600;animation:fadeUp .8s ease .5s both}
-.lang-section{margin-top:32px;animation:fadeUp .8s ease .6s both}
-.lang-label{font-size:.7rem;font-weight:800;letter-spacing:3px;color:rgba(255,255,255,.3);margin-bottom:14px;text-transform:uppercase}
-.lang-btns{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
-.lang-btn{display:flex;align-items:center;gap:12px;padding:16px 36px;border-radius:16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#F5F7F5;font-weight:800;font-size:1rem;text-decoration:none;min-width:220px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:all .3s;cursor:pointer;position:relative;overflow:hidden}
-.lang-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(24,232,117,.05),transparent);opacity:0;transition:opacity .3s}
-.lang-btn:hover{border-color:rgba(24,232,117,.3);box-shadow:0 0 30px rgba(24,232,117,.08);transform:translateY(-2px)}
-.lang-btn:hover::before{opacity:1}
-.lang-btn:active{transform:scale(.98)}
-.lang-btn .flag{font-size:1.3rem}
-.lang-btn .lname{display:flex;flex-direction:column;align-items:flex-start}
-.lang-btn .lname span{font-size:.65rem;color:rgba(255,255,255,.4);font-weight:600;letter-spacing:2px}
-.brand{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);color:rgba(111,143,122,.4);font-size:.7rem;font-weight:900;letter-spacing:4px;z-index:10}
-.particles{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
-.particle{position:absolute;width:2px;height:2px;background:rgba(255,255,255,.3);border-radius:50%;animation:pFloat linear infinite}
-@keyframes pFloat{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(-10vh) scale(1);opacity:0}}
-@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
-@media (prefers-reduced-motion:reduce){.light,.fog{animation:none!important}.logo,.logo-sub,.welcome,.tagline,.lang-section{animation:none!important;opacity:1;transform:none}}
-@media (max-width:560px){.logo{font-size:2rem;letter-spacing:4px}.welcome{font-size:.95rem}.lang-btn{min-width:180px;padding:14px 24px;font-size:.9rem}}
-</style></head>
-<body>
-<div class="st">
-<div class="st-bg"></div><div class="grass"></div><div class="crowd"></div><div class="fog"></div>
-<div class="light"></div><div class="light"></div><div class="light"></div><div class="light"></div>
-<div class="vig"></div><div class="particles" id="particles"></div>
-<div class="content">
-<div class="logo">GOLAZOX</div>
-<div class="logo-sub">FOOTBALL UNIVERSE</div>
-<div class="welcome">__WELC__</div>
-<div class="tagline">__TAG__</div>
-<div class="lang-section">
-<div class="lang-label">CHOOSE YOUR LANGUAGE</div>
-<div class="lang-btns">
-<a href="/enter/ar" class="lang-btn"><span class="flag">🇸🇦</span><span class="lname">العربية<span>ARABIC</span></span></a>
-<a href="/enter/en" class="lang-btn"><span class="flag">🇬🇧</span><span class="lname">English<span>ENGLISH</span></span></a>
-</div></div></div>
-<div class="brand">GOLAZOX</div>
-</div>
-<script>
-(function(){var c=document.getElementById('particles');if(!c)return;
-for(var i=0;i<12;i++){var p=document.createElement('div');p.className='particle';p.style.left=Math.random()*100+'%';p.style.animationDuration=(8+Math.random()*12)+'s';p.style.animationDelay=Math.random()*8+'s';p.style.width=p.style.height=(1+Math.random()*2)+'px';c.appendChild(p)}})();
-</script>
-</body></html>""".replace("LANG", "en" if en else "ar") \
-        .replace("DIR", "ltr" if en else "rtl") \
-        .replace("FONT", "Poppins" if en else "Cairo") \
-        .replace("__WELC__", d["ent_welc"]).replace("__TAG__", d["ent_tag"])
 
 
 PEN_ZONES = {"tl": (-110, 92), "tc": (0, 92), "tr": (110, 92), "bl": (-110, 172), "br": (110, 172)}
@@ -6593,79 +6564,231 @@ def admin_order_page(code):
 def welcome_page():
     en = lang() == "en"
     d = cfg.L[lang()]
-    return """<!DOCTYPE html>
-<html lang="LANG" dir="DIR">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>GOLAZOX — Football Universe</title>
+    return r"""<!DOCTYPE html>
+<html lang="__LANGATTR__" dir="__DIRATTR__">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GOLAZOX — Matchday Entry</title>
 <meta name="theme-color" content="#050607">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'FONT','Segoe UI',sans-serif;background:#050607;color:#fff;min-height:100vh;overflow:hidden}
-.st{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px 20px;overflow:hidden}
-.st-bg{position:absolute;inset:0;background:radial-gradient(ellipse 120% 60% at 50% 100%,rgba(16,37,26,.6),transparent 60%),radial-gradient(ellipse 80% 40% at 50% 0%,rgba(16,37,26,.4),transparent 50%),linear-gradient(180deg,#050607 0%,#0A0D0C 40%,#0B1712 100%);z-index:0}
-.grass{position:absolute;bottom:0;left:0;right:0;height:28%;background:repeating-linear-gradient(0deg,transparent 0 44px,rgba(255,255,255,.03) 44px 88px),linear-gradient(180deg,rgba(16,37,26,.5),rgba(11,23,18,.8));z-index:1}
-.grass::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:160px;height:160px;border:2px solid rgba(255,255,255,.08);border-radius:50%;z-index:1}
-.grass::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:2px;height:60px;background:rgba(255,255,255,.06);z-index:1}
-.light{position:absolute;top:-40px;width:3px;height:100px;background:linear-gradient(180deg,rgba(255,255,255,.6),transparent);border-radius:0 0 2px 2px;z-index:2;animation:lP 4s ease-in-out infinite}
-.light:nth-child(1){left:8%}.light:nth-child(2){left:25%;animation-delay:1.2s;height:80px}
-.light:nth-child(3){right:25%;animation-delay:2.4s;height:70px}.light:nth-child(4){right:8%;animation-delay:.6s}
-.light::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:80px;height:160px;background:radial-gradient(ellipse,rgba(255,255,255,.08),transparent 70%);pointer-events:none}
-@keyframes lP{0%,100%{opacity:.2}50%{opacity:.55}}
-.crowd{position:absolute;bottom:28%;left:0;right:0;height:80px;z-index:1;background:linear-gradient(180deg,transparent,rgba(5,6,7,.9));mask-image:repeating-linear-gradient(90deg,transparent 0 6px,black 6px 12px,transparent 12px 18px);-webkit-mask-image:repeating-linear-gradient(90deg,transparent 0 6px,black 6px 12px,transparent 12px 18px)}
-.fog{position:absolute;bottom:20%;left:0;right:0;height:100px;z-index:2;background:linear-gradient(180deg,transparent,rgba(255,255,255,.015),transparent);pointer-events:none;animation:fD 12s ease-in-out infinite}
-@keyframes fD{0%,100%{transform:translateX(0)}50%{transform:translateX(20px)}}
-.vig{position:absolute;inset:0;z-index:3;pointer-events:none;background:radial-gradient(ellipse at center,transparent 40%,rgba(5,6,7,.7) 100%)}
-.content{position:relative;z-index:10;display:flex;flex-direction:column;align-items:center}
-.logo{font-size:2.8rem;font-weight:900;letter-spacing:6px;color:#F5F7F5;text-shadow:0 0 40px rgba(24,232,117,.15),0 0 80px rgba(24,232,117,.05);animation:lI 1s ease both}
-.logo-sub{font-size:.65rem;font-weight:800;letter-spacing:8px;color:rgba(24,232,117,.5);margin-top:4px;animation:lI 1s ease .2s both}
-@keyframes lI{from{opacity:0;transform:translateY(20px) scale(.95)}to{opacity:1;transform:none}}
-.welcome{font-size:1.1rem;font-weight:700;color:rgba(255,255,255,.7);margin-top:20px;letter-spacing:1px;animation:fU .8s ease .4s both}
-.tagline{font-size:.82rem;color:rgba(255,255,255,.35);margin-top:8px;letter-spacing:2px;font-weight:600;animation:fU .8s ease .5s both}
-.lang-section{margin-top:32px;animation:fU .8s ease .6s both}
-.lang-label{font-size:.7rem;font-weight:800;letter-spacing:3px;color:rgba(255,255,255,.3);margin-bottom:14px;text-transform:uppercase}
-.lang-btns{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
-.lang-btn{display:flex;align-items:center;gap:12px;padding:16px 36px;border-radius:16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#F5F7F5;font-weight:800;font-size:1rem;text-decoration:none;min-width:220px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:all .3s;cursor:pointer;position:relative;overflow:hidden}
-.lang-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(24,232,117,.05),transparent);opacity:0;transition:opacity .3s}
-.lang-btn:hover{border-color:rgba(24,232,117,.3);box-shadow:0 0 30px rgba(24,232,117,.08);transform:translateY(-2px)}
-.lang-btn:hover::before{opacity:1}
-.lang-btn:active{transform:scale(.98)}
-.lang-btn .flag{font-size:1.3rem}
-.lang-btn .lname{display:flex;flex-direction:column;align-items:flex-start}
-.lang-btn .lname span{font-size:.65rem;color:rgba(255,255,255,.4);font-weight:600;letter-spacing:2px}
-.brand{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);color:rgba(111,143,122,.4);font-size:.7rem;font-weight:900;letter-spacing:4px;z-index:10}
-.particles{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
-.particle{position:absolute;width:2px;height:2px;background:rgba(255,255,255,.3);border-radius:50%;animation:pF linear infinite}
-@keyframes pF{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(-10vh) scale(1);opacity:0}}
-@keyframes fU{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
-@media (prefers-reduced-motion:reduce){.light,.fog{animation:none!important}.logo,.logo-sub,.welcome,.tagline,.lang-section{animation:none!important;opacity:1;transform:none}}
-@media (max-width:560px){.logo{font-size:2rem;letter-spacing:4px}.welcome{font-size:.95rem}.lang-btn{min-width:180px;padding:14px 24px;font-size:.9rem}}
+html,body{height:100%;overflow:hidden;background:#050607}
+body{font-family:'FONT','Segoe UI',sans-serif;color:#F5F7F5;min-height:100vh;min-height:100dvh}
+
+.gx-mg{--gx-black:#050607;--gx-green:#00D66B;--gx-green-dk:#07140E;--gx-green-dp:#041B10;--gx-white:#F5F7F5;--gx-mut:#8A938E;
+  position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:22px 18px;overflow:hidden;height:100vh;height:100dvh;}
+
+/* ---- background ---- */
+.gx-bg{position:absolute;inset:0;z-index:0;
+  background:
+    radial-gradient(60% 40% at 50% 8%, rgba(0,214,107,.10), transparent 60%),
+    radial-gradient(120% 60% at 50% 100%, rgba(7,20,14,.85), transparent 60%),
+    linear-gradient(180deg,var(--gx-black) 0%, var(--gx-black) 45%, var(--gx-green-dk) 100%);}
+.gx-pitch{position:absolute;bottom:0;left:0;right:0;height:22%;z-index:0;
+  background:linear-gradient(180deg, rgba(4,27,16,.15), rgba(4,27,16,.55));
+  border-top:1px solid rgba(0,214,107,.08);}
+.gx-pitch::before{content:'';position:absolute;top:-70px;left:50%;transform:translateX(-50%);
+  width:150px;height:150px;border:1.5px solid rgba(0,214,107,.14);border-radius:50%;}
+.gx-pitch::after{content:'';position:absolute;top:-70px;left:50%;transform:translateX(-50%);
+  width:1px;height:70px;background:rgba(0,214,107,.12);}
+.gx-crowd{position:absolute;bottom:22%;left:0;right:0;height:60px;z-index:0;
+  background:linear-gradient(180deg,transparent,rgba(5,6,7,.9));
+  mask-image:repeating-linear-gradient(90deg,transparent 0 5px,black 5px 10px,transparent 10px 15px);
+  -webkit-mask-image:repeating-linear-gradient(90deg,transparent 0 5px,black 5px 10px,transparent 10px 15px);
+  opacity:.5;}
+.gx-light{position:absolute;top:-30px;width:3px;height:90px;border-radius:0 0 2px 2px;z-index:1;
+  background:linear-gradient(180deg,rgba(0,214,107,.5),transparent);
+  animation:gxLightBreathe 5s ease-in-out infinite;}
+.gx-light::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:70px;height:150px;background:radial-gradient(ellipse,rgba(0,214,107,.10),transparent 70%);pointer-events:none;}
+.gx-light.l1{left:10%;animation-delay:0s}
+.gx-light.l2{left:50%;transform:translateX(-50%);animation-delay:1.6s;height:70px}
+.gx-light.l3{right:10%;animation-delay:3.2s}
+@keyframes gxLightBreathe{0%,100%{opacity:.18}50%{opacity:.5}}
+.gx-fog{position:absolute;bottom:14%;left:0;right:0;height:120px;z-index:1;pointer-events:none;
+  background:linear-gradient(180deg,transparent,rgba(0,214,107,.035),transparent);
+  animation:gxFogDrift 14s ease-in-out infinite;}
+@keyframes gxFogDrift{0%,100%{transform:translateX(0)}50%{transform:translateX(18px)}}
+.gx-vig{position:absolute;inset:0;z-index:2;pointer-events:none;
+  background:radial-gradient(ellipse at center,transparent 38%,rgba(5,6,7,.75) 100%);}
+
+/* ---- floating ball ---- */
+.gx-ball{position:absolute;z-index:1;top:38%;left:-60px;font-size:clamp(28px,8vw,46px);line-height:1;
+  opacity:.4;pointer-events:none;will-change:transform;
+  animation:gxBallDrift 22s linear infinite;filter:drop-shadow(0 0 6px rgba(0,0,0,.4));}
+@keyframes gxBallDrift{
+  0%{transform:translateX(0) translateY(0) rotate(0deg);opacity:0;}
+  8%{opacity:.4;}
+  50%{transform:translateX(60vw) translateY(-18px) rotate(360deg);}
+  92%{opacity:.4;}
+  100%{transform:translateX(130vw) translateY(6px) rotate(680deg);opacity:0;}
+}
+
+/* ---- live badge ---- */
+.gx-live{position:relative;z-index:10;display:inline-flex;align-items:center;gap:7px;
+  padding:6px 14px;border-radius:999px;background:rgba(0,214,107,.06);
+  border:1px solid rgba(0,214,107,.22);font-size:.62rem;font-weight:800;letter-spacing:2px;
+  color:rgba(245,247,245,.75);text-transform:uppercase;margin-bottom:18px;
+  animation:gxFadeUp .7s ease .1s both;}
+.gx-live-dot{width:7px;height:7px;border-radius:50%;background:var(--gx-green);
+  box-shadow:0 0 8px rgba(0,214,107,.7);animation:gxPulseDot 1.8s ease-in-out infinite;}
+@keyframes gxPulseDot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.75)}}
+
+/* ---- content ---- */
+.gx-content{position:relative;z-index:10;display:flex;flex-direction:column;align-items:center;
+  max-width:420px;width:100%;}
+.gx-logo{font-size:clamp(2rem,9vw,2.9rem);font-weight:900;letter-spacing:5px;color:var(--gx-white);
+  text-shadow:0 0 34px rgba(0,214,107,.16),0 0 70px rgba(0,214,107,.06);
+  animation:gxLogoIn .9s ease both;}
+.gx-logo-sub{font-size:.62rem;font-weight:800;letter-spacing:7px;color:rgba(0,214,107,.55);
+  margin-top:5px;animation:gxLogoIn .9s ease .12s both;}
+@keyframes gxLogoIn{from{opacity:0;transform:translateY(16px) scale(.96)}to{opacity:1;transform:none}}
+.gx-welcome{font-size:1.02rem;font-weight:700;color:rgba(255,255,255,.82);margin-top:18px;
+  letter-spacing:.5px;animation:gxFadeUp .8s ease .28s both;}
+.gx-tag{font-size:.78rem;color:var(--gx-mut);margin-top:6px;letter-spacing:1px;font-weight:600;
+  animation:gxFadeUp .8s ease .36s both;}
+
+.gx-lang-sec{margin-top:26px;width:100%;animation:gxFadeUp .8s ease .46s both;}
+.gx-lang-label{font-size:.66rem;font-weight:800;letter-spacing:3px;color:rgba(255,255,255,.32);
+  margin-bottom:12px;text-transform:uppercase;}
+.gx-lang-btns{display:flex;flex-direction:column;align-items:center;gap:11px;}
+.gx-lang-btn{display:flex;align-items:center;justify-content:center;gap:11px;
+  width:min(320px,88vw);height:54px;border-radius:14px;
+  background:rgba(255,255,255,.04);border:1px solid rgba(0,214,107,.35);
+  color:var(--gx-white);font-weight:800;font-size:.98rem;text-decoration:none;
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  transition:transform .15s ease,border-color .2s ease,box-shadow .2s ease,background .2s ease;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.gx-lang-btn:hover,.gx-lang-btn:focus-visible{border-color:rgba(0,214,107,.7);
+  box-shadow:0 0 22px rgba(0,214,107,.18);background:rgba(0,214,107,.05);outline:none;}
+.gx-lang-btn:active,.gx-lang-btn.gx-pressed{transform:scale(.98);}
+.gx-lang-btn .gx-flag{font-size:1.25rem;}
+.gx-lang-btn .gx-lname{display:flex;flex-direction:column;align-items:flex-start;line-height:1.15;}
+.gx-lang-btn .gx-lname small{font-size:.62rem;color:rgba(255,255,255,.4);font-weight:600;letter-spacing:2px;}
+
+.gx-kickoff{margin-top:14px;font-size:.66rem;font-weight:800;letter-spacing:2.5px;
+  color:rgba(0,214,107,.5);text-transform:uppercase;animation:gxFadeUp .8s ease .56s both;}
+
+@keyframes gxFadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* ---- bottom marquee ---- */
+.gx-marquee{position:fixed;left:0;right:0;bottom:0;z-index:10;height:30px;overflow:hidden;
+  display:flex;align-items:center;
+  background:linear-gradient(180deg,transparent,rgba(0,214,107,.03));
+  border-top:1px solid rgba(0,214,107,.08);}
+.gx-marquee-track{display:flex;white-space:nowrap;animation:gxMarquee 18s linear infinite;
+  color:rgba(0,214,107,.55);font-size:.68rem;font-weight:800;letter-spacing:3px;}
+.gx-marquee-track span{padding:0 18px;}
+@keyframes gxMarquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ---- transition-out sequence ---- */
+.gx-mg.gx-leaving .gx-logo{transform:scale(1.06);transition:transform .5s ease;}
+.gx-mg.gx-leaving .gx-bg{background:
+    radial-gradient(60% 40% at 50% 8%, rgba(0,214,107,.22), transparent 60%),
+    radial-gradient(120% 60% at 50% 100%, rgba(7,20,14,.85), transparent 60%),
+    linear-gradient(180deg,var(--gx-black) 0%, var(--gx-black) 45%, var(--gx-green-dk) 100%);
+  transition:background .6s ease;}
+.gx-mg.gx-leaving .gx-ball{animation-play-state:paused;transition:transform .6s ease,opacity .6s ease;
+  transform:translateX(46vw) translateY(-4px) scale(1.3);opacity:.7;}
+.gx-streak{position:fixed;inset:0;z-index:20;pointer-events:none;opacity:0;
+  background:linear-gradient(100deg,transparent 40%,rgba(0,214,107,.14) 50%,transparent 60%);}
+.gx-mg.gx-leaving .gx-streak{animation:gxStreak .5s ease .15s both;}
+@keyframes gxStreak{0%{opacity:0;transform:translateX(-30%)}50%{opacity:1}100%{opacity:0;transform:translateX(30%)}}
+.gx-fade{position:fixed;inset:0;z-index:30;background:#050607;opacity:0;pointer-events:none;
+  transition:opacity .45s ease;}
+.gx-mg.gx-leaving .gx-fade{opacity:1;}
+
+@media (prefers-reduced-motion:reduce){
+  .gx-light,.gx-fog,.gx-ball,.gx-marquee-track,.gx-live-dot,
+  .gx-logo,.gx-logo-sub,.gx-welcome,.gx-tag,.gx-lang-sec,.gx-live,.gx-kickoff{
+    animation:none!important;opacity:1!important;transform:none!important;}
+  .gx-mg.gx-leaving .gx-logo,.gx-mg.gx-leaving .gx-ball,.gx-mg.gx-leaving .gx-streak{transition:none!important;}
+}
+@media (max-width:380px){
+  .gx-logo{letter-spacing:3px;}
+  .gx-lang-btn{height:52px;font-size:.92rem;}
+}
+@media (min-width:900px){
+  .gx-content{max-width:480px;}
+  .gx-pitch{height:30%;}
+  .gx-ball{font-size:56px;}
+}
 </style></head>
 <body>
-<div class="st">
-<div class="st-bg"></div><div class="grass"></div><div class="crowd"></div><div class="fog"></div>
-<div class="light"></div><div class="light"></div><div class="light"></div><div class="light"></div>
-<div class="vig"></div><div class="particles" id="particles"></div>
-<div class="content">
-<div class="logo">GOLAZOX</div>
-<div class="logo-sub">FOOTBALL UNIVERSE</div>
-<div class="welcome">__WT__</div>
-<div class="tagline">__WS__</div>
-<div class="lang-section">
-<div class="lang-label">CHOOSE YOUR LANGUAGE</div>
-<div class="lang-btns">
-<a href="/enter/ar" class="lang-btn"><span class="flag">🇸🇦</span><span class="lname">العربية<span>ARABIC</span></span></a>
-<a href="/enter/en" class="lang-btn"><span class="flag">🇬🇧</span><span class="lname">English<span>ENGLISH</span></span></a>
-</div></div></div>
-<div class="brand">GOLAZOX</div>
+<div class="gx-mg" id="gxMg">
+<div class="gx-bg"></div>
+<div class="gx-pitch"></div>
+<div class="gx-crowd"></div>
+<div class="gx-fog"></div>
+<div class="gx-light l1"></div><div class="gx-light l2"></div><div class="gx-light l3"></div>
+<div class="gx-ball" id="gxBall">⚽</div>
+<div class="gx-vig"></div>
+<div class="gx-streak"></div>
+
+<div class="gx-live"><span class="gx-live-dot"></span><span>LIVE MATCHDAY</span></div>
+
+<div class="gx-content">
+<div class="gx-logo">GOLAZOX</div>
+<div class="gx-logo-sub">FOOTBALL UNIVERSE</div>
+<div class="gx-welcome">__WT__</div>
+<div class="gx-tag">__WS__</div>
+
+<div class="gx-lang-sec">
+<div class="gx-lang-label">CHOOSE YOUR LANGUAGE</div>
+<div class="gx-lang-btns">
+<a href="/enter/ar" class="gx-lang-btn" data-gx-lang aria-label="اختر اللغة العربية">
+  <span class="gx-flag">🇸🇦</span><span class="gx-lname">العربية<small>ARABIC</small></span></a>
+<a href="/enter/en" class="gx-lang-btn" data-gx-lang aria-label="Choose English language">
+  <span class="gx-flag">🇬🇧</span><span class="gx-lname">English<small>ENGLISH</small></span></a>
+</div>
+<div class="gx-kickoff">KICK-OFF READY</div>
+</div>
+</div>
+
+<div class="gx-marquee"><div class="gx-marquee-track">
+<span>⚡ MATCHDAY • FOOTBALL • GOLAZOX • MATCHDAY • FOOTBALL ⚡</span>
+<span>⚡ MATCHDAY • FOOTBALL • GOLAZOX • MATCHDAY • FOOTBALL ⚡</span>
+</div></div>
+
+<div class="gx-fade"></div>
 </div>
 <script>
-(function(){var c=document.getElementById('particles');if(!c)return;
-for(var i=0;i<12;i++){var p=document.createElement('div');p.className='particle';p.style.left=Math.random()*100+'%';p.style.animationDuration=(8+Math.random()*12)+'s';p.style.animationDelay=Math.random()*8+'s';p.style.width=p.style.height=(1+Math.random()*2)+'px';c.appendChild(p)}})();
+(function(){
+  try{
+    var mg = document.getElementById('gxMg');
+    var reduced = false;
+    try{ reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e0){}
+    var btns = document.querySelectorAll('[data-gx-lang]');
+    for(var i=0;i<btns.length;i++){
+      (function(btn){
+        btn.addEventListener('click', function(ev){
+          try{
+            ev.preventDefault();
+            var url = btn.getAttribute('href');
+            btn.classList.add('gx-pressed');
+            if(mg) mg.classList.add('gx-leaving');
+            var delay = reduced ? 160 : 950;
+            setTimeout(function(){ location.href = url; }, delay);
+          }catch(err){
+            try{ location.href = btn.getAttribute('href'); }catch(e2){}
+          }
+        });
+        btn.addEventListener('keydown', function(ev){
+          try{
+            if(ev.key===' ' || ev.code==='Space'){ ev.preventDefault(); btn.click(); }
+          }catch(e3){}
+        });
+      })(btns[i]);
+    }
+  }catch(mainErr){
+    /* if anything above fails, the <a href> links still work natively */
+  }
+})();
 </script>
-</body></html>""".replace("LANG", "en" if en else "ar") \
-        .replace("DIR", "ltr" if en else "rtl") \
+</body></html>""".replace("__LANGATTR__", "en" if en else "ar") \
+        .replace("__DIRATTR__", "ltr" if en else "rtl") \
         .replace("FONT", "Poppins" if en else "Cairo") \
         .replace("__WT__", d["welcome_t"]).replace("__WS__", d["welcome_s"])
 
@@ -6989,13 +7112,9 @@ def setlang(l):
 def enter(l):
     if l not in ("ar", "en"):
         return redirect("/")
-    r = make_enter()
+    r = redirect("/home")
     r.set_cookie("lang", l, max_age=31536000)
     return r
-
-
-def make_enter():
-    return Response(enter_page(), content_type="text/html")
 
 
 @app.route("/order/success")

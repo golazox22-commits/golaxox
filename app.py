@@ -2646,7 +2646,57 @@ html[data-theme="light"] .mtk-jstep.done b, html[data-theme="light"] .mtk-jstep.
   .pen-pitch { height:260px; }
   .pen-goal { width:200px; height:90px; }
 }
-</style>"""
+/* ===== GOLAXOX MOBILE EXPERIENCE UPGRADE ===== */
+</style>
+.gx-fan-moment{margin:18px 0;padding:14px 16px;border:1px solid rgba(24,232,117,.14);border-radius:18px;background:linear-gradient(135deg,rgba(24,232,117,.07),rgba(255,255,255,.025));display:flex;align-items:center;justify-content:center;gap:10px;text-align:center;min-height:52px}
+.gx-fan-moment .fm-dot{width:8px;height:8px;border-radius:50%;background:#18E875;box-shadow:0 0 12px rgba(24,232,117,.6);animation:fmPulse 1.8s ease-in-out infinite}
+.gx-fan-moment .fm-text{font-weight:800;color:var(--txt);font-size:.86rem}
+.gx-fan-moment .fm-sub{font-size:.68rem;color:var(--mut);margin-right:4px}
+@keyframes fmPulse{0%,100%{transform:scale(.8);opacity:.55}50%{transform:scale(1.15);opacity:1}}
+
+.gx-recent-tunnel{position:relative;overflow:hidden;border-radius:22px;border:1px solid rgba(24,232,117,.16);background:
+radial-gradient(circle at 50% 100%,rgba(24,232,117,.16),transparent 48%),
+linear-gradient(180deg,#06110c,#030605);padding:18px 14px 20px}
+.gx-recent-tunnel:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 42px,rgba(24,232,117,.035) 42px 44px);pointer-events:none}
+.gx-recent-track{display:flex;gap:12px;overflow-x:auto;padding:5px 2px 8px;scroll-snap-type:x mandatory;scrollbar-width:none}
+.gx-recent-track::-webkit-scrollbar{display:none}
+.gx-recent-card{flex:0 0 min(180px,48vw);scroll-snap-align:center;border:1px solid rgba(255,255,255,.08);border-radius:18px;background:rgba(0,0,0,.28);padding:10px;position:relative;transition:.22s;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.gx-recent-card.is-main{border-color:rgba(24,232,117,.5);box-shadow:0 0 24px rgba(24,232,117,.16)}
+.gx-recent-card img{width:100%;aspect-ratio:4/5;object-fit:contain;display:block}
+.gx-recent-card .rc-name{font-weight:900;font-size:.78rem;margin-top:8px}
+.gx-recent-card .rc-price{color:#18E875;font-weight:900;font-size:.78rem;margin-top:4px}
+.gx-recent-empty{padding:24px 14px;text-align:center;color:var(--mut);font-size:.8rem}
+
+.gx-final-pitch{margin:22px 0;border-radius:24px;min-height:250px;position:relative;overflow:hidden;border:1px solid rgba(24,232,117,.18);background:
+radial-gradient(circle at 50% 45%,rgba(24,232,117,.18),transparent 28%),
+linear-gradient(180deg,#06110b 0%,#0a2216 58%,#031008 100%)}
+.gx-final-pitch:before{content:"";position:absolute;inset:auto 0 0;height:58%;background:
+linear-gradient(90deg,transparent 49.6%,rgba(255,255,255,.16) 49.8%,rgba(255,255,255,.16) 50.2%,transparent 50.4%),
+linear-gradient(180deg,transparent,rgba(255,255,255,.035))}
+.gx-final-pitch .fp-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:250px;text-align:center;padding:24px}
+.gx-final-pitch .fp-ball{font-size:3rem;filter:drop-shadow(0 0 20px rgba(255,255,255,.18));animation:fpBall 2.6s ease-in-out infinite}
+.gx-final-pitch h2{margin-top:8px;font-size:clamp(1.3rem,5vw,2rem);font-weight:900}
+.gx-final-pitch p{margin-top:6px;color:var(--mut);font-size:.8rem}
+.gx-final-pitch .fp-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:14px}
+@keyframes fpBall{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+
+.gx-sound-toggle{position:fixed;right:14px;bottom:86px;z-index:90;border:1px solid rgba(24,232,117,.25);background:rgba(5,6,7,.78);color:#fff;border-radius:999px;padding:9px 11px;backdrop-filter:blur(10px);font-weight:800;cursor:pointer;box-shadow:0 8px 22px rgba(0,0,0,.28)}
+.gx-sound-toggle.on{border-color:rgba(24,232,117,.55);box-shadow:0 0 18px rgba(24,232,117,.16)}
+@media(max-width:768px){
+  .gx-fan-moment{margin:12px 0;padding:12px 10px;min-height:48px}
+  .gx-fan-moment .fm-text{font-size:.75rem}
+  .gx-fan-moment .fm-sub{font-size:.58rem}
+  .gx-recent-tunnel{padding:14px 10px;border-radius:18px}
+  .gx-recent-card{flex-basis:150px;border-radius:16px}
+  .gx-final-pitch{min-height:220px;margin:16px 0}
+  .gx-final-pitch .fp-content{min-height:220px;padding:18px}
+  .gx-final-pitch .fp-actions .btn{min-height:46px;padding:10px 14px}
+  .gx-sound-toggle{right:10px;bottom:82px;font-size:.78rem;padding:8px 10px}
+}
+@media(prefers-reduced-motion:reduce){
+  .gx-fan-moment .fm-dot,.gx-final-pitch .fp-ball{animation:none}
+}
+"""
 
 BASE_JS = """<script>
 var GX = __GX__;
@@ -4020,7 +4070,79 @@ MODALS
 <div class="mkmode-toggle" id="mkModeToggle" onclick="mkModeToggle()" title="Matchday Mode"><span class="mkmode-ic">⚽</span><span class="mkmode-lbl">MATCHDAY</span></div>
 <div class="mkmode-pitch"></div>
 <div class="mkmode-lights"><div class="mkl"></div><div class="mkl"></div><div class="mkl"></div><div class="mkl"></div></div>
-<a class="fab" target="_blank" rel="noopener" href="https://wa.me/message/KZFSQ7ONXMY2M1" title="WhatsApp">💬</a>
+<button class="gx-sound-toggle" id="gxSoundToggle" onclick="toggleGxSound()" type="button" aria-label="Toggle sound">🔇</button><a class="fab" target="_blank" rel="noopener" href="https://wa.me/message/KZFSQ7ONXMY2M1" title="WhatsApp">💬</a>
+
+<script>
+(function(){
+  function safeGet(key, fallback){try{return JSON.parse(localStorage.getItem(key)||JSON.stringify(fallback));}catch(e){return fallback;}}
+  function safeSet(key,val){try{localStorage.setItem(key,JSON.stringify(val));}catch(e){}}
+
+  window.toggleGxSound=function(){
+    var cur=safeGet('gx_sound_enabled',false);
+    safeSet('gx_sound_enabled',!cur);
+    updateGxSoundUI();
+    if(!cur && typeof cheerSound==='function'){try{cheerSound();}catch(e){}}
+  };
+  window.updateGxSoundUI=function(){
+    var b=document.getElementById('gxSoundToggle'); if(!b)return;
+    var on=!!safeGet('gx_sound_enabled',false);
+    b.textContent=on?'🔊':'🔇'; b.classList.toggle('on',on);
+  };
+
+  function renderRecent(){
+    var box=document.getElementById('recentTunnelTrack'); if(!box)return;
+    var ids=safeGet('gx_recent_views',[]);
+    if(!Array.isArray(ids)||!ids.length){
+      box.innerHTML='<div class="gx-recent-empty">⚽ '+(window.GX&&GX.lang==='en'?'Browse a jersey and your recent picks will appear here.':'شاهدي تيشرتًا وسيظهر هنا آخر ما شاهدته.')+'</div>';
+      return;
+    }
+    var seen={}; ids=ids.filter(function(id){if(seen[id])return false;seen[id]=1;return true;}).slice(0,8);
+    var html='';
+    ids.forEach(function(id,idx){
+      var p=(window.GX&&GX.products||[]).find(function(x){return x.id===id;});
+      if(!p)return;
+      var name=p[GX.lang==='ar'?'name_ar':'name_en']||p.id;
+      html+='<a class="gx-recent-card '+(idx===0?'is-main':'')+'" href="/product/'+encodeURIComponent(p.id)+'">'
+        +'<img src="/img/'+(p.imgs&&p.imgs[0]?p.imgs[0]:'')+'" alt="">'
+        +'<div class="rc-name">'+escapeHtml(name)+'</div>'
+        +'<div class="rc-price">'+(typeof pmoney==='function'?pmoney(p.price):p.price)+' '+(GX.cur||'')+'</div>'
+        +'</a>';
+    });
+    box.innerHTML=html||'<div class="gx-recent-empty">⚽</div>';
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});
+  }
+
+  function fanMoment(){
+    var el=document.getElementById('fanMomentText'); if(!el)return;
+    var en=!!(window.GX&&GX.lang==='en');
+    var arr=en?[
+      '⚡ MATCHDAY IS LIVE',
+      '🔥 READY FOR YOUR NEXT JERSEY?',
+      '💚 POWERED BY GOLAXOX',
+      '👕 WEAR YOUR PASSION'
+    ]:[
+      '⚡ أجواء المباراة بدأت',
+      '🔥 جاهز لتيشرتك القادم؟',
+      '💚 شغفك مع GOLAXOX',
+      '👕 البس شغفك'
+    ];
+    var i=0;
+    function tick(){
+      el.style.opacity='0';
+      setTimeout(function(){el.textContent=arr[i++%arr.length];el.style.opacity='1';},180);
+    }
+    tick(); setInterval(tick,3600);
+    el.style.transition='opacity .35s ease';
+  }
+
+  document.addEventListener('DOMContentLoaded',function(){
+    updateGxSoundUI(); renderRecent(); fanMoment();
+  });
+})();
+</script>
 __PAGEJS_SLOT__
 __BASEJS_SLOT__
 </body>
@@ -4619,9 +4741,41 @@ def home_body():
                '<div class="scroll-row">{cards}</div></div>'
                ).format(t=d["new_title"], s=d["new_sub"], all=d["view_all"], cards=new_html or "") if new_html else ""
 
+
+    # Recently viewed tunnel: rendered from localStorage on the client.
+    recent_sec = (
+        '<div class="sec rv" id="recentTunnel">'
+        '<div class="sec-head"><h2><span class="bar"></span>{t}</h2><span class="sec-sub">{s}</span></div>'
+        '<div class="gx-recent-tunnel"><div class="gx-recent-track" id="recentTunnelTrack"></div></div>'
+        '</div>'
+    ).format(
+        t=("LAST SEEN IN THE TUNNEL" if en else "آخر المنتجات التي شاهدتها"),
+        s=("Your recent jerseys, now in the matchday tunnel" if en else "منتجاتك الأخيرة داخل نفق المباراة")
+    )
+
+    fan_moment = (
+        '<div class="gx-fan-moment" id="fanMoment">'
+        '<span class="fm-dot"></span><div class="fm-text" id="fanMomentText"></div>'
+        '<div class="fm-sub">GOLAXOX MATCHDAY</div></div>'
+    )
+
+    final_pitch = (
+        '<div class="gx-final-pitch sec rv">'
+        '<div class="fp-content"><div class="fp-ball">⚽</div>'
+        '<h2>{t}</h2><p>{s}</p>'
+        '<div class="fp-actions"><a class="btn pri" href="/products">{shop}</a>'
+        '<a class="btn ghost" href="/penalty">{play}</a></div></div></div>'
+    ).format(
+        t=("READY FOR KICK-OFF?" if en else "جاهز لبداية المباراة؟"),
+        s=("Choose your jersey or step onto the pitch." if en else "اختر تيشرتك أو ادخل أرض الملعب."),
+        shop=("SHOP YOUR JERSEY" if en else "تسوق تيشرتك"),
+        play=("PLAY PENALTY" if en else "العب الركلة")
+    )
+
     return (atmos_html("full")
             + '<div class="wrap">'
             + hero
+            + fan_moment
             + pc_sec
             + md_ticker
             + clubs_sec
@@ -4632,6 +4786,7 @@ def home_body():
             + shop_section_html(jgrid, "gridJ")
             + best_sec
             + new_sec
+            + recent_sec
             + loyal_sec
             + '<div class="sec rv" id="mugs"><div class="sec-head"><h2><span class="bar"></span>{sm}</h2><span class="sec-sub">{sm_sub}</span></div>'
             + '<div class="grid" id="gridM">{mgrid}</div></div>'
@@ -4640,6 +4795,7 @@ def home_body():
             + pitch_sec
             + match_html
             + poll_html
+            + final_pitch
             + '<div class="sec rv" id="info"><div class="sec-head"><h2><span class="bar"></span>{qt}</h2></div>'
             + '<div class="quick">{quick}</div></div>'
             + '</div>'
@@ -5269,7 +5425,7 @@ def product_body(pid):
         live_drop = '<div class="live-drop-badge"><span class="live-dot"></span>LIVE DROP</div>'
 
     page_js = ('<script>var GARR=' + arr + ';' + ('selSize=' + json_d(my_sz) + ';' if my_sz else '') +
-               'document.addEventListener("DOMContentLoaded",function(){ setGal(0,GARR); buildReviews("%s");'
+               'document.addEventListener("DOMContentLoaded",function(){ try{var rv=JSON.parse(localStorage.getItem("gx_recent_views")||"[]");rv=[%s].concat(rv.filter(function(x){return x!=="%s";})).slice(0,8);localStorage.setItem("gx_recent_views",JSON.stringify(rv));}catch(e){} setGal(0,GARR); buildReviews("%s");'
                'if(selSize){var om=document.getElementById("omSizeVal");if(om)om.textContent=selSize;} });'
                'function triggerReveal(){var r=document.getElementById("jeReveal");if(r)r.classList.add("open");}'
                'function initJerseyExp(){var r=document.getElementById("jeReveal");if(!r)return;'
@@ -6658,7 +6814,7 @@ text-align:center;z-index:4;padding:20px}
 .jt-enter{border:1px solid rgba(24,232,117,.48);background:linear-gradient(135deg,#18e875,#0bb95b);
 color:#031009;border-radius:16px;padding:14px 25px;min-width:250px;font-weight:900;cursor:pointer;
 box-shadow:0 0 34px rgba(24,232,117,.25);transition:.25s transform,.25s box-shadow}
-.jt-enter:hover{transform:translateY(-3px);box-shadow:0 0 50px rgba(24,232,117,.35)}
+.jt-enter:hover{transform:translateY(-3px);box-shadow:0 0 50px rgba(24,232,117,.35)}.jt-sound{position:absolute;left:18px;bottom:18px;z-index:8;border:1px solid rgba(24,232,117,.25);background:rgba(0,0,0,.48);color:#fff;border-radius:999px;padding:9px 12px;font-weight:800;backdrop-filter:blur(10px);cursor:pointer}.jt-sound.on{border-color:rgba(24,232,117,.6);box-shadow:0 0 18px rgba(24,232,117,.18)}
 @keyframes jtPulse{0%%,100%%{opacity:.45}50%%{opacity:1}}
 @keyframes jtFog{from{transform:translateX(-3%%)}to{transform:translateX(3%%)}}
 @keyframes jtCrowd{from{transform:translateX(0)}to{transform:translateX(48px)}}
@@ -6697,6 +6853,106 @@ function enterStadium(){
   },650);
 }
 </script>
+
+<script>
+(function(){
+  var audioCtx=null, master=null, started=false, timer=null;
+
+  function noiseBurst(duration, gainValue){
+    if(!audioCtx || !master) return;
+    var buffer=audioCtx.createBuffer(1, audioCtx.sampleRate*duration, audioCtx.sampleRate);
+    var data=buffer.getChannelData(0);
+    for(var i=0;i<data.length;i++) data[i]=(Math.random()*2-1);
+    var src=audioCtx.createBufferSource();
+    var filter=audioCtx.createBiquadFilter();
+    var g=audioCtx.createGain();
+    src.buffer=buffer;
+    filter.type='bandpass'; filter.frequency.value=1400; filter.Q.value=.7;
+    g.gain.setValueAtTime(0.0001,audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(gainValue,audioCtx.currentTime+0.05);
+    g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+duration);
+    src.connect(filter);filter.connect(g);g.connect(master);src.start();src.stop(audioCtx.currentTime+duration+.02);
+  }
+
+  function tone(freq, duration, gainValue){
+    if(!audioCtx || !master) return;
+    var o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.type='sine'; o.frequency.value=freq;
+    g.gain.setValueAtTime(0.0001,audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(gainValue,audioCtx.currentTime+.03);
+    g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+duration);
+    o.connect(g);g.connect(master);o.start();o.stop(audioCtx.currentTime+duration+.02);
+  }
+
+  window.startStadiumSound=function(){
+    if(started) return;
+    try{
+      audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+      master = audioCtx.createGain();
+      master.gain.value=.055;
+      master.connect(audioCtx.destination);
+      started=true;
+
+      // Initial cheer swell.
+      noiseBurst(.9,.11);
+      setTimeout(function(){noiseBurst(.8,.09)},280);
+      setTimeout(function(){tone(523.25,.22,.03);tone(659.25,.22,.025)},420);
+
+      // Short stadium rhythm / chant-like pattern for ~8 seconds.
+      var beat=0;
+      timer=setInterval(function(){
+        if(!audioCtx) return;
+        noiseBurst(.34, beat%4===0?.075:.045);
+        if(beat%4===1){tone(392,.16,.018);tone(494,.16,.014);}
+        if(beat%4===3){tone(523,.18,.022);}
+        beat++;
+        if(beat>24){clearInterval(timer);timer=null;}
+      },320);
+
+      var b=document.getElementById('jtSound');
+      if(b){b.textContent='🔊 صوت الملعب';b.classList.add('on');}
+    }catch(e){}
+  };
+
+  window.toggleStadiumSound=function(){
+    try{
+      if(!started){startStadiumSound();return;}
+      if(master){
+        var muted = master.gain.value > 0.001;
+        master.gain.value = muted ? 0 : .055;
+        var b=document.getElementById('jtSound');
+        if(b){b.textContent=muted?'🔇 صوت الملعب':'🔊 صوت الملعب';b.classList.toggle('on',!muted);}
+      }
+    }catch(e){}
+  };
+
+  function tryAutoStart(){
+    try{
+      if(!started && audioCtx===null){
+        audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+        var p=audioCtx.resume();
+        if(p && p.then){p.then(function(){ startStadiumSound(); }).catch(function(){});}
+        else { startStadiumSound(); }
+      }
+    }catch(e){}
+  }
+
+  document.addEventListener('DOMContentLoaded',function(){
+    // Browsers may block autoplay. Try first, then guarantee sound on first tap.
+    tryAutoStart();
+    var once=function(){
+      if(!started){startStadiumSound();}
+      document.removeEventListener('pointerdown',once,true);
+      document.removeEventListener('touchstart',once,true);
+      document.removeEventListener('keydown',once,true);
+    };
+    document.addEventListener('pointerdown',once,true);
+    document.addEventListener('touchstart',once,true);
+    document.addEventListener('keydown',once,true);
+  });
+})();
+</script>
+
 </body></html>""" % (lang_code, direction, font, cards_html, cards_html, sub, copy, enter)
 
     return html

@@ -6453,10 +6453,8 @@ def track_page(code=""):
 # ============================== ROUTES ==============================
 @app.route("/")
 def index():
-    # Always show the entrance screen on a fresh visit.
-    r = welcome_page()
-    r.delete_cookie("gx_entry_completed", path="/")
-    return r
+    # Always show the entrance screen first.
+    return welcome_page()
 
 
 @app.route("/home")

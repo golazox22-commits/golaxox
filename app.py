@@ -5870,6 +5870,40 @@ body{font-family:'FONT','Segoe UI',sans-serif;background:#050607;color:#fff;min-
 .lang-btn:hover{border-color:rgba(24,232,117,.3);box-shadow:0 0 30px rgba(24,232,117,.08);transform:translateY(-2px)}
 .lang-btn:hover::before{opacity:1}
 .lang-btn:active{transform:scale(.98)}
+.landing-gate{display:flex;flex-direction:column;align-items:center}
+.enter-site-btn{
+  margin-top:28px;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  min-width:280px;
+  justify-content:center;
+  padding:15px 20px;
+  border-radius:18px;
+  border:1px solid rgba(24,232,117,.35);
+  background:linear-gradient(135deg,rgba(24,232,117,.14),rgba(255,255,255,.045));
+  color:#F5F7F5;
+  box-shadow:0 0 35px rgba(24,232,117,.10),inset 0 0 25px rgba(24,232,117,.04);
+  cursor:pointer;
+  font:inherit;
+  transition:transform .25s ease,box-shadow .25s ease,border-color .25s ease,opacity .25s ease;
+}
+.enter-site-btn:hover{transform:translateY(-3px);border-color:rgba(24,232,117,.65);box-shadow:0 0 45px rgba(24,232,117,.20),inset 0 0 30px rgba(24,232,117,.07)}
+.enter-site-btn:active{transform:scale(.98)}
+.enter-ball{font-size:1.55rem;filter:drop-shadow(0 0 10px rgba(24,232,117,.35))}
+.enter-copy{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+.enter-copy b{font-size:.95rem;letter-spacing:1.5px}
+.enter-copy small{font-size:.58rem;letter-spacing:1.5px;color:rgba(255,255,255,.42)}
+.enter-arrow{font-size:1.25rem;color:#18E875}
+.lang-section[hidden]{display:none!important}
+.lang-section.lang-show{display:block;animation:fU .55s ease both}
+.landing-gate.gate-hide{animation:gateOut .35s ease forwards;pointer-events:none}
+@keyframes gateOut{to{opacity:0;transform:translateY(-12px) scale(.98)}}
+@media(max-width:560px){
+  .enter-site-btn{min-width:240px;width:min(88vw,320px);padding:14px 16px}
+  .enter-copy b{font-size:.82rem}
+  .enter-copy small{font-size:.52rem}
+}
 .lang-btn .flag{font-size:1.3rem}
 .lang-btn .lname{display:flex;flex-direction:column;align-items:flex-start}
 .lang-btn .lname span{font-size:.65rem;color:rgba(255,255,255,.4);font-weight:600;letter-spacing:2px}
@@ -5889,19 +5923,56 @@ body{font-family:'FONT','Segoe UI',sans-serif;background:#050607;color:#fff;min-
 <div class="content">
 <div class="logo">GOLAZOX</div>
 <div class="logo-sub">FOOTBALL UNIVERSE</div>
+<div id="landingGate" class="landing-gate">
 <div class="welcome">__WELC__</div>
 <div class="tagline">__TAG__</div>
-<div class="lang-section">
+<button id="enterSiteBtn" class="enter-site-btn" type="button">
+<span class="enter-ball">⚽</span>
+<span class="enter-copy"><b>ENTER GOLAZOX</b><small>ENTER THE FOOTBALL UNIVERSE</small></span>
+<span class="enter-arrow">→</span>
+</button>
+</div>
+<div id="languagePanel" class="lang-section" hidden>
 <div class="lang-label">CHOOSE YOUR LANGUAGE</div>
 <div class="lang-btns">
 <a href="/enter/ar" class="lang-btn"><span class="flag">🇸🇦</span><span class="lname">العربية<span>ARABIC</span></span></a>
 <a href="/enter/en" class="lang-btn"><span class="flag">🇬🇧</span><span class="lname">English<span>ENGLISH</span></span></a>
-</div></div></div>
+</div>
+</div>
+</div>
 <div class="brand">GOLAZOX</div>
 </div>
 <script>
-(function(){var c=document.getElementById('particles');if(!c)return;
-for(var i=0;i<12;i++){var p=document.createElement('div');p.className='particle';p.style.left=Math.random()*100+'%';p.style.animationDuration=(8+Math.random()*12)+'s';p.style.animationDelay=Math.random()*8+'s';p.style.width=p.style.height=(1+Math.random()*2)+'px';c.appendChild(p)}})();
+(function(){
+  var c=document.getElementById('particles');
+  if(c){
+    for(var i=0;i<12;i++){
+      var p=document.createElement('div');
+      p.className='particle';
+      p.style.left=Math.random()*100+'%';
+      p.style.animationDuration=(8+Math.random()*12)+'s';
+      p.style.animationDelay=Math.random()*8+'s';
+      p.style.width=p.style.height=(1+Math.random()*2)+'px';
+      c.appendChild(p);
+    }
+  }
+
+  var btn=document.getElementById('enterSiteBtn');
+  var gate=document.getElementById('landingGate');
+  var panel=document.getElementById('languagePanel');
+
+  if(btn && gate && panel){
+    btn.addEventListener('click',function(){
+      btn.disabled=true;
+      gate.classList.add('gate-hide');
+      setTimeout(function(){
+        gate.style.display='none';
+        panel.hidden=false;
+        panel.classList.add('lang-show');
+      },330);
+    });
+  }
+})();
 </script>
 </body></html>""".replace("LANG", "en" if en else "ar") \
         .replace("DIR", "ltr" if en else "rtl") \
@@ -6493,16 +6564,13 @@ def track():
 
 @app.route("/lang/<l>")
 def setlang(l):
-    if l not in ("ar", "en"):
-        return redirect("/")
-    r = redirect("/home")
+    r = redirect("/home" if request.cookies.get("lang") else "/")
     r.set_cookie("lang", l, max_age=31536000)
     return r
 
 
 @app.route("/enter/<l>")
 def enter(l):
-    # Language must be selected first, then enter the actual site.
     if l not in ("ar", "en"):
         return redirect("/")
     r = redirect("/home")

@@ -6742,8 +6742,9 @@ def jersey_tunnel_page(selected_lang):
         name = p.get("name_en" if en else "name_ar", p.get("id", "Jersey"))
         img = (p.get("imgs") or [""])[0]
         cards.append(
-            '<div class="jt-jersey"><div class="jt-card"><img src="/img/%s" alt=""><span>%s</span></div></div>'
-            % (esc(img), esc(name))
+            '<div class="jt-jersey"><div class="jt-card"><img src="/img/__IMG__" alt=""><span>__NAME__</span></div></div>'
+            .replace("__IMG__", esc(img))
+            .replace("__NAME__", esc(name))
         )
     cards_html = "".join(cards)
 
@@ -6758,51 +6759,51 @@ def jersey_tunnel_page(selected_lang):
     enter = "ENTER THE STADIUM" if en else "ادخل الملعب"
 
     html = """<!doctype html>
-<html lang="%s" dir="%s">
+<html lang="__LANG__" dir="__DIR__">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>GOLAXOX — Jersey Tunnel</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@500;700;800;900&family=Poppins:wght@600;700;800;900&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box}html,body{margin:0;width:100%%;height:100%%;overflow:hidden}
-body{font-family:'%s','Segoe UI',sans-serif;background:#030605;color:#fff}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden}
+body{font-family:'__FONT__','Segoe UI',sans-serif;background:#030605;color:#fff}
 .jt{position:fixed;inset:0;overflow:hidden;background:
-radial-gradient(circle at 50%% 18%%,rgba(24,232,117,.22),transparent 30%%),
-linear-gradient(180deg,#020403 0%%,#07140d 52%%,#020403 100%%)}
-.jt-floor{position:absolute;left:50%%;bottom:-18%%;width:130%%;height:70%%;
-transform:translateX(-50%%) perspective(650px) rotateX(65deg);
+radial-gradient(circle at 50% 18%,rgba(24,232,117,.22),transparent 30%),
+linear-gradient(180deg,#020403 0%,#07140d 52%,#020403 100%)}
+.jt-floor{position:absolute;left:50%;bottom:-18%;width:130%;height:70%;
+transform:translateX(-50%) perspective(650px) rotateX(65deg);
 background:
-linear-gradient(90deg,transparent 49.7%%,rgba(255,255,255,.16) 49.9%%,rgba(255,255,255,.16) 50.1%%,transparent 50.3%%),
+linear-gradient(90deg,transparent 49.7%,rgba(255,255,255,.16) 49.9%,rgba(255,255,255,.16) 50.1%,transparent 50.3%),
 repeating-linear-gradient(90deg,rgba(255,255,255,.02) 0 40px,transparent 40px 80px),
-linear-gradient(180deg,#0c2a1b,#06120c 70%%,#020403)}
-.jt-floor:after{content:"";position:absolute;left:50%%;top:8%%;width:180px;height:180px;
-transform:translateX(-50%%);border:2px solid rgba(255,255,255,.1);border-radius:50%%}
-.jt-light{position:absolute;top:-10%%;width:190px;height:420px;
-background:radial-gradient(ellipse at 50%% 10%%,rgba(255,255,255,.34),rgba(24,232,117,.1) 38%%,transparent 72%%);
+linear-gradient(180deg,#0c2a1b,#06120c 70%,#020403)}
+.jt-floor:after{content:"";position:absolute;left:50%;top:8%;width:180px;height:180px;
+transform:translateX(-50%);border:2px solid rgba(255,255,255,.1);border-radius:50%}
+.jt-light{position:absolute;top:-10%;width:190px;height:420px;
+background:radial-gradient(ellipse at 50% 10%,rgba(255,255,255,.34),rgba(24,232,117,.1) 38%,transparent 72%);
 filter:blur(12px);animation:jtPulse 3s ease-in-out infinite}
-.jt-light.a{left:5%%}.jt-light.b{right:5%%;animation-delay:1s}
-.jt-fog{position:absolute;left:-15%%;right:-15%%;bottom:10%%;height:24%%;
+.jt-light.a{left:5%}.jt-light.b{right:5%;animation-delay:1s}
+.jt-fog{position:absolute;left:-15%;right:-15%;bottom:10%;height:24%;
 background:linear-gradient(180deg,transparent,rgba(255,255,255,.05),transparent);
 filter:blur(20px);animation:jtFog 8s ease-in-out infinite alternate}
-.jt-crowd{position:absolute;left:0;right:0;bottom:28%%;height:13%%;opacity:.7;
+.jt-crowd{position:absolute;left:0;right:0;bottom:28%;height:13%;opacity:.7;
 background:
-radial-gradient(circle at 10%% 50%%,rgba(255,255,255,.18) 0 2px,transparent 3px),
-radial-gradient(circle at 35%% 40%%,rgba(24,232,117,.2) 0 2px,transparent 3px),
-radial-gradient(circle at 65%% 55%%,rgba(255,255,255,.15) 0 2px,transparent 3px),
-radial-gradient(circle at 90%% 42%%,rgba(24,232,117,.2) 0 2px,transparent 3px);
+radial-gradient(circle at 10% 50%,rgba(255,255,255,.18) 0 2px,transparent 3px),
+radial-gradient(circle at 35% 40%,rgba(24,232,117,.2) 0 2px,transparent 3px),
+radial-gradient(circle at 65% 55%,rgba(255,255,255,.15) 0 2px,transparent 3px),
+radial-gradient(circle at 90% 42%,rgba(24,232,117,.2) 0 2px,transparent 3px);
 background-size:48px 48px,55px 55px,50px 50px,63px 63px;
 animation:jtCrowd 5s linear infinite}
 .jt-meta{position:absolute;top:18px;left:20px;right:20px;display:flex;justify-content:space-between;
 font-size:.6rem;letter-spacing:2px;color:rgba(255,255,255,.42);z-index:5}
 .jt-live{color:#18e875}
-.jt-side{position:absolute;top:14%%;bottom:13%%;width:18%%;display:flex;flex-direction:column;justify-content:space-between;z-index:3}
-.jt-left{left:2%%}.jt-right{right:2%%}
+.jt-side{position:absolute;top:14%;bottom:13%;width:18%;display:flex;flex-direction:column;justify-content:space-between;z-index:3}
+.jt-left{left:2%}.jt-right{right:2%}
 .jt-jersey{width:min(150px,14vw);filter:drop-shadow(0 14px 30px rgba(0,0,0,.6));animation:jtFloat 4s ease-in-out infinite}
 .jt-jersey:nth-child(2){animation-delay:.5s}.jt-jersey:nth-child(3){animation-delay:1s}
 .jt-card{padding:7px;border-radius:16px;background:rgba(0,0,0,.28);border:1px solid rgba(24,232,117,.16);
 backdrop-filter:blur(7px)}
-.jt-card img{display:block;width:100%%;aspect-ratio:3/4;object-fit:contain}
+.jt-card img{display:block;width:100%;aspect-ratio:3/4;object-fit:contain}
 .jt-card span{display:block;margin-top:4px;font-size:.55rem;color:rgba(255,255,255,.65)}
 .jt-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
 text-align:center;z-index:4;padding:20px}
@@ -6815,11 +6816,11 @@ text-align:center;z-index:4;padding:20px}
 color:#031009;border-radius:16px;padding:14px 25px;min-width:250px;font-weight:900;cursor:pointer;
 box-shadow:0 0 34px rgba(24,232,117,.25);transition:.25s transform,.25s box-shadow}
 .jt-enter:hover{transform:translateY(-3px);box-shadow:0 0 50px rgba(24,232,117,.35)}.jt-sound{position:absolute;left:18px;bottom:18px;z-index:8;border:1px solid rgba(24,232,117,.25);background:rgba(0,0,0,.48);color:#fff;border-radius:999px;padding:9px 12px;font-weight:800;backdrop-filter:blur(10px);cursor:pointer}.jt-sound.on{border-color:rgba(24,232,117,.6);box-shadow:0 0 18px rgba(24,232,117,.18)}
-@keyframes jtPulse{0%%,100%%{opacity:.45}50%%{opacity:1}}
-@keyframes jtFog{from{transform:translateX(-3%%)}to{transform:translateX(3%%)}}
+@keyframes jtPulse{0%,100%{opacity:.45}50%{opacity:1}}
+@keyframes jtFog{from{transform:translateX(-3%)}to{transform:translateX(3%)}}
 @keyframes jtCrowd{from{transform:translateX(0)}to{transform:translateX(48px)}}
-@keyframes jtFloat{0%%,100%%{transform:translateY(0)}50%%{transform:translateY(-8px)}}
-@keyframes jtBall{0%%,100%%{transform:translateY(0) rotate(0)}50%%{transform:translateY(-7px) rotate(10deg)}}
+@keyframes jtFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes jtBall{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-7px) rotate(10deg)}}
 @media(max-width:760px){
   .jt-side{display:none}.jt-title{font-size:2.35rem}.jt-sub{font-size:.72rem}.jt-copy{font-size:.7rem;max-width:315px}
   .jt-enter{width:88vw;min-height:54px}
@@ -6833,14 +6834,14 @@ box-shadow:0 0 34px rgba(24,232,117,.25);transition:.25s transform,.25s box-shad
   <div class="jt-floor"></div><div class="jt-light a"></div><div class="jt-light b"></div>
   <div class="jt-fog"></div><div class="jt-crowd"></div>
   <div class="jt-meta"><span>GOLAXOX • MATCHDAY</span><span class="jt-live">● STADIUM LIVE</span></div>
-  <div class="jt-side jt-left">%s</div><div class="jt-side jt-right">%s</div>
+  <div class="jt-side jt-left">__CARDS__</div><div class="jt-side jt-right">__CARDS__</div>
   <section class="jt-center">
     <div class="jt-kicker">JERSEY TUNNEL</div>
     <div class="jt-title">GOLAXOX</div>
-    <div class="jt-sub">%s</div>
-    <div class="jt-copy">%s</div>
+    <div class="jt-sub">__SUB__</div>
+    <div class="jt-copy">__COPY__</div>
     <div class="jt-ball">⚽</div>
-    <button class="jt-enter" onclick="enterStadium()">⚽ %s</button>
+    <button class="jt-enter" onclick="enterStadium()">⚽ __ENTER__</button>
   </section>
 </div>
 <script>
@@ -6953,8 +6954,19 @@ function enterStadium(){
 })();
 </script>
 
-</body></html>""" % (lang_code, direction, font, cards_html, cards_html, sub, copy, enter)
+</body></html>"""
 
+    html = html.replace("__LANG__", lang_code)
+    html = html.replace("__DIR__", direction)
+    html = html.replace("__FONT__", font)
+    html = html.replace("__CARDS__", cards_html)
+    html = html.replace("__SUB__", sub)
+    html = html.replace("__COPY__", copy)
+    html = html.replace("__ENTER__", enter)
+
+    # The HTML template was originally escaped for %-formatting; undo that
+    # escaping now that we no longer use %-formatting.
+    html = html.replace("%", "%")
     return html
 
 def make_enter():

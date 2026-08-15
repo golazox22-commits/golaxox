@@ -2972,6 +2972,8 @@ function lbReset(){ lbZoomLv=1; lbPanX=0; lbPanY=0; lbApply(); }
 document.addEventListener('DOMContentLoaded',function(){
   var lb=$('lb'), stage=$('lbStage'), img=$('lbimg'); if(!lb||!img) return;
   stage.addEventListener('click',function(e){ if(e.target===stage) closeLB(); });
+  try{ cheerSound(true); }catch(e){}
+  document.addEventListener('pointerdown',function once(){ try{ cheerSound(true); }catch(e){} document.removeEventListener('pointerdown',once,true); },true);
   lb.addEventListener('wheel',function(e){ if(!lb.classList.contains('open')) return; e.preventDefault();
     lbZoom(e.deltaY<0?1:-1,.15); }, {passive:false});
   img.addEventListener('mousedown',function(e){ if(lbZoomLv<=1) return; e.preventDefault();
@@ -3650,59 +3652,106 @@ function cheerNow(){
   confetti(30);
   if(gxGet('gx_mute')!=='1') cheerSound();
 }
-var cheerCtx=null, crowdStarted=false, crowdNodes=[];
-function cheerSound(){
+var cheerCtx=null, crowdStarted=false, crowdMaster=null, crowdNodes=[], crowdPulseTimer=null, crowdStopTimer=null;
+function cheerSound(autoStart){
   try{
     var AC=window.AudioContext||window.webkitAudioContext;
     if(!AC)return;
     if(!cheerCtx) cheerCtx=new AC();
-    if(cheerCtx.state==='suspended') cheerCtx.resume().catch(function(){});
-    if(crowdStarted)return;
-    crowdStarted=true;
+    var boot=function(){
+      if(cheerCtx.state==='suspended') cheerCtx.resume().catch(function(){});
+      if(crowdStarted)return;
+      crowdStarted=true;
+      var now=cheerCtx.currentTime;
+      crowdMaster=cheerCtx.createGain();
+      crowdMaster.gain.setValueAtTime(0.0001,now);
+      crowdMaster.gain.exponentialRampToValueAtTime(0.035,now+1.8);
+      crowdMaster.gain.exponentialRampToValueAtTime(0.105,now+6.5);
+      crowdMaster.gain.setValueAtTime(0.072,now+11);
+      crowdMaster.connect(cheerCtx.destination);
+      crowdNodes.push(crowdMaster);
 
-    var master=cheerCtx.createGain();
-    master.gain.setValueAtTime(0.0001,cheerCtx.currentTime);
-    master.gain.exponentialRampToValueAtTime(0.035,cheerCtx.currentTime+4.5);
-    master.connect(cheerCtx.destination);
-    crowdNodes.push(master);
-
-    function noiseLayer(type,frequency,Q,level){
-      var seconds=2.5, len=Math.floor(cheerCtx.sampleRate*seconds);
-      var b=cheerCtx.createBuffer(1,len,cheerCtx.sampleRate), data=b.getChannelData(0);
-      for(var i=0;i<len;i++){
-        var slow=0.72+0.28*Math.sin(i/7000)+0.08*Math.sin(i/1700);
-        data[i]=(Math.random()*2-1)*slow;
+      function noiseLayer(filterType,frequency,Q,level){
+        var seconds=3.2, len=Math.floor(cheerCtx.sampleRate*seconds), b=cheerCtx.createBuffer(1,len,cheerCtx.sampleRate), data=b.getChannelData(0);
+        for(var i=0;i<len;i++){
+          var t=i/cheerCtx.sampleRate;
+          var swell=0.82+0.18*Math.sin(2*Math.PI*t/1.7)+0.10*Math.sin(2*Math.PI*t/0.47);
+          data[i]=(Math.random()*2-1)*Math.max(0.12,swell);
+        }
+        var src=cheerCtx.createBufferSource(); src.buffer=b; src.loop=true;
+        var f=cheerCtx.createBiquadFilter(); f.type=filterType; f.frequency.value=frequency; f.Q.value=Q;
+        var g=cheerCtx.createGain(); g.gain.value=level;
+        src.connect(f); f.connect(g); g.connect(crowdMaster); src.start(); crowdNodes.push(src);
       }
-      var src=cheerCtx.createBufferSource(); src.buffer=b; src.loop=true;
-      var f=cheerCtx.createBiquadFilter(); f.type=type; f.frequency.value=frequency; f.Q.value=Q;
-      var g=cheerCtx.createGain(); g.gain.value=level;
-      src.connect(f); f.connect(g); g.connect(master); src.start();
-      crowdNodes.push(src);
-    }
-    noiseLayer('lowpass',900,0.45,0.72);   // crowd murmur
-    noiseLayer('bandpass',1800,0.65,0.24);  // excited voices
-    noiseLayer('highpass',3000,0.25,0.08);  // distant claps/air
+      // Broad crowd bed + excited midrange voices.
+      noiseLayer('lowpass',650,0.32,0.42);
+      noiseLayer('bandpass',1450,0.58,0.22);
+      noiseLayer('highpass',3200,0.28,0.06);
 
-    // Very soft chant-like swell, kept behind the ambience.
-    var osc=cheerCtx.createOscillator(), og=cheerCtx.createGain();
-    osc.type='sine'; osc.frequency.value=118; og.gain.value=0.006;
-    osc.connect(og); og.connect(master); osc.start(); crowdNodes.push(osc);
+      // Layered chant-like "oh-oh" harmonics — musical crowd energy, not a piercing tone.
+      [98,123.5,147].forEach(function(freq,idx){
+        var o=cheerCtx.createOscillator(), g=cheerCtx.createGain();
+        o.type='triangle'; o.frequency.value=freq;
+        g.gain.value=0.0001;
+        o.connect(g); g.connect(crowdMaster); o.start(); crowdNodes.push(o,g);
+        (function(oscGain,shift){
+          var t=cheerCtx.currentTime+shift;
+          setInterval(function(){
+            if(!cheerCtx || !crowdMaster)return;
+            var n=cheerCtx.currentTime;
+            oscGain.gain.cancelScheduledValues(n);
+            oscGain.gain.setValueAtTime(0.0001,n);
+            oscGain.gain.linearRampToValueAtTime(0.012,n+0.10);
+            oscGain.gain.linearRampToValueAtTime(0.003,n+0.72);
+            oscGain.gain.exponentialRampToValueAtTime(0.0001,n+1.1);
+          }, 1800+shift);
+        })(g,idx*260);
+      });
 
-    var pulse=setInterval(function(){
-      if(!cheerCtx || !master){clearInterval(pulse);return;}
-      var now=cheerCtx.currentTime, g=cheerCtx.createGain();
-      g.gain.setValueAtTime(0.0001,now);
-      g.gain.linearRampToValueAtTime(0.012,now+0.12);
-      g.gain.exponentialRampToValueAtTime(0.0001,now+0.9);
-      var n=cheerCtx.createBufferSource(), len=Math.floor(cheerCtx.sampleRate*.9), b=cheerCtx.createBuffer(1,len,cheerCtx.sampleRate), d=b.getChannelData(0);
-      for(var j=0;j<len;j++)d[j]=(Math.random()*2-1)*(1-j/len);
-      n.buffer=b; var f=cheerCtx.createBiquadFilter(); f.type='bandpass'; f.frequency.value=1300+Math.random()*900; f.Q.value=.5; n.connect(f); f.connect(g); g.connect(master); n.start(now); n.stop(now+.92);
-    },2400);
-    setTimeout(function(){clearInterval(pulse)},42000);
+      // Periodic bursts: claps + distant roar swells.
+      crowdPulseTimer=setInterval(function(){
+        if(!cheerCtx||!crowdMaster)return;
+        var n=cheerCtx.currentTime;
+        var g=cheerCtx.createGain();
+        g.gain.setValueAtTime(0.0001,n);
+        g.gain.exponentialRampToValueAtTime(0.018,n+0.025);
+        g.gain.exponentialRampToValueAtTime(0.0001,n+0.55);
+        var bufLen=Math.floor(cheerCtx.sampleRate*.55), b=cheerCtx.createBuffer(1,bufLen,cheerCtx.sampleRate), d=b.getChannelData(0);
+        for(var j=0;j<bufLen;j++)d[j]=(Math.random()*2-1)*(1-j/bufLen);
+        var src=cheerCtx.createBufferSource(); src.buffer=b;
+        var f=cheerCtx.createBiquadFilter(); f.type='bandpass'; f.frequency.value=1900+Math.random()*700; f.Q.value=.45;
+        src.connect(f); f.connect(g); g.connect(crowdMaster); src.start(n); src.stop(n+.58);
+      }, 1300);
+
+      var roarTimer=setInterval(function(){
+        if(!cheerCtx || !crowdMaster) return;
+        var n=cheerCtx.currentTime, g=cheerCtx.createGain();
+        g.gain.setValueAtTime(0.0001,n);
+        g.gain.exponentialRampToValueAtTime(0.045,n+0.35);
+        g.gain.exponentialRampToValueAtTime(0.0001,n+1.8);
+        var len=Math.floor(cheerCtx.sampleRate*1.8), b=cheerCtx.createBuffer(1,len,cheerCtx.sampleRate), d=b.getChannelData(0);
+        for(var k=0;k<len;k++){
+          var tt=k/cheerCtx.sampleRate;
+          var env=Math.sin(Math.PI*tt/1.8);
+          d[k]=(Math.random()*2-1)*env;
+        }
+        var src=cheerCtx.createBufferSource(); src.buffer=b;
+        var f=cheerCtx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=1100; f.Q.value=.32;
+        src.connect(f); f.connect(g); g.connect(crowdMaster); src.start(n); src.stop(n+1.82);
+      }, 7800);
+      crowdNodes.push({stop:function(){clearInterval(roarTimer)}});
+      crowdStopTimer=setTimeout(function(){
+        if(crowdPulseTimer){clearInterval(crowdPulseTimer);crowdPulseTimer=null;}
+        if(crowdNodes.some(function(x){return x && typeof x.stop==='function';})) crowdNodes.filter(function(x){return x && typeof x.stop==='function';}).forEach(function(x){try{x.stop();}catch(e){}});
+      }, 60000);
+    };
+    if(autoStart && cheerCtx.state==='running') boot();
+    else cheerCtx.resume().then(boot).catch(function(){});
   }catch(e){}
 }
 function cheerToggle(){
   var m=gxGet('gx_mute')==='1'; gxSet('gx_mute',m?'0':'1');
+  if(crowdMaster){ crowdMaster.gain.cancelScheduledValues(cheerCtx.currentTime); crowdMaster.gain.setTargetAtTime(m?0.055:0.0001,cheerCtx.currentTime,.2); }
   var b=$('cheerBtn'); if(b) b.textContent=m?gxT('ch_btn'):('🔇 '+gxT('ch_mute'));
 }
 /* ---------- account sections ---------- */
@@ -4876,10 +4925,10 @@ def home_body():
     swipe_items=[]
     for i,(cid,ac,ac2,nm,em,img,count) in enumerate(swipe_cards):
         swipe_items.append(('<article class="gx-club-swipe-card" data-index="%d" style="--sw-ac:%s;--sw-ac2:%s">'
-                            '<div class="gx-swipe-bg"></div><div class="gx-swipe-top"><span>%s %s</span><small>%d %s</small></div>'
+                            '<div class="gx-swipe-bg"></div><div class="gx-swipe-top"><span>%s %s</span><small>%s</small></div>'
                             '<div class="gx-swipe-stage"><div class="gx-swipe-glow"></div><img src="/img/%s" alt="%s" loading="lazy"></div>'
                             '<div class="gx-swipe-bottom"><div><b>%s</b><span>%s</span></div><a class="gx-swipe-cta" href="/club/%s">%s →</a></div></article>')
-                           % (i,cid and ac,ac2,em,esc(nm),count,("JERSEYS" if en else "تيشيرتات"),esc(img),esc(nm),esc(nm),("SWIPE TO EXPLORE" if en else "اسحبي لاكتشاف الأندية"),cid,("VIEW CLUB" if en else "شوف النادي")))
+                           % (i,cid and ac,ac2,em,esc(nm),("JERSEY COLLECTION" if en else "تشكيلة قمصان النادي"),esc(img),esc(nm),esc(nm),("SWIPE TO EXPLORE" if en else "اسحبي لاكتشاف الأندية"),cid,("VIEW CLUB" if en else "شوف النادي")))
     club_swipe_sec=('<div class="sec rv gx-club-swipe-wrap" id="clubSwipeSection"><div class="sec-head"><h2><span class="bar"></span>%s</h2><span class="sec-sub">%s</span></div><div class="gx-club-swipe" id="gxClubSwipe">%s</div><div class="gx-swipe-controls"><button type="button" class="gx-swipe-arrow" onclick="gxClubSwipe(-1)">‹</button><div class="gx-swipe-dots" id="gxSwipeDots"></div><button type="button" class="gx-swipe-arrow" onclick="gxClubSwipe(1)">›</button></div><div class="gx-swipe-note" id="gxSwipeNote">%s</div></div>') % (("EXPLORE BY CLUB" if en else "اكتشفي الأندية"),("Swipe the jerseys. Pick your club." if en else "اسحبي بين الأندية وشوفي القميص مباشرة"),"".join(swipe_items),("Swipe ← →" if en else "اسحبي يمين ويسار"))
     return (atmos_html("full")
             + '<div class="wrap">' 
@@ -5541,7 +5590,7 @@ def product_body(pid):
                'function triggerReveal(){var r=document.getElementById("jeReveal");if(r)r.classList.add("open");}'
                'function initJerseyExp(){var r=document.getElementById("jeReveal");if(!r)return;'
                'var io=new IntersectionObserver(function(e){if(e[0].isIntersecting){setTimeout(function(){triggerReveal()},800);io.disconnect();}},{threshold:0.4});io.observe(r);}'
-               'document.addEventListener("DOMContentLoaded",function(){initJerseyExp();});</script>') % p["id"]
+               'document.addEventListener("DOMContentLoaded",function(){initJerseyExp();});</script>') % (p["id"], p["id"], p["id"])
 
     one = len(p["imgs"]) <= 1
     gal_nav = "" if one else (

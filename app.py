@@ -143,7 +143,9 @@ def cur():
 
 
 def fmt_cur(v):
-    return "%.3f %s" % (v, cur())
+    v = float(v or 0)
+    text = str(int(v)) if v.is_integer() else ("%.3f" % v).rstrip("0").rstrip(".")
+    return "%s %s" % (text, cur())
 
 
 def prod_json(p):
@@ -2766,7 +2768,7 @@ function pickLoyal(cid,btn){
   if(out) out.style.display='block';
 }
 function esc(s){ var d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
-function pmoney(v){ return (Math.round(v*1000)/1000).toFixed(3); }
+function pmoney(v){ var n=Math.round(Number(v)*1000)/1000; return Number.isInteger(n)?String(n):String(n).replace(/0+$/,"").replace(/[.]$/,""); }
 /* ---------- search & filters ---------- */
 var filters={club:'all',type:'all',size:'all',color:'all',cat:'all',fav:false};
 function gxStock(c){ try{ return JSON.parse(c.getAttribute('data-stock')||'{}'); }catch(e){ return {}; } }
@@ -5159,7 +5161,7 @@ function sgCalc(){
         +'<img src="/img/'+p.img+'" alt="'+p.name+'" loading="lazy"></div></a>'
         +'<div class="pbody"><span class="pcat">'+p.club+'</span>'
         +'<h3>'+p.name+'</h3>'
-        +'<div class="pfoot"><b>'+p.price.toFixed(3)+' '+SG_CUR+'</b>'
+        +'<div class="pfoot"><b>'+(Number.isInteger(Number(p.price))?String(Number(p.price)):String(Number(p.price)).replace(/0+$/,'').replace(/\.$/,''))+' '+SG_CUR+'</b>'
         +'<a class="pview" href="/product/'+p.id+'">\u2190</a></div></div></div>';
     }).join('');
   }

@@ -339,6 +339,17 @@ def img(name):
     return Response(placeholder_svg(p, label, sub), mimetype="image/svg+xml")
 
 
+# ============================== AUDIO ASSET ==============================
+CROWD_AUDIO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "golaxox-crowd.mp3")
+
+@app.route("/audio/golaxox-crowd.mp3")
+def golaxox_crowd_audio():
+    if not os.path.exists(CROWD_AUDIO):
+        return Response("", status=404, mimetype="audio/mpeg")
+    return send_file(CROWD_AUDIO, mimetype="audio/mpeg", max_age=31536000)
+
+
+
 # ============================== PAGE TEMPLATES ==============================
 CSS = """<style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -3589,108 +3600,41 @@ function cheerNow(){
   confetti(30);
   if(gxGet('gx_mute')!=='1') cheerSound();
 }
-var cheerCtx=null, crowdStarted=false, crowdMaster=null, crowdNodes=[], crowdPulseTimer=null, crowdStopTimer=null;
-function cheerSound(autoStart){
+var cheerAudio=null, crowdStarted=false, crowdFadeTimer=null;
+function cheerSound(){
   try{
-    var AC=window.AudioContext||window.webkitAudioContext;
-    if(!AC)return;
-    if(!cheerCtx) cheerCtx=new AC();
-    var boot=function(){
-      if(cheerCtx.state==='suspended') cheerCtx.resume().catch(function(){});
-      if(crowdStarted)return;
-      crowdStarted=true;
-      var now=cheerCtx.currentTime;
-      crowdMaster=cheerCtx.createGain();
-      crowdMaster.gain.setValueAtTime(0.0001,now);
-      crowdMaster.gain.exponentialRampToValueAtTime(0.035,now+1.8);
-      crowdMaster.gain.exponentialRampToValueAtTime(0.105,now+6.5);
-      crowdMaster.gain.setValueAtTime(0.072,now+11);
-      crowdMaster.connect(cheerCtx.destination);
-      crowdNodes.push(crowdMaster);
-
-      function noiseLayer(filterType,frequency,Q,level){
-        var seconds=3.2, len=Math.floor(cheerCtx.sampleRate*seconds), b=cheerCtx.createBuffer(1,len,cheerCtx.sampleRate), data=b.getChannelData(0);
-        for(var i=0;i<len;i++){
-          var t=i/cheerCtx.sampleRate;
-          var swell=0.82+0.18*Math.sin(2*Math.PI*t/1.7)+0.10*Math.sin(2*Math.PI*t/0.47);
-          data[i]=(Math.random()*2-1)*Math.max(0.12,swell);
-        }
-        var src=cheerCtx.createBufferSource(); src.buffer=b; src.loop=true;
-        var f=cheerCtx.createBiquadFilter(); f.type=filterType; f.frequency.value=frequency; f.Q.value=Q;
-        var g=cheerCtx.createGain(); g.gain.value=level;
-        src.connect(f); f.connect(g); g.connect(crowdMaster); src.start(); crowdNodes.push(src);
-      }
-      // Broad crowd bed + excited midrange voices.
-      noiseLayer('lowpass',650,0.32,0.42);
-      noiseLayer('bandpass',1450,0.58,0.22);
-      noiseLayer('highpass',3200,0.28,0.06);
-
-      // Layered chant-like "oh-oh" harmonics — musical crowd energy, not a piercing tone.
-      [98,123.5,147].forEach(function(freq,idx){
-        var o=cheerCtx.createOscillator(), g=cheerCtx.createGain();
-        o.type='triangle'; o.frequency.value=freq;
-        g.gain.value=0.0001;
-        o.connect(g); g.connect(crowdMaster); o.start(); crowdNodes.push(o,g);
-        (function(oscGain,shift){
-          var t=cheerCtx.currentTime+shift;
-          setInterval(function(){
-            if(!cheerCtx || !crowdMaster)return;
-            var n=cheerCtx.currentTime;
-            oscGain.gain.cancelScheduledValues(n);
-            oscGain.gain.setValueAtTime(0.0001,n);
-            oscGain.gain.linearRampToValueAtTime(0.012,n+0.10);
-            oscGain.gain.linearRampToValueAtTime(0.003,n+0.72);
-            oscGain.gain.exponentialRampToValueAtTime(0.0001,n+1.1);
-          }, 1800+shift);
-        })(g,idx*260);
-      });
-
-      // Periodic bursts: claps + distant roar swells.
-      crowdPulseTimer=setInterval(function(){
-        if(!cheerCtx||!crowdMaster)return;
-        var n=cheerCtx.currentTime;
-        var g=cheerCtx.createGain();
-        g.gain.setValueAtTime(0.0001,n);
-        g.gain.exponentialRampToValueAtTime(0.018,n+0.025);
-        g.gain.exponentialRampToValueAtTime(0.0001,n+0.55);
-        var bufLen=Math.floor(cheerCtx.sampleRate*.55), b=cheerCtx.createBuffer(1,bufLen,cheerCtx.sampleRate), d=b.getChannelData(0);
-        for(var j=0;j<bufLen;j++)d[j]=(Math.random()*2-1)*(1-j/bufLen);
-        var src=cheerCtx.createBufferSource(); src.buffer=b;
-        var f=cheerCtx.createBiquadFilter(); f.type='bandpass'; f.frequency.value=1900+Math.random()*700; f.Q.value=.45;
-        src.connect(f); f.connect(g); g.connect(crowdMaster); src.start(n); src.stop(n+.58);
-      }, 1300);
-
-      var roarTimer=setInterval(function(){
-        if(!cheerCtx || !crowdMaster) return;
-        var n=cheerCtx.currentTime, g=cheerCtx.createGain();
-        g.gain.setValueAtTime(0.0001,n);
-        g.gain.exponentialRampToValueAtTime(0.045,n+0.35);
-        g.gain.exponentialRampToValueAtTime(0.0001,n+1.8);
-        var len=Math.floor(cheerCtx.sampleRate*1.8), b=cheerCtx.createBuffer(1,len,cheerCtx.sampleRate), d=b.getChannelData(0);
-        for(var k=0;k<len;k++){
-          var tt=k/cheerCtx.sampleRate;
-          var env=Math.sin(Math.PI*tt/1.8);
-          d[k]=(Math.random()*2-1)*env;
-        }
-        var src=cheerCtx.createBufferSource(); src.buffer=b;
-        var f=cheerCtx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=1100; f.Q.value=.32;
-        src.connect(f); f.connect(g); g.connect(crowdMaster); src.start(n); src.stop(n+1.82);
-      }, 7800);
-      crowdNodes.push({stop:function(){clearInterval(roarTimer)}});
-      crowdStopTimer=setTimeout(function(){
-        if(crowdPulseTimer){clearInterval(crowdPulseTimer);crowdPulseTimer=null;}
-        if(crowdNodes.some(function(x){return x && typeof x.stop==='function';})) crowdNodes.filter(function(x){return x && typeof x.stop==='function';}).forEach(function(x){try{x.stop();}catch(e){}});
-      }, 60000);
-    };
-    if(autoStart && cheerCtx.state==='running') boot();
-    else cheerCtx.resume().then(boot).catch(function(){});
+    if(!cheerAudio){
+      cheerAudio=new Audio('/audio/golaxox-crowd.mp3');
+      cheerAudio.loop=true;
+      cheerAudio.preload='auto';
+      cheerAudio.volume=0.0001;
+      cheerAudio.setAttribute('playsinline','');
+    }
+    if(crowdStarted && !cheerAudio.paused) return;
+    var p=cheerAudio.play();
+    if(p && p.catch) p.catch(function(){});
+    crowdStarted=true;
+    clearInterval(crowdFadeTimer);
+    var v=0.02;
+    cheerAudio.volume=v;
+    crowdFadeTimer=setInterval(function(){
+      if(!cheerAudio){ clearInterval(crowdFadeTimer); return; }
+      v=Math.min(0.34,v+0.018);
+      try{cheerAudio.volume=v;}catch(e){}
+      if(v>=0.34){ clearInterval(crowdFadeTimer); }
+    },450);
   }catch(e){}
 }
 function cheerToggle(){
-  var m=gxGet('gx_mute')==='1'; gxSet('gx_mute',m?'0':'1');
-  if(crowdMaster){ crowdMaster.gain.cancelScheduledValues(cheerCtx.currentTime); crowdMaster.gain.setTargetAtTime(m?0.055:0.0001,cheerCtx.currentTime,.2); }
-  var b=$('cheerBtn'); if(b) b.textContent=m?gxT('ch_btn'):('🔇 '+gxT('ch_mute'));
+  var muted=gxGet('gx_mute')==='1';
+  gxSet('gx_mute', muted?'0':'1');
+  if(cheerAudio){
+    if(muted){ cheerAudio.muted=false; try{cheerAudio.play().catch(function(){});}catch(e){} }
+    else { cheerAudio.muted=true; }
+  }
+  var b=$('cheerBtn'); if(b) b.textContent=muted?gxT('ch_btn'):('🔇 '+gxT('ch_mute'));
 }
+
 /* ---------- account sections ---------- */
 function loadFavs(){
   var box=$('favsBox'); if(!box) return;
@@ -4214,7 +4158,7 @@ MODALS
   document.addEventListener('DOMContentLoaded',function(){
     updateGxSoundUI(); renderRecent(); fanMoment();
     // Start the stadium crowd as early as the browser allows; on mobile the first tap resumes it.
-    if(safeGet('gx_sound_enabled',true) && typeof cheerSound==='function'){
+    if(safeGet('gx_sound_enabled',true) && safeGet('gx_mute','0')!=='1' && typeof cheerSound==='function'){
       try{ cheerSound(); }catch(e){}
       var unlock=function(){ try{ if(typeof cheerSound==='function') cheerSound(); }catch(e){} };
       document.addEventListener('pointerdown',unlock,{once:true,passive:true});

@@ -2647,7 +2647,6 @@ html[data-theme="light"] .mtk-jstep.done b, html[data-theme="light"] .mtk-jstep.
   .pen-goal { width:200px; height:90px; }
 }
 /* ===== GOLAXOX MOBILE EXPERIENCE UPGRADE ===== */
-</style>
 .gx-fan-moment{margin:18px 0;padding:14px 16px;border:1px solid rgba(24,232,117,.14);border-radius:18px;background:linear-gradient(135deg,rgba(24,232,117,.07),rgba(255,255,255,.025));display:flex;align-items:center;justify-content:center;gap:10px;text-align:center;min-height:52px}
 .gx-fan-moment .fm-dot{width:8px;height:8px;border-radius:50%;background:#18E875;box-shadow:0 0 12px rgba(24,232,117,.6);animation:fmPulse 1.8s ease-in-out infinite}
 .gx-fan-moment .fm-text{font-weight:800;color:var(--txt);font-size:.86rem}
@@ -2696,6 +2695,7 @@ linear-gradient(180deg,transparent,rgba(255,255,255,.035))}
 @media(prefers-reduced-motion:reduce){
   .gx-fan-moment .fm-dot,.gx-final-pitch .fp-ball{animation:none}
 }
+</style>
 """
 
 BASE_JS = """<script>

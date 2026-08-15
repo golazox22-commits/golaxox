@@ -2690,7 +2690,6 @@ linear-gradient(180deg,transparent,rgba(255,255,255,.035))}
 @media(prefers-reduced-motion:reduce){
   .gx-fan-moment .fm-dot,.gx-final-pitch .fp-ball{animation:none}
 }
-</style>
 
 /* ============================== ULTIMATE WOW MOBILE ============================== */
 .gx-wow-scan{position:relative;min-height:520px;margin:24px 0;border-radius:30px;overflow:hidden;border:1px solid rgba(255,255,255,.1);background:radial-gradient(circle at 50% 35%,rgba(24,232,117,.16),transparent 24%),linear-gradient(180deg,#020403,#07140d 56%,#020403);box-shadow:0 24px 70px rgba(0,0,0,.45)}
@@ -2709,6 +2708,7 @@ linear-gradient(180deg,transparent,rgba(255,255,255,.035))}
 @media(max-width:640px){.gx-wow-scan{min-height:560px;border-radius:24px}.gx-scan-stage{height:340px}.gx-scan-jersey{width:min(76vw,280px);height:310px}.gx-quiz-opts{grid-template-columns:1fr}.gx-walk{min-height:580px;border-radius:24px}.gx-walk-content{min-height:580px}.gx-walk-jersey{height:300px}}
 @media(prefers-reduced-motion:reduce){.gx-scan-light,.gx-reaction-dot,.gx-walk-jersey{animation:none!important}}
 
+</style>
 """
 
 BASE_JS = """<script>

@@ -2344,6 +2344,31 @@ html[data-theme="light"] .outfit-total b { color: #16A34A; }
   box-shadow:0 8px 24px rgba(24,232,117,.2);transition:all .3s}
 .je-reveal-btn:hover{transform:translateX(-50%) translateY(-2px);box-shadow:0 12px 32px rgba(24,232,117,.3)}
 .je-reveal.open .je-reveal-btn{opacity:0;pointer-events:none;transform:translateX(-50%) translateY(10px)}
+/* GOLAZOX WOW — MOBILE CLUB SWIPE / IMAGE SAFETY */
+.gx-club-swipe-wrap{position:relative}
+.gx-club-swipe{position:relative;height:470px;overflow:hidden;border-radius:24px;touch-action:pan-y;isolation:isolate}
+.gx-club-swipe-card{position:absolute;inset:0;width:100%;height:100%;border-radius:24px;overflow:hidden;border:1px solid color-mix(in srgb,var(--sw-ac,#18E875) 28%,rgba(255,255,255,.08));background:radial-gradient(circle at 50% 18%,color-mix(in srgb,var(--sw-ac,#18E875) 14%,transparent),transparent 34%),linear-gradient(180deg,#07100c 0%,#030605 100%);box-shadow:0 24px 60px rgba(0,0,0,.38);transform-origin:center center;backface-visibility:hidden;will-change:transform,opacity}
+.gx-swipe-bg{position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 56%,color-mix(in srgb,var(--sw-ac,#18E875) 22%,transparent),transparent 31%),linear-gradient(135deg,color-mix(in srgb,var(--sw-ac,#18E875) 8%,transparent),transparent 58%)}
+.gx-swipe-top{position:relative;z-index:3;display:flex;justify-content:space-between;align-items:center;padding:16px 16px 0;font-weight:900;color:#fff}
+.gx-swipe-top span{font-size:.82rem}
+.gx-swipe-top small{font-size:.63rem;color:rgba(255,255,255,.48);letter-spacing:1px}
+.gx-swipe-stage{position:relative;z-index:2;height:315px;margin-top:2px;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:12px 18px 0}
+.gx-swipe-stage::before{content:"";position:absolute;left:50%;bottom:24px;width:68%;height:24px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(ellipse,rgba(0,0,0,.58),transparent 70%);filter:blur(8px);pointer-events:none}
+.gx-swipe-stage img{display:block!important;width:auto!important;height:auto!important;max-width:min(78%,300px)!important;max-height:295px!important;min-width:0!important;min-height:0!important;object-fit:contain!important;object-position:center!important;background:transparent!important;position:relative!important;z-index:3!important;filter:drop-shadow(0 24px 34px rgba(0,0,0,.58)) drop-shadow(0 0 28px color-mix(in srgb,var(--sw-ac,#18E875) 14%,transparent));transform:translateZ(0);}
+.gx-swipe-glow{position:absolute;left:50%;top:46%;width:190px;height:190px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--sw-ac,#18E875) 18%,transparent),transparent 68%);filter:blur(4px);pointer-events:none}
+.gx-swipe-bottom{position:absolute;left:0;right:0;bottom:0;z-index:4;display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding:14px 16px 16px;background:linear-gradient(180deg,transparent,rgba(0,0,0,.78) 36%)}
+.gx-swipe-bottom b{display:block;font-size:1rem;font-weight:900}
+.gx-swipe-bottom span{display:block;margin-top:3px;color:rgba(255,255,255,.46);font-size:.62rem;letter-spacing:1.3px}
+.gx-swipe-cta{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:10px 14px;border-radius:12px;background:linear-gradient(135deg,var(--sw-ac,#18E875),var(--sw-ac2,#0B9F50));color:#031009;font-size:.72rem;font-weight:900;white-space:nowrap;box-shadow:0 8px 20px color-mix(in srgb,var(--sw-ac,#18E875) 16%,transparent)}
+.gx-swipe-controls{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:12px}
+.gx-swipe-arrow{width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,.1);background:var(--card);color:var(--txt);font-size:1.25rem}
+.gx-swipe-arrow:active{transform:scale(.94)}
+.gx-swipe-dots{display:flex;gap:6px;align-items:center;justify-content:center}
+.gx-dot{width:7px;height:7px;border:0;border-radius:50%;padding:0;background:rgba(255,255,255,.2);cursor:pointer}
+.gx-dot.on{width:22px;border-radius:999px;background:var(--ac,#18E875)}
+.gx-swipe-note{text-align:center;margin-top:8px;font-size:.65rem;font-weight:800;color:var(--mut);letter-spacing:1.2px}
+@media(max-width:640px){.gx-club-swipe{height:435px;border-radius:20px}.gx-swipe-stage{height:286px;padding-top:8px}.gx-swipe-stage img{max-width:82%!important;max-height:270px!important}.gx-swipe-bottom{padding:12px}.gx-swipe-cta{min-height:40px;padding:9px 12px;font-size:.68rem}}
+
 /* GOLAZOX WOW — CINEMATIC JERSEY REVEAL */
 .je-reveal{isolation:isolate;touch-action:pan-y}
 .je-reveal::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(circle at 50% 48%,var(--je-glow,rgba(24,232,117,.18)),transparent 30%),radial-gradient(circle at 50% 115%,rgba(255,255,255,.08),transparent 42%),linear-gradient(180deg,rgba(255,255,255,.025),transparent 55%)}
@@ -3625,17 +3650,55 @@ function cheerNow(){
   confetti(30);
   if(gxGet('gx_mute')!=='1') cheerSound();
 }
-var cheerCtx=null;
+var cheerCtx=null, crowdStarted=false, crowdNodes=[];
 function cheerSound(){
   try{
-    cheerCtx=cheerCtx||new (window.AudioContext||window.webkitAudioContext)();
-    var dur=1.3, len=Math.floor(cheerCtx.sampleRate*dur), buf=cheerCtx.createBuffer(1,len,cheerCtx.sampleRate);
-    var ch=buf.getChannelData(0);
-    for(var i=0;i<len;i++){ var env=1-i/len; ch[i]=(Math.random()*2-1)*env*env*(0.55+0.45*Math.sin(i/1600)); }
-    var src=cheerCtx.createBufferSource(); src.buffer=buf;
-    var f=cheerCtx.createBiquadFilter(); f.type='bandpass'; f.frequency.value=850; f.Q.value=0.5;
-    var g=cheerCtx.createGain(); g.gain.value=0.4;
-    src.connect(f); f.connect(g); g.connect(cheerCtx.destination); src.start();
+    var AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC)return;
+    if(!cheerCtx) cheerCtx=new AC();
+    if(cheerCtx.state==='suspended') cheerCtx.resume().catch(function(){});
+    if(crowdStarted)return;
+    crowdStarted=true;
+
+    var master=cheerCtx.createGain();
+    master.gain.setValueAtTime(0.0001,cheerCtx.currentTime);
+    master.gain.exponentialRampToValueAtTime(0.035,cheerCtx.currentTime+4.5);
+    master.connect(cheerCtx.destination);
+    crowdNodes.push(master);
+
+    function noiseLayer(type,frequency,Q,level){
+      var seconds=2.5, len=Math.floor(cheerCtx.sampleRate*seconds);
+      var b=cheerCtx.createBuffer(1,len,cheerCtx.sampleRate), data=b.getChannelData(0);
+      for(var i=0;i<len;i++){
+        var slow=0.72+0.28*Math.sin(i/7000)+0.08*Math.sin(i/1700);
+        data[i]=(Math.random()*2-1)*slow;
+      }
+      var src=cheerCtx.createBufferSource(); src.buffer=b; src.loop=true;
+      var f=cheerCtx.createBiquadFilter(); f.type=type; f.frequency.value=frequency; f.Q.value=Q;
+      var g=cheerCtx.createGain(); g.gain.value=level;
+      src.connect(f); f.connect(g); g.connect(master); src.start();
+      crowdNodes.push(src);
+    }
+    noiseLayer('lowpass',900,0.45,0.72);   // crowd murmur
+    noiseLayer('bandpass',1800,0.65,0.24);  // excited voices
+    noiseLayer('highpass',3000,0.25,0.08);  // distant claps/air
+
+    // Very soft chant-like swell, kept behind the ambience.
+    var osc=cheerCtx.createOscillator(), og=cheerCtx.createGain();
+    osc.type='sine'; osc.frequency.value=118; og.gain.value=0.006;
+    osc.connect(og); og.connect(master); osc.start(); crowdNodes.push(osc);
+
+    var pulse=setInterval(function(){
+      if(!cheerCtx || !master){clearInterval(pulse);return;}
+      var now=cheerCtx.currentTime, g=cheerCtx.createGain();
+      g.gain.setValueAtTime(0.0001,now);
+      g.gain.linearRampToValueAtTime(0.012,now+0.12);
+      g.gain.exponentialRampToValueAtTime(0.0001,now+0.9);
+      var n=cheerCtx.createBufferSource(), len=Math.floor(cheerCtx.sampleRate*.9), b=cheerCtx.createBuffer(1,len,cheerCtx.sampleRate), d=b.getChannelData(0);
+      for(var j=0;j<len;j++)d[j]=(Math.random()*2-1)*(1-j/len);
+      n.buffer=b; var f=cheerCtx.createBiquadFilter(); f.type='bandpass'; f.frequency.value=1300+Math.random()*900; f.Q.value=.5; n.connect(f); f.connect(g); g.connect(master); n.start(now); n.stop(now+.92);
+    },2400);
+    setTimeout(function(){clearInterval(pulse)},42000);
   }catch(e){}
 }
 function cheerToggle(){
@@ -4102,14 +4165,14 @@ MODALS
   function safeSet(key,val){try{localStorage.setItem(key,JSON.stringify(val));}catch(e){}}
 
   window.toggleGxSound=function(){
-    var cur=safeGet('gx_sound_enabled',false);
+    var cur=safeGet('gx_sound_enabled',true);
     safeSet('gx_sound_enabled',!cur);
     updateGxSoundUI();
     if(!cur && typeof cheerSound==='function'){try{cheerSound();}catch(e){}}
   };
   window.updateGxSoundUI=function(){
     var b=document.getElementById('gxSoundToggle'); if(!b)return;
-    var on=!!safeGet('gx_sound_enabled',false);
+    var on=!!safeGet('gx_sound_enabled',true);
     b.textContent=on?'🔊':'🔇'; b.classList.toggle('on',on);
   };
 
@@ -4164,6 +4227,13 @@ MODALS
 
   document.addEventListener('DOMContentLoaded',function(){
     updateGxSoundUI(); renderRecent(); fanMoment();
+    // Start the stadium crowd as early as the browser allows; on mobile the first tap resumes it.
+    if(safeGet('gx_sound_enabled',true) && typeof cheerSound==='function'){
+      try{ cheerSound(); }catch(e){}
+      var unlock=function(){ try{ if(typeof cheerSound==='function') cheerSound(); }catch(e){} };
+      document.addEventListener('pointerdown',unlock,{once:true,passive:true});
+      document.addEventListener('touchstart',unlock,{once:true,passive:true});
+    }
   });
 })();
 </script>

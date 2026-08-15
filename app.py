@@ -2646,142 +2646,7 @@ html[data-theme="light"] .mtk-jstep.done b, html[data-theme="light"] .mtk-jstep.
   .pen-pitch { height:260px; }
   .pen-goal { width:200px; height:90px; }
 }
-/* ===== PENALTY GAME ARENA V2 (new free-play 5-shot challenge) ===== */
-.pga-wrap { --pga-black:#050607; --pga-dark:#0A0D0C; --pga-stadium:#0B1712; --pga-green:#16A34A; --pga-green2:#22C55E; --pga-text:#F5F7F5; --pga-mut:#78817D; --pga-gold:#F5C542;
-  max-width:560px; margin:0 auto; text-align:center; color:var(--pga-text); }
-.pga-screen { display:flex; flex-direction:column; align-items:center; }
-.pga-intro-emoji { font-size:3rem; margin-bottom:6px; filter:drop-shadow(0 0 14px rgba(34,197,94,.35)); }
-.pga-title { font-size:1.5rem; font-weight:900; letter-spacing:.5px; margin-bottom:6px; }
-.pga-sub { color:var(--pga-mut); font-size:.9rem; margin-bottom:16px; max-width:380px; }
-.pga-diff-row { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:6px; }
-.pga-diff { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12); color:var(--pga-text);
-  padding:8px 14px; border-radius:999px; font-weight:700; font-size:.78rem; cursor:pointer; transition:.15s; }
-.pga-diff.on { background:var(--pga-green); border-color:var(--pga-green2); box-shadow:0 0 14px rgba(34,197,94,.4); color:#04150a; }
-.pga-shots-label { color:var(--pga-gold); font-weight:800; font-size:.85rem; margin:10px 0 16px; }
-.pga-start-btn { min-width:200px; font-size:1rem; padding:14px 20px; }
-.pga-sound-toggle { margin-top:14px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14);
-  color:var(--pga-text); width:42px; height:42px; border-radius:50%; font-size:1.1rem; cursor:pointer; }
-.pga-sound-toggle.on { background:var(--pga-green); border-color:var(--pga-green2); }
-
-.pga-hud { width:100%; display:flex; align-items:center; justify-content:space-between; font-weight:900; font-size:.9rem; padding:0 4px; margin-bottom:4px; }
-.pga-hud-c { min-width:90px; text-align:center; }
-.pga-combo { color:var(--pga-gold); font-weight:900; text-shadow:0 0 10px rgba(245,197,66,.5); animation:pgaPop .3s ease; }
-.pga-hud2 { width:100%; display:flex; gap:14px; justify-content:center; font-size:.72rem; color:var(--pga-mut); margin-bottom:10px; }
-.pga-hud2 b { color:var(--pga-text); }
-
-.pga-arena { position:relative; width:100%; max-width:520px; aspect-ratio:4/5; max-height:72vh;
-  border-radius:20px; overflow:hidden; background:
-    radial-gradient(120% 60% at 50% 0%, rgba(22,163,74,.16), transparent 60%),
-    linear-gradient(180deg, var(--pga-black) 0%, var(--pga-stadium) 46%, #0d1f16 100%);
-  border:1px solid rgba(255,255,255,.08); box-shadow:0 20px 50px rgba(0,0,0,.55) inset; }
-.pga-stands { position:absolute; top:0; left:0; right:0; height:14%;
-  background:repeating-linear-gradient(90deg, #0b2417 0 18px, #0f2f1d 18px 36px); opacity:.75; }
-.pga-floodlight { position:absolute; top:-30px; width:36px; height:110px;
-  background:linear-gradient(180deg, rgba(255,255,255,.85), transparent); filter:blur(3px); opacity:.4; }
-.pga-floodlight.l { left:6%; } .pga-floodlight.r { right:6%; }
-.pga-pitch { position:absolute; inset:0; background:repeating-linear-gradient(0deg, transparent 0 40px, rgba(255,255,255,.035) 40px 80px); }
-
-.pga-goal-box { position:absolute; left:50%; top:16%; width:78%; height:34%; transform:translateX(-50%);
-  touch-action:none; cursor:crosshair; }
-.pga-net { position:absolute; inset:6px; background-image:
-    repeating-linear-gradient(0deg, rgba(255,255,255,.16) 0 1px, transparent 1px 14px),
-    repeating-linear-gradient(90deg, rgba(255,255,255,.16) 0 1px, transparent 1px 14px);
-  opacity:.55; transition:transform .18s ease; }
-.pga-net.wobble { animation:pgaNetWobble .5s ease; }
-.pga-post { position:absolute; background:#f5f7f5; box-shadow:0 0 10px rgba(255,255,255,.35); }
-.pga-post.top { top:0; left:0; right:0; height:6px; border-radius:3px; }
-.pga-post.left { top:0; bottom:0; left:0; width:6px; border-radius:3px; }
-.pga-post.right { top:0; bottom:0; right:0; width:6px; border-radius:3px; }
-
-.pga-keeper { position:absolute; left:50%; top:55%; width:15%; height:50%; transform:translate(-50%,-50%);
-  transition:transform .18s cubic-bezier(.2,.9,.3,1.4); z-index:4; }
-.pga-k-body { position:absolute; left:50%; bottom:0; width:100%; height:62%; transform:translateX(-50%);
-  border-radius:40% 40% 12px 12px; background:linear-gradient(180deg,#facc15,#ca8a04); }
-.pga-k-head { position:absolute; left:50%; top:0; width:55%; aspect-ratio:1; transform:translateX(-50%);
-  border-radius:50%; background:#fcd9b8; }
-.pga-k-arm { position:absolute; top:28%; width:20%; height:46%; border-radius:12px; background:#facc15; transition:transform .18s; }
-.pga-k-arm.l { left:-14%; transform-origin:top right; }
-.pga-k-arm.r { right:-14%; transform-origin:top left; }
-.pga-k-leg { position:absolute; bottom:0; width:22%; height:30%; border-radius:8px; background:#7c3aed22; background:#111; opacity:.001; }
-.pga-keeper.idle { animation:pgaKeeperIdle 2.2s ease-in-out infinite; }
-.pga-keeper.dive-l { transform:translate(-50%,-50%) translateX(-58%) rotate(-24deg); }
-.pga-keeper.dive-r { transform:translate(-50%,-50%) translateX(58%) rotate(24deg); }
-.pga-keeper.dive-tl { transform:translate(-50%,-50%) translate(-58%,-40%) rotate(-24deg); }
-.pga-keeper.dive-tr { transform:translate(-50%,-50%) translate(58%,-40%) rotate(24deg); }
-.pga-keeper.dive-bl { transform:translate(-50%,-50%) translate(-58%,26%) rotate(-16deg); }
-.pga-keeper.dive-br { transform:translate(-50%,-50%) translate(58%,26%) rotate(16deg); }
-.pga-keeper.dive-up { transform:translate(-50%,-50%) translateY(-30%) scale(1.06); }
-.pga-keeper.dive-stay { transform:translate(-50%,-50%) scale(1.04); }
-
-.pga-aim { position:absolute; width:26px; height:26px; margin:-13px 0 0 -13px; font-size:20px;
-  line-height:26px; pointer-events:none; z-index:5; filter:drop-shadow(0 0 4px rgba(0,0,0,.6)); }
-.pga-hint { position:absolute; bottom:-26px; left:50%; transform:translateX(-50%); font-size:.72rem;
-  color:var(--pga-mut); white-space:nowrap; }
-
-.pga-ball { position:absolute; left:50%; bottom:6%; width:9%; aspect-ratio:1; font-size:26px; line-height:1;
-  transform:translate(-50%,50%); z-index:6; filter:drop-shadow(0 6px 6px rgba(0,0,0,.5)); }
-.pga-ball.flying { transition:none; filter:drop-shadow(0 6px 6px rgba(0,0,0,.5)) blur(.4px); }
-
-.pga-flash { position:absolute; inset:0; background:rgba(34,197,94,.28); opacity:0; pointer-events:none; z-index:7; }
-.pga-flash.on { animation:pgaFlash .35s ease; }
-
-.pga-result { position:absolute; inset:0; display:none; align-items:center; justify-content:center;
-  flex-direction:column; gap:6px; background:rgba(2,6,23,.55); z-index:8; border-radius:20px; }
-.pga-result.show { display:flex; }
-.pga-result .big { font-size:2.2rem; font-weight:900; text-shadow:0 2px 10px rgba(0,0,0,.6); }
-.pga-result .tag { background:rgba(255,255,255,.14); border-radius:999px; padding:5px 16px; font-weight:800; font-size:.8rem; }
-
-.pga-stats { display:flex; gap:14px; flex-wrap:wrap; justify-content:center; margin:14px 0; font-size:.85rem; }
-.pga-stats b { color:var(--pga-gold); }
-.pga-rank { font-weight:900; font-size:1.15rem; color:var(--pga-gold); margin-bottom:14px; text-shadow:0 0 12px rgba(245,197,66,.35); }
-.pga-final-btns { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
-
-@keyframes pgaKeeperIdle { 0%,100%{ transform:translate(-50%,-50%) translateX(0); } 50%{ transform:translate(-50%,-50%) translateX(6%); } }
-@keyframes pgaNetWobble { 0%{transform:scale(1);} 30%{transform:scale(1.04);} 60%{transform:scale(.98);} 100%{transform:scale(1);} }
-@keyframes pgaFlash { 0%{opacity:0;} 30%{opacity:1;} 100%{opacity:0;} }
-@keyframes pgaPop { 0%{transform:scale(.6);opacity:0;} 60%{transform:scale(1.15);opacity:1;} 100%{transform:scale(1);} }
-
-@media (max-width:768px) {
-  .pga-arena { max-height:58vh; aspect-ratio:3/4; }
-  .pga-title { font-size:1.25rem; }
-  .pga-diff { padding:7px 11px; font-size:.72rem; }
-  .pga-start-btn { min-width:0; width:100%; }
-}
-/* ===== MATCHDAY badge / number / stats (product page — addition only, existing sections untouched) ===== */
-.md-badge { display:inline-block; background:rgba(0,230,118,.1); color:#00E676; border:1px solid rgba(0,230,118,.32);
-  font-size:.62rem; font-weight:900; letter-spacing:1.8px; padding:4px 9px; border-radius:6px;
-  text-transform:uppercase; margin-inline-end:8px; vertical-align:middle; }
-.md-number { font-size:2.4rem; font-weight:900; line-height:1; margin:6px 0 4px; font-variant-numeric:tabular-nums; }
-.md-stats { margin-top:26px; background:#0B0F0D; border:1px solid rgba(0,230,118,.14); border-radius:16px; padding:18px; }
-.md-stats-title { font-size:.72rem; font-weight:900; letter-spacing:2.5px; color:#8A938E; margin-bottom:12px; }
-.md-stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
-.md-stat { background:rgba(255,255,255,.03); border:1px solid rgba(0,230,118,.1); border-radius:10px;
-  padding:10px 6px; text-align:center; }
-.md-stat-lbl { display:block; font-size:.58rem; font-weight:800; letter-spacing:1.5px; color:#8A938E; margin-bottom:4px; }
-.md-stat b { font-size:.78rem; color:#F5F7F5; }
-@media (max-width:768px) {
-  .md-number { font-size:2rem; }
-  .md-stats-grid { grid-template-columns:repeat(2,1fr); }
-}
-/* ===== CART MOBILE — SINGLE FINAL COMPACT LAYOUT (previously sat outside the closing style tag, so it never applied) ===== */
-@media (max-width: 768px) {
-  #cartPage { padding: 0 !important; margin: 0 !important; width: 100% !important; height: auto !important; min-height: 0 !important; }
-  #cartPage > * { margin-top: 0 !important; }
-  #cartPage .ci { padding: 10px 0 !important; min-height: 0 !important; height: auto !important; gap: 8px !important; margin: 0 !important; border-bottom: 1px solid var(--glass-border) !important; }
-  #cartPage .ci-emoji { font-size: 1.2rem !important; }
-  #cartPage .ci-tx b { font-size: 0.82rem !important; }
-  #cartPage .ci-tx span { font-size: 0.72rem !important; }
-  #cartPage .row-t { margin: 0 !important; padding: 6px 0 !important; font-size: 0.85rem !important; }
-  #cartPage .row-t.total { margin-top: 8px !important; padding-top: 8px !important; border-top: 1px solid var(--glass-border) !important; }
-  #cartPage .pfoot b { font-size: 0.9rem !important; }
-  .cart-page-actions { display: flex !important; flex-direction: column !important; height: auto !important; margin-top: 12px !important; gap: 10px !important; }
-  .cart-page-actions .btn { width: 100% !important; max-width: 100% !important; min-height: 46px !important; font-size: 0.9rem !important; padding: 10px !important; box-sizing: border-box !important; margin: 0 !important; }
-  .cart-page-actions .cpa-clear { align-self: center !important; margin-top: 2px !important; }
-  #cartPenalty { margin-top: 20px !important; height: auto !important; }
-  #cartPenalty .pc-goal-wrap { height: 130px !important; }
-}
-</style>
-"""
+</style>"""
 
 BASE_JS = """<script>
 var GX = __GX__;
@@ -2968,7 +2833,7 @@ function setGal(i,arr){ gi=i; gN=arr.length; var img=$('gmain'); if(!img) return
 }
 function movGal(d){ if(!gN) return; setGal((gi+d+gN)%gN,GARR); }
 /* ---------- lightbox: zoom / pan / pinch / keyboard ---------- */
-var lbIndex=0, lbZoomLv=1, lbPanX=0, lbPanY=0, lbDrag=null, lbPinchD=0, lbPinchZ=1, lbLastTap=0;
+var lbIndex=0, lbZoomLv=1, lbPanX=0, lbPanY=0, lbDrag=null, lbPinchD=0, lbPinchZ=1;
 function lbApply(){
   var img=$('lbimg'); if(!img) return;
   img.style.transform='translate('+lbPanX+'px,'+lbPanY+'px) scale('+lbZoomLv+')';
@@ -3016,7 +2881,6 @@ document.addEventListener('DOMContentLoaded',function(){
     lbZoom(e.deltaY<0?1:-1,.15); }, {passive:false});
   img.addEventListener('mousedown',function(e){ if(lbZoomLv<=1) return; e.preventDefault();
     lbDrag={x:e.clientX,y:e.clientY,px:lbPanX,py:lbPanY}; img.classList.add('dragging'); });
-  img.addEventListener('dblclick',function(e){ e.preventDefault(); lbZoomLv<=1 ? lbZoom(1,1) : lbReset(); });
   window.addEventListener('mousemove',function(e){ if(!lbDrag) return;
     lbPanX=lbDrag.px+(e.clientX-lbDrag.x); lbPanY=lbDrag.py+(e.clientY-lbDrag.y); lbClampPan(); lbApply(); });
   window.addEventListener('mouseup',function(){ if(lbDrag){ lbDrag=null; img.classList.remove('dragging'); } });
@@ -3037,17 +2901,7 @@ document.addEventListener('DOMContentLoaded',function(){
       lbClampPan(); lbApply();
     }
   }, {passive:false});
-  img.addEventListener('touchend',function(e){
-    if(e.touches.length<2) lbPinchD=0;
-    if(e.touches.length<1){
-      lbDrag=null;
-      if(!lbPinchD){
-        var now=Date.now();
-        if(now-lbLastTap<320){ lbLastTap=0; lbZoomLv<=1 ? lbZoom(1,1) : lbReset(); }
-        else { lbLastTap=now; }
-      }
-    }
-  }, {passive:true});
+  img.addEventListener('touchend',function(e){ if(e.touches.length<2) lbPinchD=0; if(e.touches.length<1) lbDrag=null; }, {passive:true});
   document.addEventListener('keydown',function(e){
     if(!lb.classList.contains('open')) return;
     if(e.key==='Escape') closeLB();
@@ -3170,10 +3024,10 @@ function renderCartPage(){
   html+='<div class="row-t"><span>'+gxT('cart_subtotal')+'</span><b>'+pmoney(tot.sub)+' '+GX.cur+'</b></div>'
     +'<div class="row-t"><span>'+gxT('cart_delivery')+'</span><b>'+pmoney(tot.delivery)+' '+GX.cur+'</b></div>'
     +'<div class="row-t total"><span>'+gxT('cart_total')+'</span><b>'+pmoney(tot.total)+' '+GX.cur+'</b></div>'
-    +'<div class="cart-page-actions">'
-    +'<button class="btn wa" onclick="openCheckout()">'+gxT('cart_checkout')+'</button>'
-    +'<button class="btn wa2" onclick="orderCartTG()">💬 '+gxT('order_wa')+'</button>'
-    +'<button class="btn ghost cpa-clear" onclick="clearCart()">🗑 '+gxT('cart_clear')+'</button></div>';
+    +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">'
+    +'<button class="btn wa" style="flex:1" onclick="openCheckout()">'+gxT('cart_checkout')+'</button>'
+    +'<button class="btn wa2" style="flex:1" onclick="orderCartTG()">💬 '+gxT('order_wa')+'</button>'
+    +'<button class="btn ghost" onclick="clearCart()">🗑 '+gxT('cart_clear')+'</button></div>';
   box.innerHTML=html;
 }
 var rewardSel=null;
@@ -3208,29 +3062,27 @@ function pickReward(sel){
 function openCheckout(){ var cart=gxGet('gx_cart',[]); if(!cart.length) return; openModal('m-checkout'); }
 function submitOrder(){
   var name=($('co_name').value||'').trim(), phone=($('co_phone').value||'').trim(),
-      email=($('co_email').value||'').trim(), area=($('co_area').value||'').trim(), addr=($('co_addr').value||'').trim(),
-      notes=($('co_notes').value||'').trim();
+      area=($('co_area').value||'').trim(), addr=($('co_addr').value||'').trim();
   if(!name||!phone||!area||!addr){ toast(gxT('co_required')); return; }
   var cart=gxGet('gx_cart',[]); var tot=cartTotals(); var disc=rewardSel?rewardSel.discount:0;
   var items=cart.map(function(x){ var p=GX.products.find(function(y){return y.id===x.id;});
     return {id:x.id, size:x.size, qty:x.qty, name:p?pname(p,x.size):x.id, price:p?p.price:0, emoji:p?p.emoji:'⚽', kind:p?p.kind:'jersey'}; });
   var fin=Math.max(0,tot.total-disc);
   fetch('/api/order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-    items:items,name:name,phone:phone,email:email,area:area,address:addr,
-    notes:notes,delivery:tot.delivery,discount:disc,total:fin,reward:rewardSel?rewardSel.points:0,
+    items:items,name:name,phone:phone,area:area,address:addr,
+    notes:($('co_notes').value||'').trim(),delivery:tot.delivery,discount:disc,total:fin,reward:rewardSel?rewardSel.points:0,
     device:gxDev()
   })}).then(function(r){return r.json();}).then(function(d){
     if(d.code){
       var earned=Math.floor(fin*GX.points_per); addPoints(earned, gxT('pts_earn'));
-      var msg=tgOrderMsg(d.code, items, name, phone, area, addr, tot.delivery, disc, fin, notes);
+      var msg=tgOrderMsg(d.code, items, name, phone, area, addr, tot.delivery, disc, fin);
       clearCart(); closeModal('m-checkout');
-      var waUrl='https://wa.me/'+GX.wa+'?text='+encodeURIComponent(msg);
-      window.open(waUrl,'_blank');
+      window.open('https://wa.me/message/KZFSQ7ONXMY2M1?text='+encodeURIComponent(msg),'_blank');
       location.href='/order/success?code='+d.code;
     } else { toast('Error'); }
   });
 }
-function tgOrderMsg(code,items,name,phone,area,addr,del,disc,total,notes){
+function tgOrderMsg(code,items,name,phone,area,addr,del,disc,total){
   var l=[]; l.push('HELLO_LN'.indexOf('X')>-1?'':gxT('hello').trim()+' 👋'); l.push('');
   l.push(gxT('code_w')+code);
   items.forEach(function(it){
@@ -3241,11 +3093,9 @@ function tgOrderMsg(code,items,name,phone,area,addr,del,disc,total,notes){
   l.push(''); l.push('🚚 '+gxT('cart_delivery')+': '+pmoney(del)+' '+GX.cur);
   if(disc>0) l.push(gxT('pts_discount')+': −'+pmoney(disc)+' '+GX.cur);
   l.push('💰 '+gxT('cart_total')+': '+pmoney(total)+' '+GX.cur);
-  if(notes) l.push('📝 '+gxT('co_notes')+': '+notes);
-  l.push(''); l.push('👤 '+gxT('co_name').replace(/[^\u0600-\u06FF\w\s]/g,'')+': '+name);
-  l.push('📱 '+gxT('co_phone').replace(/[^\u0600-\u06FF\w\s]/g,'')+': '+phone);
-  l.push('📍 '+gxT('co_area').replace(/[^\u0600-\u06FF\w\s]/g,'')+': '+area);
-  l.push('🏠 '+gxT('co_address').replace(/[^\u0600-\u06FF\w\s]/g,'')+': '+addr);
+  l.push(''); l.push('👤 '+gxT('co_name').replace(/[^\u0600-\u06FF\\w\\s]/g,'')+': '+name);
+  l.push('📱 '+gxT('co_phone').replace(/[^\u0600-\u06FF\\w\\s]/g,'')+': '+phone);  l.push('📍 '+gxT('co_area').replace(/[^\u0600-\u06FF\\w\\s]/g,'')+': '+area);
+  l.push('🏠 '+gxT('co_address').replace(/[^\u0600-\u06FF\\w\\s]/g,'')+': '+addr);
   return l.join('\\n');
 }
 /* ---------- order via WhatsApp ---------- */
@@ -4235,10 +4085,9 @@ def header_html(active=""):
 def footer_html():
     en = lang() == "en"
     d = cfg.L[lang()]
-    clubs_with_products = {p.get("club_id") for p in cfg.PRODUCTS if p.get("club_id")}
     club_links = "".join('<a href="/club/{cid}">{em} {nm}</a>'.format(
         cid=cid, em=c.get("emoji", ""), nm=c.get(en and "en" or "ar", ""))
-        for cid, c in cfg.CLUBS.items() if cid in clubs_with_products)
+        for cid, c in cfg.CLUBS.items())
     col_links = ("<a href='/home'>{h}</a><a href='/products'>{j}</a><a href='/mugs'>{m}</a>"
                  "<a href='/size-guide'>{s}</a><a href='/how-to-order'>{o}</a>").format(
         h=d["nav_home"], j=d["nav_jerseys"], m=d["nav_mugs"], s=d["nav_sizes"], o=d["nav_order"])
@@ -4390,14 +4239,13 @@ def modals_html():
                               club=club_seg)
 
     checkout_body = ('<p class="mnote">{sub}</p>'
-                     '<div class="fld"><label>{name}</label><input id="co_name" autocomplete="name"></div>'
-                     '<div class="fld"><label>{phone}</label><input id="co_phone" inputmode="tel" autocomplete="tel"></div>'
-                     '<div class="fld"><label>{email}</label><input id="co_email" type="email" inputmode="email" autocomplete="email" placeholder="example@email.com"></div>'
+                     '<div class="fld"><label>{name}</label><input id="co_name"></div>'
+                     '<div class="fld"><label>{phone}</label><input id="co_phone" inputmode="tel"></div>'
                      '<div class="frow"><div class="fld"><label>{area}</label><input id="co_area"></div>'
                      '<div class="fld"><label>{addr}</label><input id="co_addr"></div></div>'
-                     '<div class="fld"><label>{notes}</label><textarea id="co_notes" rows="3" placeholder="أضف أي ملاحظات إضافية هنا (مثل المقاس المفضل، اللون، إلخ)"></textarea></div>'
+                     '<div class="fld"><label>{notes}</label><textarea id="co_notes"></textarea></div>'
                      '<button class="btn wa big" onclick="submitOrder()">{btn}</button>'
-                     ).format(sub=d["cart_total"], name=d["co_name"], phone=d["co_phone"], email=("البريد الإلكتروني (اختياري)" if lang()=="ar" else "Email (optional)"),
+                     ).format(sub=d["cart_total"], name=d["co_name"], phone=d["co_phone"],
                               area=d["co_area"], addr=d["co_address"], notes=d["co_notes"], btn=d["co_submit"])
 
     notify_body = ('<p class="mnote">{sub}</p>'
@@ -4486,8 +4334,7 @@ def filters_panel_html():
         % (k, d["cat_" + k]) for k in ("best", "new", "offer"))
     clubs = "".join(
         '<button class="club-opt" data-v="%s" onclick="setFilter(\'club\',this.getAttribute(\'data-v\'),this)">%s %s</button>'
-        % (cid, c.get("emoji", "⚽"), c.get(en and "en" or "ar"))
-        for cid, c in cfg.CLUBS.items() if cid in {p.get("club_id") for p in cfg.PRODUCTS if p.get("club_id")})
+        % (cid, c.get("emoji", "⚽"), c.get(en and "en" or "ar")) for cid, c in cfg.CLUBS.items())
     sizes = "".join(
         '<button class="sz-btn" onclick="setFilter(\'size\',\'%s\',this)">%s</button>' % (s, s)
         for s in cfg.SIZE_ORDER[:5])
@@ -4611,11 +4458,9 @@ def home_body():
     clubs_html = ""
     loy_btns = ""
     for cid, c in cfg.CLUBS.items():
-        cnt = sum(1 for p in prods if p.get("club_id") == cid)
-        if cnt == 0:
-            continue
         th = club_themes().get(cid, {})
         ac = th.get("ac", "#E11D48"); ac2 = th.get("ac2", "#F97316")
+        cnt = sum(1 for p in prods if p.get("club_id") == cid)
         nm = c.get(en and "en" or "ar", "")
         em = c.get("emoji", "⚽")
         clubs_html += ('<a class="clubcard" href="/club/{cid}" style="--cc:{ac};--cc2:{ac2}">'
@@ -4690,10 +4535,9 @@ def home_body():
         '<a class="pc-cta" href="/penalty">{cta}</a>'
         '</div></div>'
     ).format(
-        t=("هل تقدر تسجلها؟ 🥅" if not en else "Can you score it? 🥅"),
-        s=("واجه الحارس وسدد في الزاوية الصحيحة. هل تستطيع الوصول إلى 5 أهداف؟" if not en
-           else "Face the keeper and aim for the corner. Can you land 5 goals?"),
-        cta=("⚽ ابدأ التحدي" if not en else "⚽ Start the Challenge"),
+        t="PENALTY CHALLENGE",
+        s=("هل تقدر تسجل ضد الحارس؟" if not en else "Can you score past the keeper?"),
+        cta=d.get("pen_start", "⚡ ابدأ التحدي" if not en else "Start the Challenge ⚡"),
     )
 
     pitch_sec = ('<div class="sec rv"><div class="pitch-sec">'
@@ -5076,27 +4920,10 @@ def info_page(kind):
 
 def cart_page():
     d = cfg.L[lang()]
-    en = lang() == "en"
-    cart_penalty = (
-        '<div class="sec rv" id="cartPenalty"><div class="pc-sec">'
-        '<div class="pc-fog"></div><div class="pc-crowd"></div>'
-        '<div class="pc-goal-wrap"><div class="pc-goal"></div>'
-        '<div class="pc-keeper"><div class="kb"></div><div class="kh"></div></div>'
-        '<div class="pc-ball">⚽</div></div>'
-        '<div class="pc-title">🎯 {t}</div>'
-        '<div class="pc-sub">{s}</div>'
-        '<a class="pc-cta" href="/penalty">{cta}</a>'
-        '</div></div>'
-    ).format(
-        t="PENALTY CHALLENGE",
-        s=("هل تقدر تسجل ضد الحارس؟" if not en else "Can you score past the keeper?"),
-        cta=d.get("pen_start", "⚡ ابدأ التحدي" if not en else "Start the Challenge ⚡"),
-    )
     body = ('<div class="wrap"><div class="page-head"><h1>{t}</h1><p>{s}</p></div>'
             '<div id="cartPage"></div>'
-            '{pen}'
             '<div style="text-align:center;margin-top:26px"><a class="back" href="/home">← {b}</a></div>'
-            '</div>').format(t=d["cart_page_title"], s=d["cart_page_sub"], b=d["back"], pen=cart_penalty)
+            '</div>').format(t=d["cart_page_title"], s=d["cart_page_sub"], b=d["back"])
     js = "<script>document.addEventListener('DOMContentLoaded',function(){ renderCartPage(); });</script>"
     return base_page(body, page_js=js, active="")
 
@@ -5458,7 +5285,6 @@ def product_body(pid):
     thumbs_block = "" if one else '<div class="gthumb" id="gthumbs">{gthumbs}</div>'
 
     # Team page theme
-    jersey_num = str(abs(hash(p["id"])) % 99 + 1)
     team_theme = cfg.TEAM_PAGE_THEMES.get(club_id, {})
     team_style = ""
     team_atmos = ""
@@ -5552,29 +5378,8 @@ def product_body(pid):
             t_shelf3=d.get("je_shelf3", "Gloves") if en else "القفازات",
             tunnel_t=d.get("je_tunnel_t", "Walk to Pitch") if en else "المشي نحو الملعب",
             pitch=d.get("je_pitch", "PITCH") if en else "الملعب",
-            num=jersey_num,
+            num=str(abs(hash(p["id"])) % 99 + 1),
         )
-
-    # MATCHDAY badge / big number / stats card (addition only — layered onto existing sections above)
-    md_badge = ""
-    md_number = ""
-    md_stats = ""
-    if not is_mug and club_id and club:
-        ac = cfg.CLUB_THEMES.get(club_id, {}).get("ac", "#00E676")
-        team_nm = club.get("en" if en else "ar", "")
-        md_badge = '<span class="md-badge">MATCHDAY</span>'
-        md_number = '<div class="md-number" style="color:{ac};text-shadow:0 0 16px {ac}66">#{num}</div>'.format(
-            ac=ac, num=jersey_num)
-        md_stats = (
-            '<div class="md-stats"><div class="md-stats-title">MATCHDAY STATS</div>'
-            '<div class="md-stats-grid">'
-            '<div class="md-stat"><span class="md-stat-lbl">TEAM</span><b>{team}</b></div>'
-            '<div class="md-stat"><span class="md-stat-lbl">SEASON</span><b>2025/26</b></div>'
-            '<div class="md-stat"><span class="md-stat-lbl">STYLE</span><b>{style}</b></div>'
-            '<div class="md-stat"><span class="md-stat-lbl">PLAYER</span><b>#{num}</b></div>'
-            '</div></div>'
-        ).format(team=esc(team_nm.upper() if en else team_nm),
-                  style=("HOME JERSEY" if en else "قميص أساسي"), num=jersey_num)
 
     body = (
         team_style + atmos_html("light")
@@ -5590,7 +5395,7 @@ def product_body(pid):
         '{gal_nav}</div>'
         '{thumbs_block}'
         '<p class="zoom-hint">🔍 {zh}</p></div>'
-        '<div class="pinfo">{md_badge}{team_label}<h1>{name}</h1>{md_number}<p class="pcatline">{cat}</p>'
+        '<div class="pinfo">{team_label}<h1>{name}</h1><p class="pcatline">{cat}</p>'
         '<div class="pprice">{pr}</div>{trust}{trust_info}'
         '{sizes}'
         '<div class="qtysec"><div class="lbl">{ql}</div>'
@@ -5607,7 +5412,6 @@ def product_body(pid):
         '</div></div>'
         '{outfit}'
         '{jersey_exp}'
-        '{md_stats}'
         '{ratings}{yml}'
         '</div>'
     ).format(back=d["back"], first=p["imgs"][0], name=name, gal_nav=gal_nav, thumbs_block=thumbs_block,
@@ -5616,8 +5420,7 @@ def product_body(pid):
              pd=d["pd_title"],
              notify=notify, a=d["prod_links_sz"], b=d["prod_links_wash"], c=d["prod_links_ret"],
              ratings=ratings, yml=yml, matchday_btn=matchday_btn, outfit=outfit_html,
-             jersey_exp=jersey_exp, live_drop=live_drop, team_label=team_label,
-             md_badge=md_badge, md_number=md_number, md_stats=md_stats)
+             jersey_exp=jersey_exp, live_drop=live_drop, team_label=team_label)
 
     extra_club = club_id or None
     return body, page_js, extra_club
@@ -6024,6 +5827,86 @@ def account_page():
     return base_page(body)
 
 
+def enter_page():
+    en = lang() == "en"
+    d = cfg.L[lang()]
+    return """<!DOCTYPE html>
+<html lang="LANG" dir="DIR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GOLAZOX — Stadium Entry</title>
+<meta name="theme-color" content="#050607">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'FONT','Segoe UI',sans-serif;background:#050607;color:#fff;min-height:100vh;overflow:hidden}
+.st{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px 20px;overflow:hidden}
+.st-bg{position:absolute;inset:0;background:radial-gradient(ellipse 120% 60% at 50% 100%,rgba(16,37,26,.6),transparent 60%),radial-gradient(ellipse 80% 40% at 50% 0%,rgba(16,37,26,.4),transparent 50%),linear-gradient(180deg,#050607 0%,#0A0D0C 40%,#0B1712 100%);z-index:0}
+.grass{position:absolute;bottom:0;left:0;right:0;height:28%;background:repeating-linear-gradient(0deg,transparent 0 44px,rgba(255,255,255,.03) 44px 88px),linear-gradient(180deg,rgba(16,37,26,.5),rgba(11,23,18,.8));z-index:1}
+.grass::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:160px;height:160px;border:2px solid rgba(255,255,255,.08);border-radius:50%;z-index:1}
+.grass::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:2px;height:60px;background:rgba(255,255,255,.06);z-index:1}
+.light{position:absolute;top:-40px;width:3px;height:100px;background:linear-gradient(180deg,rgba(255,255,255,.6),transparent);border-radius:0 0 2px 2px;z-index:2;animation:lPulse 4s ease-in-out infinite}
+.light:nth-child(1){left:8%;animation-delay:0s}
+.light:nth-child(2){left:25%;animation-delay:1.2s;height:80px}
+.light:nth-child(3){right:25%;animation-delay:2.4s;height:70px}
+.light:nth-child(4){right:8%;animation-delay:0.6s}
+.light::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:80px;height:160px;background:radial-gradient(ellipse,rgba(255,255,255,.08),transparent 70%);pointer-events:none}
+@keyframes lPulse{0%,100%{opacity:.2}50%{opacity:.55}}
+.crowd{position:absolute;bottom:28%;left:0;right:0;height:80px;z-index:1;background:linear-gradient(180deg,transparent,rgba(5,6,7,.9));mask-image:repeating-linear-gradient(90deg,transparent 0 6px,black 6px 12px,transparent 12px 18px);-webkit-mask-image:repeating-linear-gradient(90deg,transparent 0 6px,black 6px 12px,transparent 12px 18px)}
+.fog{position:absolute;bottom:20%;left:0;right:0;height:100px;z-index:2;background:linear-gradient(180deg,transparent,rgba(255,255,255,.015),transparent);pointer-events:none;animation:fogDrift 12s ease-in-out infinite}
+@keyframes fogDrift{0%,100%{transform:translateX(0)}50%{transform:translateX(20px)}}
+.vig{position:absolute;inset:0;z-index:3;pointer-events:none;background:radial-gradient(ellipse at center,transparent 40%,rgba(5,6,7,.7) 100%)}
+.content{position:relative;z-index:10;display:flex;flex-direction:column;align-items:center}
+.logo{font-size:2.8rem;font-weight:900;letter-spacing:6px;color:#F5F7F5;text-shadow:0 0 40px rgba(24,232,117,.15),0 0 80px rgba(24,232,117,.05);animation:logoIn 1s ease both}
+.logo-sub{font-size:.65rem;font-weight:800;letter-spacing:8px;color:rgba(24,232,117,.5);margin-top:4px;animation:logoIn 1s ease .2s both}
+@keyframes logoIn{from{opacity:0;transform:translateY(20px) scale(.95)}to{opacity:1;transform:none}}
+.welcome{font-size:1.1rem;font-weight:700;color:rgba(255,255,255,.7);margin-top:20px;letter-spacing:1px;animation:fadeUp .8s ease .4s both}
+.tagline{font-size:.82rem;color:rgba(255,255,255,.35);margin-top:8px;letter-spacing:2px;font-weight:600;animation:fadeUp .8s ease .5s both}
+.lang-section{margin-top:32px;animation:fadeUp .8s ease .6s both}
+.lang-label{font-size:.7rem;font-weight:800;letter-spacing:3px;color:rgba(255,255,255,.3);margin-bottom:14px;text-transform:uppercase}
+.lang-btns{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+.lang-btn{display:flex;align-items:center;gap:12px;padding:16px 36px;border-radius:16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#F5F7F5;font-weight:800;font-size:1rem;text-decoration:none;min-width:220px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:all .3s;cursor:pointer;position:relative;overflow:hidden}
+.lang-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(24,232,117,.05),transparent);opacity:0;transition:opacity .3s}
+.lang-btn:hover{border-color:rgba(24,232,117,.3);box-shadow:0 0 30px rgba(24,232,117,.08);transform:translateY(-2px)}
+.lang-btn:hover::before{opacity:1}
+.lang-btn:active{transform:scale(.98)}
+.lang-btn .flag{font-size:1.3rem}
+.lang-btn .lname{display:flex;flex-direction:column;align-items:flex-start}
+.lang-btn .lname span{font-size:.65rem;color:rgba(255,255,255,.4);font-weight:600;letter-spacing:2px}
+.brand{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);color:rgba(111,143,122,.4);font-size:.7rem;font-weight:900;letter-spacing:4px;z-index:10}
+.particles{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+.particle{position:absolute;width:2px;height:2px;background:rgba(255,255,255,.3);border-radius:50%;animation:pFloat linear infinite}
+@keyframes pFloat{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(-10vh) scale(1);opacity:0}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.light,.fog{animation:none!important}.logo,.logo-sub,.welcome,.tagline,.lang-section{animation:none!important;opacity:1;transform:none}}
+@media (max-width:560px){.logo{font-size:2rem;letter-spacing:4px}.welcome{font-size:.95rem}.lang-btn{min-width:180px;padding:14px 24px;font-size:.9rem}}
+</style></head>
+<body>
+<div class="st">
+<div class="st-bg"></div><div class="grass"></div><div class="crowd"></div><div class="fog"></div>
+<div class="light"></div><div class="light"></div><div class="light"></div><div class="light"></div>
+<div class="vig"></div><div class="particles" id="particles"></div>
+<div class="content">
+<div class="logo">GOLAZOX</div>
+<div class="logo-sub">FOOTBALL UNIVERSE</div>
+<div class="welcome">__WELC__</div>
+<div class="tagline">__TAG__</div>
+<div class="lang-section">
+<div class="lang-label">CHOOSE YOUR LANGUAGE</div>
+<div class="lang-btns">
+<a href="/enter/ar" class="lang-btn"><span class="flag">🇸🇦</span><span class="lname">العربية<span>ARABIC</span></span></a>
+<a href="/enter/en" class="lang-btn"><span class="flag">🇬🇧</span><span class="lname">English<span>ENGLISH</span></span></a>
+</div></div></div>
+<div class="brand">GOLAZOX</div>
+</div>
+<script>
+(function(){var c=document.getElementById('particles');if(!c)return;
+for(var i=0;i<12;i++){var p=document.createElement('div');p.className='particle';p.style.left=Math.random()*100+'%';p.style.animationDuration=(8+Math.random()*12)+'s';p.style.animationDelay=Math.random()*8+'s';p.style.width=p.style.height=(1+Math.random()*2)+'px';c.appendChild(p)}})();
+</script>
+</body></html>""".replace("LANG", "en" if en else "ar") \
+        .replace("DIR", "ltr" if en else "rtl") \
+        .replace("FONT", "Poppins" if en else "Cairo") \
+        .replace("__WELC__", d["ent_welc"]).replace("__TAG__", d["ent_tag"])
 
 
 PEN_ZONES = {"tl": (-110, 92), "tc": (0, 92), "tr": (110, 92), "bl": (-110, 172), "br": (110, 172)}
@@ -6033,8 +5916,6 @@ def penalty_page(code):
     en = lang() == "en"
     d = cfg.L[lang()]
     practice = not code
-    if practice:
-        return penalty_arena_page()
     if not practice:
         o = db.order_get(code)
         if not o:
@@ -6089,8 +5970,8 @@ function penShoot(btn){
   if(PEN_PRACTICE){
     PEN_DONE=true;
     var zones=['tl','tc','tr','bl','br'];
-    var keeper = (Math.random()<0.22) ? z : zones[Math.floor(Math.random()*zones.length)];
-    var goal = z!==keeper;
+    var keeper=zones[Math.floor(Math.random()*zones.length)];
+    var goal = z!==keeper || Math.random()<0.22;
     var ball=$('penBall'), keep=$('penKeeper');
     ball.style.left=ZP[z][0]; ball.style.top=ZP[z][1];
     keep.style.left=ZP[keeper][0]; keep.style.top=ZP[keeper][1];
@@ -6118,334 +5999,6 @@ document.addEventListener('DOMContentLoaded',function(){
 });
 </script>""".replace("__PEN_CODE_JSON__", json.dumps(code)).replace("__PEN_PRACTICE_JS__", "true" if practice else "false")
     return base_page(body, page_js=page_js)
-
-
-PGA_JS = r"""<script>
-(function(){
-var PGA_DIFF = {
-  rookie: { mult:0.45, predict:0.05, reaction:650 },
-  pro:    { mult:0.75, predict:0.14, reaction:480 },
-  world:  { mult:1.05, predict:0.24, reaction:340 },
-  legend: { mult:1.35, predict:0.34, reaction:220 }
-};
-var PGA_BASE_SAVE = { tl:0.30, tc:0.58, tr:0.30, ml:0.38, mc:0.68, mr:0.38, bl:0.26, bm:0.50, br:0.26 };
-var PGA_ZONES = { tl:[16.6,22], tc:[50,22], tr:[83.4,22], ml:[16.6,50], mc:[50,50], mr:[83.4,50], bl:[16.6,80], bm:[50,80], br:[83.4,80] };
-var PGA_DIVE = { tl:'dive-tl', tc:'dive-up', tr:'dive-tr', ml:'dive-l', mc:'dive-stay', mr:'dive-r', bl:'dive-bl', bm:'dive-stay', br:'dive-br' };
-var PGA_CORNERS = { tl:1, tr:1, bl:1, br:1 };
-
-var pga = { diff:'legend', attempt:1, score:0, goals:0, saves:0, misses:0, combo:0, accSum:0, locked:true, soundOn:false, aiming:false };
-var audioCtx = null;
-
-function pgaTone(freq,dur,type,vol){
-  if(!pga.soundOn) return;
-  try{
-    if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-    var o = audioCtx.createOscillator(); var g = audioCtx.createGain();
-    o.type = type||'sine'; o.frequency.value = freq;
-    g.gain.value = vol||0.08;
-    o.connect(g); g.connect(audioCtx.destination);
-    o.start(); g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+dur);
-    o.stop(audioCtx.currentTime+dur);
-  }catch(e){}
-}
-function pgaSfx(kind){
-  if(kind==='kick') pgaTone(180,0.12,'square',0.09);
-  else if(kind==='goal'){ pgaTone(523,0.12,'sine',0.09); setTimeout(function(){pgaTone(659,0.12,'sine',0.09);},110); setTimeout(function(){pgaTone(784,0.18,'sine',0.1);},220); }
-  else if(kind==='save') pgaTone(120,0.22,'sawtooth',0.08);
-  else if(kind==='miss') pgaTone(200,0.25,'sawtooth',0.06);
-}
-
-function pgaClamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
-
-document.addEventListener('DOMContentLoaded', function(){
-  var diffRow = document.getElementById('pgaDiffRow');
-  if(diffRow){
-    diffRow.addEventListener('click', function(e){
-      var b = e.target.closest('.pga-diff'); if(!b) return;
-      diffRow.querySelectorAll('.pga-diff').forEach(function(x){ x.classList.remove('on'); });
-      b.classList.add('on'); pga.diff = b.getAttribute('data-d');
-    });
-  }
-  var soundBtn = document.getElementById('pgaSoundBtn');
-  if(soundBtn){
-    soundBtn.addEventListener('click', function(){
-      pga.soundOn = !pga.soundOn;
-      soundBtn.classList.toggle('on', pga.soundOn);
-      soundBtn.textContent = pga.soundOn ? '🔊' : '🔇';
-    });
-  }
-  var startBtn = document.getElementById('pgaStartBtn');
-  if(startBtn) startBtn.addEventListener('click', pgaStartGame);
-  var retryBtn = document.getElementById('pgaRetryBtn');
-  if(retryBtn) retryBtn.addEventListener('click', pgaStartGame);
-
-  var box = document.getElementById('pgaGoalBox');
-  if(box){
-    box.addEventListener('pointerdown', function(e){
-      if(pga.locked) return;
-      pga.aiming = true;
-      pgaUpdateAim(e);
-    });
-    box.addEventListener('pointermove', function(e){
-      if(pga.locked) return;
-      if(pga.aiming || e.pointerType==='mouse') pgaUpdateAim(e);
-    });
-    box.addEventListener('pointerup', function(e){
-      if(pga.locked || !pga.aiming) return;
-      pga.aiming = false;
-      pgaShoot(e);
-    });
-    box.addEventListener('pointerleave', function(){ pga.aiming = false; });
-  }
-});
-
-function pgaUpdateAim(e){
-  var box = document.getElementById('pgaGoalBox'); if(!box) return;
-  var r = box.getBoundingClientRect();
-  var px = pgaClamp(((e.clientX - r.left) / r.width) * 100, 2, 98);
-  var py = pgaClamp(((e.clientY - r.top) / r.height) * 100, 2, 98);
-  var aim = document.getElementById('pgaAim');
-  aim.style.display = 'block';
-  aim.style.left = px + '%'; aim.style.top = py + '%';
-  aim._px = px; aim._py = py;
-}
-
-function pgaNearestZone(px,py){
-  var best=null, bestD=Infinity;
-  for(var z in PGA_ZONES){
-    var c = PGA_ZONES[z];
-    var dx = px-c[0], dy=(py-c[1])*0.72;
-    var d = dx*dx+dy*dy;
-    if(d<bestD){ bestD=d; best=z; }
-  }
-  return { zone:best, dist:Math.sqrt(bestD) };
-}
-
-function pgaStartGame(){
-  pga.diff = (document.querySelector('.pga-diff.on')||{}).getAttribute ? document.querySelector('.pga-diff.on').getAttribute('data-d') : pga.diff;
-  pga.attempt=1; pga.score=0; pga.goals=0; pga.saves=0; pga.misses=0; pga.combo=0; pga.accSum=0;
-  document.getElementById('pgaIntro').style.display='none';
-  document.getElementById('pgaFinal').style.display='none';
-  document.getElementById('pgaGame').style.display='flex';
-  pgaUpdateHud();
-  pgaResetRound();
-}
-
-function pgaUpdateHud(){
-  document.getElementById('pgaAttempt').textContent = '⚽ '+pga.attempt+'/5';
-  document.getElementById('pgaScore').textContent = 'SCORE: '+pga.score;
-  document.getElementById('pgaGoals').textContent = pga.goals;
-  document.getElementById('pgaSaves').textContent = pga.saves;
-  document.getElementById('pgaMisses').textContent = pga.misses;
-  var combo = document.getElementById('pgaCombo');
-  if(pga.combo>=2){ combo.style.display='inline'; combo.textContent = '🔥 '+pga.combo+'X COMBO'; }
-  else { combo.style.display='none'; combo.textContent=''; }
-}
-
-function pgaResetRound(){
-  pga.locked=false;
-  var ball=document.getElementById('pgaBall');
-  ball.style.transition='none'; ball.classList.remove('flying');
-  ball.style.left='50%'; ball.style.bottom='6%'; ball.style.opacity='1'; ball.style.transform='translate(-50%,50%) rotate(0deg)';
-  var keeper=document.getElementById('pgaKeeper');
-  keeper.className='pga-keeper idle';
-  var aim=document.getElementById('pgaAim'); aim.style.display='none';
-  var res=document.getElementById('pgaResult'); res.className='pga-result'; res.innerHTML='';
-  document.getElementById('pgaNet').classList.remove('wobble');
-}
-
-function pgaShoot(e){
-  var aim = document.getElementById('pgaAim');
-  var px = aim._px, py = aim._py;
-  if(px==null || py==null) return;
-  pga.locked = true;
-  pgaSfx('kick');
-  var nz = pgaNearestZone(px,py);
-  var zone = nz.zone;
-  var accuracy = pgaClamp(1 - (nz.dist/26), 0, 1);
-  var isCorner = !!PGA_CORNERS[zone];
-  var missChance = (accuracy<0.35 ? 0.16 : 0.03) + (isCorner ? 0.04 : 0);
-  var isMiss = Math.random() < missChance;
-
-  var diffCfg = PGA_DIFF[pga.diff] || PGA_DIFF.legend;
-  var outcome, saveChance=0;
-  if(!isMiss){
-    var base = pgaClamp(PGA_BASE_SAVE[zone]*diffCfg.mult*(1-accuracy*0.35), 0.04, 0.93);
-    saveChance = pgaClamp(diffCfg.predict + (1-diffCfg.predict)*base, 0.03, 0.95);
-    outcome = (Math.random() < saveChance) ? 'save' : 'goal';
-  } else {
-    outcome = 'miss';
-  }
-  pgaAnimateShot(zone, px, py, outcome, diffCfg, accuracy);
-}
-
-function pgaAnimateShot(zone, px, py, outcome, diffCfg, accuracy){
-  var ball = document.getElementById('pgaBall');
-  var box = document.getElementById('pgaGoalBox');
-  var arena = document.getElementById('pgaArena');
-  var boxRect = box.getBoundingClientRect(), arenaRect = arena.getBoundingClientRect();
-  var targetX, targetY;
-  if(outcome==='miss'){
-    targetX = px < 50 ? -12 : 112;
-    targetY = py < 40 ? -18 : py;
-  } else { targetX = px; targetY = py; }
-  var tXpx = boxRect.left - arenaRect.left + (targetX/100)*boxRect.width;
-  var tYpx = boxRect.top - arenaRect.top + (targetY/100)*boxRect.height;
-  var startXpx = arenaRect.width*0.5, startYpx = arenaRect.height*0.94;
-
-  setTimeout(function(){
-    var keeper = document.getElementById('pgaKeeper');
-    keeper.className = 'pga-keeper ' + (outcome==='save' ? PGA_DIVE[zone] : pgaWrongDive(zone));
-  }, diffCfg.reaction);
-
-  ball.style.transition='none'; ball.classList.add('flying');
-  var dur = 420 + Math.random()*160;
-  var t0 = performance.now();
-  function frame(now){
-    var p = Math.min(1, (now-t0)/dur);
-    var ease = 1-Math.pow(1-p,2);
-    var curX = startXpx + (tXpx-startXpx)*ease;
-    var arc = Math.sin(p*Math.PI) * -34;
-    var curY = startYpx + (tYpx-startYpx)*ease + arc;
-    ball.style.left = curX+'px'; ball.style.top = curY+'px'; ball.style.bottom='';
-    ball.style.transform = 'translate(-50%,-50%) rotate('+(p*720)+'deg)';
-    ball.style.opacity = outcome==='miss' ? (1-p*0.5) : 1;
-    if(p<1) requestAnimationFrame(frame);
-    else { ball.classList.remove('flying'); pgaResolveShot(outcome, zone, accuracy); }
-  }
-  requestAnimationFrame(frame);
-}
-
-function pgaWrongDive(actualZone){
-  var keys = Object.keys(PGA_DIVE).filter(function(z){ return z!==actualZone; });
-  return PGA_DIVE[keys[Math.floor(Math.random()*keys.length)]];
-}
-
-function pgaResolveShot(outcome, zone, accuracy){
-  pga.accSum += accuracy;
-  var res = document.getElementById('pgaResult');
-  var flash = document.getElementById('pgaFlash');
-  var points = 0, big='', tag='';
-  if(outcome==='goal'){
-    var perfect = accuracy>=0.85;
-    var isCorner = !!PGA_CORNERS[zone];
-    points = perfect ? 300 : (isCorner ? 200 : 100);
-    pga.goals++; pga.combo++;
-    big='⚽ GOAL!'; tag = perfect ? '🔥 PERFECT SHOT +'+points : '+'+points;
-    document.getElementById('pgaNet').classList.add('wobble');
-    flash.classList.remove('on'); void flash.offsetWidth; flash.classList.add('on');
-    pgaSfx('goal');
-    if(typeof confetti==='function'){ try{ confetti(30); }catch(e){} }
-  } else if(outcome==='save'){
-    points = 0; pga.saves++; pga.combo=0;
-    big='🧤 SAVED!'; tag='0 pts';
-    pgaSfx('save');
-  } else {
-    points = -25; pga.misses++; pga.combo=0;
-    big='❌ MISS!'; tag='-25 pts';
-    pgaSfx('miss');
-  }
-  pga.score += points;
-  res.innerHTML = '<span class="big">'+big+'</span><span class="tag">'+tag+'</span>';
-  res.classList.add('show');
-  pgaUpdateHud();
-  setTimeout(function(){
-    if(pga.attempt>=5){ pgaFinalize(); }
-    else { pga.attempt++; pgaUpdateHud(); pgaResetRound(); }
-  }, 900);
-}
-
-function pgaFinalize(){
-  document.getElementById('pgaGame').style.display='none';
-  var fin = document.getElementById('pgaFinal');
-  fin.style.display='flex';
-  var acc = Math.round((pga.accSum/5)*100);
-  document.getElementById('pgaStats').innerHTML =
-    '<span>Goals: <b>'+pga.goals+'/5</b></span>'+
-    '<span>Saves: <b>'+pga.saves+'</b></span>'+
-    '<span>Misses: <b>'+pga.misses+'</b></span>'+
-    '<span>Score: <b>'+pga.score+'</b></span>'+
-    '<span>Accuracy: <b>'+acc+'%</b></span>';
-  var rank, emoji;
-  if(pga.goals<=1){ rank='Beginner'; emoji='🥅'; }
-  else if(pga.goals===2){ rank='Striker'; emoji='⚽'; }
-  else if(pga.goals===3){ rank='Pro Striker'; emoji='🎯'; }
-  else if(pga.goals===4){ rank='Elite Striker'; emoji='🔥'; }
-  else { rank='👑 LEGENDARY STRIKER'; emoji='👑'; }
-  document.getElementById('pgaRank').textContent = rank;
-  document.getElementById('pgaFinalEmoji').textContent = emoji;
-}
-})();
-</script>"""
-
-
-def penalty_arena_page():
-    en = lang() == "en"
-    d = cfg.L[lang()]
-    t_title = "PENALTY CHALLENGE"
-    t_ready = "سجل أكبر عدد ممكن من الأهداف." if not en else "Score as many goals as you can."
-    t_shots = "5 ركلات" if not en else "5 PENALTIES"
-    t_start = "ابدأ المباراة" if not en else "Start Match"
-    t_hint = "اضغط للتسديد" if not en else "Tap to shoot"
-    t_retry = "🔄 حاول مرة أخرى" if not en else "🔄 Try Again"
-    t_home = ("🏠 " + d["back"]) if not en else "🏠 Home"
-    body = (
-        '<div class="wrap"><div class="pga-wrap" id="pgaWrap">'
-
-        '<div class="pga-screen pga-intro" id="pgaIntro">'
-        '<div class="pga-intro-emoji">🥅</div>'
-        '<h1 class="pga-title">{title}</h1>'
-        '<p class="pga-sub">{ready}</p>'
-        '<div class="pga-diff-row" id="pgaDiffRow">'
-        '<button class="pga-diff" data-d="rookie">🟢 ROOKIE</button>'
-        '<button class="pga-diff" data-d="pro">🟡 PRO</button>'
-        '<button class="pga-diff" data-d="world">🟠 WORLD CLASS</button>'
-        '<button class="pga-diff on" data-d="legend">🔴 LEGEND</button>'
-        '</div>'
-        '<div class="pga-shots-label">{shots}</div>'
-        '<button class="btn pri pga-start-btn" id="pgaStartBtn">{start}</button>'
-        '<button class="pga-sound-toggle" id="pgaSoundBtn" type="button">🔇</button>'
-        '</div>'
-
-        '<div class="pga-screen pga-game" id="pgaGame" style="display:none">'
-        '<div class="pga-hud"><span id="pgaAttempt">⚽ 1/5</span>'
-        '<span class="pga-hud-c"><span class="pga-combo" id="pgaCombo"></span></span>'
-        '<span id="pgaScore">SCORE: 0</span></div>'
-        '<div class="pga-hud2"><span>GOALS: <b id="pgaGoals">0</b></span>'
-        '<span>SAVES: <b id="pgaSaves">0</b></span>'
-        '<span>MISSES: <b id="pgaMisses">0</b></span></div>'
-        '<div class="pga-arena" id="pgaArena">'
-        '<div class="pga-stands"></div>'
-        '<div class="pga-floodlight l"></div><div class="pga-floodlight r"></div>'
-        '<div class="pga-pitch"></div>'
-        '<div class="pga-goal-box" id="pgaGoalBox">'
-        '<div class="pga-net" id="pgaNet"></div>'
-        '<div class="pga-post top"></div><div class="pga-post left"></div><div class="pga-post right"></div>'
-        '<div class="pga-keeper idle" id="pgaKeeper">'
-        '<div class="pga-k-arm l"></div><div class="pga-k-arm r"></div>'
-        '<div class="pga-k-body"></div><div class="pga-k-head"></div></div>'
-        '<div class="pga-aim" id="pgaAim" style="display:none">🎯</div>'
-        '<div class="pga-hint" id="pgaHint">{hint}</div>'
-        '</div>'
-        '<div class="pga-ball" id="pgaBall">⚽</div>'
-        '<div class="pga-flash" id="pgaFlash"></div>'
-        '<div class="pga-result" id="pgaResult"></div>'
-        '</div></div>'
-
-        '<div class="pga-screen pga-final" id="pgaFinal" style="display:none">'
-        '<div class="pga-intro-emoji" id="pgaFinalEmoji">🏆</div>'
-        '<h1 class="pga-title">CHALLENGE COMPLETE</h1>'
-        '<div class="pga-stats" id="pgaStats"></div>'
-        '<div class="pga-rank" id="pgaRank"></div>'
-        '<div class="pga-final-btns">'
-        '<button class="btn pri" id="pgaRetryBtn">{retry}</button>'
-        '<a class="btn ghost" href="/home">{home}</a>'
-        '</div></div>'
-
-        '</div></div>'
-    ).format(title=esc(t_title), ready=esc(t_ready), shots=esc(t_shots), start=esc(t_start),
-              hint=esc(t_hint), retry=esc(t_retry), home=esc(t_home))
-    return base_page(body, page_js=PGA_JS)
 
 
 def success_page(code):
@@ -6485,20 +6038,12 @@ def success_page(code):
         '<a class="btn ghost" href="/home">{b}</a></div></div>'
         + banner +
         '<div class="ok-card" style="margin-top:14px;padding:22px">'
-        '<div style="font-weight:900;font-size:1.05rem">{pt}</div>'
+        '<div style="font-weight:900;font-size:1.05rem">' + d["pen_title"] + '</div>'
         '<p class="mnote" style="margin-top:6px">{ps}</p>'
-        '<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:14px">'
-        '<a class="btn pri" href="/penalty">{pg}</a>'
-        '<a class="btn ghost" href="/home">{pl}</a>'
-        '</div></div>'
+        '<a class="btn pri" style="margin-top:14px" href="/penalty?code={c}">' + d["pen_go"] + '</a></div>'
         '</div>'
     ).format(t=d["ok_title"], w=d["ok_wa"], c=code, tk=d["ok_ticket"], tr=d["tr_title"],
-             b=d["back"],
-             pt=("🎯 جاهز لتحدي الركلة؟" if not en else "🎯 Ready for the Penalty Challenge?"),
-             ps=("بما أنك أتممت طلبك، عندك فرصة لتجربة Penalty Challenge." if not en
-                 else "Now that your order is placed, take on the Penalty Challenge."),
-             pg=("⚽ العب الآن" if not en else "⚽ Play Now"),
-             pl=("لاحقًا" if not en else "Later"))
+             b=d["back"], ps=d["pen_sub"])
     return base_page(body)
 
 
@@ -6564,231 +6109,79 @@ def admin_order_page(code):
 def welcome_page():
     en = lang() == "en"
     d = cfg.L[lang()]
-    return r"""<!DOCTYPE html>
-<html lang="__LANGATTR__" dir="__DIRATTR__">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>GOLAZOX — Matchday Entry</title>
+    return """<!DOCTYPE html>
+<html lang="LANG" dir="DIR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GOLAZOX — Football Universe</title>
 <meta name="theme-color" content="#050607">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;overflow:hidden;background:#050607}
-body{font-family:'FONT','Segoe UI',sans-serif;color:#F5F7F5;min-height:100vh;min-height:100dvh}
-
-.gx-mg{--gx-black:#050607;--gx-green:#00D66B;--gx-green-dk:#07140E;--gx-green-dp:#041B10;--gx-white:#F5F7F5;--gx-mut:#8A938E;
-  position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  text-align:center;padding:22px 18px;overflow:hidden;height:100vh;height:100dvh;}
-
-/* ---- background ---- */
-.gx-bg{position:absolute;inset:0;z-index:0;
-  background:
-    radial-gradient(60% 40% at 50% 8%, rgba(0,214,107,.10), transparent 60%),
-    radial-gradient(120% 60% at 50% 100%, rgba(7,20,14,.85), transparent 60%),
-    linear-gradient(180deg,var(--gx-black) 0%, var(--gx-black) 45%, var(--gx-green-dk) 100%);}
-.gx-pitch{position:absolute;bottom:0;left:0;right:0;height:22%;z-index:0;
-  background:linear-gradient(180deg, rgba(4,27,16,.15), rgba(4,27,16,.55));
-  border-top:1px solid rgba(0,214,107,.08);}
-.gx-pitch::before{content:'';position:absolute;top:-70px;left:50%;transform:translateX(-50%);
-  width:150px;height:150px;border:1.5px solid rgba(0,214,107,.14);border-radius:50%;}
-.gx-pitch::after{content:'';position:absolute;top:-70px;left:50%;transform:translateX(-50%);
-  width:1px;height:70px;background:rgba(0,214,107,.12);}
-.gx-crowd{position:absolute;bottom:22%;left:0;right:0;height:60px;z-index:0;
-  background:linear-gradient(180deg,transparent,rgba(5,6,7,.9));
-  mask-image:repeating-linear-gradient(90deg,transparent 0 5px,black 5px 10px,transparent 10px 15px);
-  -webkit-mask-image:repeating-linear-gradient(90deg,transparent 0 5px,black 5px 10px,transparent 10px 15px);
-  opacity:.5;}
-.gx-light{position:absolute;top:-30px;width:3px;height:90px;border-radius:0 0 2px 2px;z-index:1;
-  background:linear-gradient(180deg,rgba(0,214,107,.5),transparent);
-  animation:gxLightBreathe 5s ease-in-out infinite;}
-.gx-light::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
-  width:70px;height:150px;background:radial-gradient(ellipse,rgba(0,214,107,.10),transparent 70%);pointer-events:none;}
-.gx-light.l1{left:10%;animation-delay:0s}
-.gx-light.l2{left:50%;transform:translateX(-50%);animation-delay:1.6s;height:70px}
-.gx-light.l3{right:10%;animation-delay:3.2s}
-@keyframes gxLightBreathe{0%,100%{opacity:.18}50%{opacity:.5}}
-.gx-fog{position:absolute;bottom:14%;left:0;right:0;height:120px;z-index:1;pointer-events:none;
-  background:linear-gradient(180deg,transparent,rgba(0,214,107,.035),transparent);
-  animation:gxFogDrift 14s ease-in-out infinite;}
-@keyframes gxFogDrift{0%,100%{transform:translateX(0)}50%{transform:translateX(18px)}}
-.gx-vig{position:absolute;inset:0;z-index:2;pointer-events:none;
-  background:radial-gradient(ellipse at center,transparent 38%,rgba(5,6,7,.75) 100%);}
-
-/* ---- floating ball ---- */
-.gx-ball{position:absolute;z-index:1;top:38%;left:-60px;font-size:clamp(28px,8vw,46px);line-height:1;
-  opacity:.4;pointer-events:none;will-change:transform;
-  animation:gxBallDrift 22s linear infinite;filter:drop-shadow(0 0 6px rgba(0,0,0,.4));}
-@keyframes gxBallDrift{
-  0%{transform:translateX(0) translateY(0) rotate(0deg);opacity:0;}
-  8%{opacity:.4;}
-  50%{transform:translateX(60vw) translateY(-18px) rotate(360deg);}
-  92%{opacity:.4;}
-  100%{transform:translateX(130vw) translateY(6px) rotate(680deg);opacity:0;}
-}
-
-/* ---- live badge ---- */
-.gx-live{position:relative;z-index:10;display:inline-flex;align-items:center;gap:7px;
-  padding:6px 14px;border-radius:999px;background:rgba(0,214,107,.06);
-  border:1px solid rgba(0,214,107,.22);font-size:.62rem;font-weight:800;letter-spacing:2px;
-  color:rgba(245,247,245,.75);text-transform:uppercase;margin-bottom:18px;
-  animation:gxFadeUp .7s ease .1s both;}
-.gx-live-dot{width:7px;height:7px;border-radius:50%;background:var(--gx-green);
-  box-shadow:0 0 8px rgba(0,214,107,.7);animation:gxPulseDot 1.8s ease-in-out infinite;}
-@keyframes gxPulseDot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.75)}}
-
-/* ---- content ---- */
-.gx-content{position:relative;z-index:10;display:flex;flex-direction:column;align-items:center;
-  max-width:420px;width:100%;}
-.gx-logo{font-size:clamp(2rem,9vw,2.9rem);font-weight:900;letter-spacing:5px;color:var(--gx-white);
-  text-shadow:0 0 34px rgba(0,214,107,.16),0 0 70px rgba(0,214,107,.06);
-  animation:gxLogoIn .9s ease both;}
-.gx-logo-sub{font-size:.62rem;font-weight:800;letter-spacing:7px;color:rgba(0,214,107,.55);
-  margin-top:5px;animation:gxLogoIn .9s ease .12s both;}
-@keyframes gxLogoIn{from{opacity:0;transform:translateY(16px) scale(.96)}to{opacity:1;transform:none}}
-.gx-welcome{font-size:1.02rem;font-weight:700;color:rgba(255,255,255,.82);margin-top:18px;
-  letter-spacing:.5px;animation:gxFadeUp .8s ease .28s both;}
-.gx-tag{font-size:.78rem;color:var(--gx-mut);margin-top:6px;letter-spacing:1px;font-weight:600;
-  animation:gxFadeUp .8s ease .36s both;}
-
-.gx-lang-sec{margin-top:26px;width:100%;animation:gxFadeUp .8s ease .46s both;}
-.gx-lang-label{font-size:.66rem;font-weight:800;letter-spacing:3px;color:rgba(255,255,255,.32);
-  margin-bottom:12px;text-transform:uppercase;}
-.gx-lang-btns{display:flex;flex-direction:column;align-items:center;gap:11px;}
-.gx-lang-btn{display:flex;align-items:center;justify-content:center;gap:11px;
-  width:min(320px,88vw);height:54px;border-radius:14px;
-  background:rgba(255,255,255,.04);border:1px solid rgba(0,214,107,.35);
-  color:var(--gx-white);font-weight:800;font-size:.98rem;text-decoration:none;
-  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
-  transition:transform .15s ease,border-color .2s ease,box-shadow .2s ease,background .2s ease;
-  cursor:pointer;-webkit-tap-highlight-color:transparent;}
-.gx-lang-btn:hover,.gx-lang-btn:focus-visible{border-color:rgba(0,214,107,.7);
-  box-shadow:0 0 22px rgba(0,214,107,.18);background:rgba(0,214,107,.05);outline:none;}
-.gx-lang-btn:active,.gx-lang-btn.gx-pressed{transform:scale(.98);}
-.gx-lang-btn .gx-flag{font-size:1.25rem;}
-.gx-lang-btn .gx-lname{display:flex;flex-direction:column;align-items:flex-start;line-height:1.15;}
-.gx-lang-btn .gx-lname small{font-size:.62rem;color:rgba(255,255,255,.4);font-weight:600;letter-spacing:2px;}
-
-.gx-kickoff{margin-top:14px;font-size:.66rem;font-weight:800;letter-spacing:2.5px;
-  color:rgba(0,214,107,.5);text-transform:uppercase;animation:gxFadeUp .8s ease .56s both;}
-
-@keyframes gxFadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-
-/* ---- bottom marquee ---- */
-.gx-marquee{position:fixed;left:0;right:0;bottom:0;z-index:10;height:30px;overflow:hidden;
-  display:flex;align-items:center;
-  background:linear-gradient(180deg,transparent,rgba(0,214,107,.03));
-  border-top:1px solid rgba(0,214,107,.08);}
-.gx-marquee-track{display:flex;white-space:nowrap;animation:gxMarquee 18s linear infinite;
-  color:rgba(0,214,107,.55);font-size:.68rem;font-weight:800;letter-spacing:3px;}
-.gx-marquee-track span{padding:0 18px;}
-@keyframes gxMarquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-
-/* ---- transition-out sequence ---- */
-.gx-mg.gx-leaving .gx-logo{transform:scale(1.06);transition:transform .5s ease;}
-.gx-mg.gx-leaving .gx-bg{background:
-    radial-gradient(60% 40% at 50% 8%, rgba(0,214,107,.22), transparent 60%),
-    radial-gradient(120% 60% at 50% 100%, rgba(7,20,14,.85), transparent 60%),
-    linear-gradient(180deg,var(--gx-black) 0%, var(--gx-black) 45%, var(--gx-green-dk) 100%);
-  transition:background .6s ease;}
-.gx-mg.gx-leaving .gx-ball{animation-play-state:paused;transition:transform .6s ease,opacity .6s ease;
-  transform:translateX(46vw) translateY(-4px) scale(1.3);opacity:.7;}
-.gx-streak{position:fixed;inset:0;z-index:20;pointer-events:none;opacity:0;
-  background:linear-gradient(100deg,transparent 40%,rgba(0,214,107,.14) 50%,transparent 60%);}
-.gx-mg.gx-leaving .gx-streak{animation:gxStreak .5s ease .15s both;}
-@keyframes gxStreak{0%{opacity:0;transform:translateX(-30%)}50%{opacity:1}100%{opacity:0;transform:translateX(30%)}}
-.gx-fade{position:fixed;inset:0;z-index:30;background:#050607;opacity:0;pointer-events:none;
-  transition:opacity .45s ease;}
-.gx-mg.gx-leaving .gx-fade{opacity:1;}
-
-@media (prefers-reduced-motion:reduce){
-  .gx-light,.gx-fog,.gx-ball,.gx-marquee-track,.gx-live-dot,
-  .gx-logo,.gx-logo-sub,.gx-welcome,.gx-tag,.gx-lang-sec,.gx-live,.gx-kickoff{
-    animation:none!important;opacity:1!important;transform:none!important;}
-  .gx-mg.gx-leaving .gx-logo,.gx-mg.gx-leaving .gx-ball,.gx-mg.gx-leaving .gx-streak{transition:none!important;}
-}
-@media (max-width:380px){
-  .gx-logo{letter-spacing:3px;}
-  .gx-lang-btn{height:52px;font-size:.92rem;}
-}
-@media (min-width:900px){
-  .gx-content{max-width:480px;}
-  .gx-pitch{height:30%;}
-  .gx-ball{font-size:56px;}
-}
+body{font-family:'FONT','Segoe UI',sans-serif;background:#050607;color:#fff;min-height:100vh;overflow:hidden}
+.st{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px 20px;overflow:hidden}
+.st-bg{position:absolute;inset:0;background:radial-gradient(ellipse 120% 60% at 50% 100%,rgba(16,37,26,.6),transparent 60%),radial-gradient(ellipse 80% 40% at 50% 0%,rgba(16,37,26,.4),transparent 50%),linear-gradient(180deg,#050607 0%,#0A0D0C 40%,#0B1712 100%);z-index:0}
+.grass{position:absolute;bottom:0;left:0;right:0;height:28%;background:repeating-linear-gradient(0deg,transparent 0 44px,rgba(255,255,255,.03) 44px 88px),linear-gradient(180deg,rgba(16,37,26,.5),rgba(11,23,18,.8));z-index:1}
+.grass::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:160px;height:160px;border:2px solid rgba(255,255,255,.08);border-radius:50%;z-index:1}
+.grass::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:2px;height:60px;background:rgba(255,255,255,.06);z-index:1}
+.light{position:absolute;top:-40px;width:3px;height:100px;background:linear-gradient(180deg,rgba(255,255,255,.6),transparent);border-radius:0 0 2px 2px;z-index:2;animation:lP 4s ease-in-out infinite}
+.light:nth-child(1){left:8%}.light:nth-child(2){left:25%;animation-delay:1.2s;height:80px}
+.light:nth-child(3){right:25%;animation-delay:2.4s;height:70px}.light:nth-child(4){right:8%;animation-delay:.6s}
+.light::after{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:80px;height:160px;background:radial-gradient(ellipse,rgba(255,255,255,.08),transparent 70%);pointer-events:none}
+@keyframes lP{0%,100%{opacity:.2}50%{opacity:.55}}
+.crowd{position:absolute;bottom:28%;left:0;right:0;height:80px;z-index:1;background:linear-gradient(180deg,transparent,rgba(5,6,7,.9));mask-image:repeating-linear-gradient(90deg,transparent 0 6px,black 6px 12px,transparent 12px 18px);-webkit-mask-image:repeating-linear-gradient(90deg,transparent 0 6px,black 6px 12px,transparent 12px 18px)}
+.fog{position:absolute;bottom:20%;left:0;right:0;height:100px;z-index:2;background:linear-gradient(180deg,transparent,rgba(255,255,255,.015),transparent);pointer-events:none;animation:fD 12s ease-in-out infinite}
+@keyframes fD{0%,100%{transform:translateX(0)}50%{transform:translateX(20px)}}
+.vig{position:absolute;inset:0;z-index:3;pointer-events:none;background:radial-gradient(ellipse at center,transparent 40%,rgba(5,6,7,.7) 100%)}
+.content{position:relative;z-index:10;display:flex;flex-direction:column;align-items:center}
+.logo{font-size:2.8rem;font-weight:900;letter-spacing:6px;color:#F5F7F5;text-shadow:0 0 40px rgba(24,232,117,.15),0 0 80px rgba(24,232,117,.05);animation:lI 1s ease both}
+.logo-sub{font-size:.65rem;font-weight:800;letter-spacing:8px;color:rgba(24,232,117,.5);margin-top:4px;animation:lI 1s ease .2s both}
+@keyframes lI{from{opacity:0;transform:translateY(20px) scale(.95)}to{opacity:1;transform:none}}
+.welcome{font-size:1.1rem;font-weight:700;color:rgba(255,255,255,.7);margin-top:20px;letter-spacing:1px;animation:fU .8s ease .4s both}
+.tagline{font-size:.82rem;color:rgba(255,255,255,.35);margin-top:8px;letter-spacing:2px;font-weight:600;animation:fU .8s ease .5s both}
+.lang-section{margin-top:32px;animation:fU .8s ease .6s both}
+.lang-label{font-size:.7rem;font-weight:800;letter-spacing:3px;color:rgba(255,255,255,.3);margin-bottom:14px;text-transform:uppercase}
+.lang-btns{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+.lang-btn{display:flex;align-items:center;gap:12px;padding:16px 36px;border-radius:16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#F5F7F5;font-weight:800;font-size:1rem;text-decoration:none;min-width:220px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:all .3s;cursor:pointer;position:relative;overflow:hidden}
+.lang-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(24,232,117,.05),transparent);opacity:0;transition:opacity .3s}
+.lang-btn:hover{border-color:rgba(24,232,117,.3);box-shadow:0 0 30px rgba(24,232,117,.08);transform:translateY(-2px)}
+.lang-btn:hover::before{opacity:1}
+.lang-btn:active{transform:scale(.98)}
+.lang-btn .flag{font-size:1.3rem}
+.lang-btn .lname{display:flex;flex-direction:column;align-items:flex-start}
+.lang-btn .lname span{font-size:.65rem;color:rgba(255,255,255,.4);font-weight:600;letter-spacing:2px}
+.brand{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);color:rgba(111,143,122,.4);font-size:.7rem;font-weight:900;letter-spacing:4px;z-index:10}
+.particles{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+.particle{position:absolute;width:2px;height:2px;background:rgba(255,255,255,.3);border-radius:50%;animation:pF linear infinite}
+@keyframes pF{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(-10vh) scale(1);opacity:0}}
+@keyframes fU{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.light,.fog{animation:none!important}.logo,.logo-sub,.welcome,.tagline,.lang-section{animation:none!important;opacity:1;transform:none}}
+@media (max-width:560px){.logo{font-size:2rem;letter-spacing:4px}.welcome{font-size:.95rem}.lang-btn{min-width:180px;padding:14px 24px;font-size:.9rem}}
 </style></head>
 <body>
-<div class="gx-mg" id="gxMg">
-<div class="gx-bg"></div>
-<div class="gx-pitch"></div>
-<div class="gx-crowd"></div>
-<div class="gx-fog"></div>
-<div class="gx-light l1"></div><div class="gx-light l2"></div><div class="gx-light l3"></div>
-<div class="gx-ball" id="gxBall">⚽</div>
-<div class="gx-vig"></div>
-<div class="gx-streak"></div>
-
-<div class="gx-live"><span class="gx-live-dot"></span><span>LIVE MATCHDAY</span></div>
-
-<div class="gx-content">
-<div class="gx-logo">GOLAZOX</div>
-<div class="gx-logo-sub">FOOTBALL UNIVERSE</div>
-<div class="gx-welcome">__WT__</div>
-<div class="gx-tag">__WS__</div>
-
-<div class="gx-lang-sec">
-<div class="gx-lang-label">CHOOSE YOUR LANGUAGE</div>
-<div class="gx-lang-btns">
-<a href="/enter/ar" class="gx-lang-btn" data-gx-lang aria-label="اختر اللغة العربية">
-  <span class="gx-flag">🇸🇦</span><span class="gx-lname">العربية<small>ARABIC</small></span></a>
-<a href="/enter/en" class="gx-lang-btn" data-gx-lang aria-label="Choose English language">
-  <span class="gx-flag">🇬🇧</span><span class="gx-lname">English<small>ENGLISH</small></span></a>
-</div>
-<div class="gx-kickoff">KICK-OFF READY</div>
-</div>
-</div>
-
-<div class="gx-marquee"><div class="gx-marquee-track">
-<span>⚡ MATCHDAY • FOOTBALL • GOLAZOX • MATCHDAY • FOOTBALL ⚡</span>
-<span>⚡ MATCHDAY • FOOTBALL • GOLAZOX • MATCHDAY • FOOTBALL ⚡</span>
-</div></div>
-
-<div class="gx-fade"></div>
+<div class="st">
+<div class="st-bg"></div><div class="grass"></div><div class="crowd"></div><div class="fog"></div>
+<div class="light"></div><div class="light"></div><div class="light"></div><div class="light"></div>
+<div class="vig"></div><div class="particles" id="particles"></div>
+<div class="content">
+<div class="logo">GOLAZOX</div>
+<div class="logo-sub">FOOTBALL UNIVERSE</div>
+<div class="welcome">__WT__</div>
+<div class="tagline">__WS__</div>
+<div class="lang-section">
+<div class="lang-label">CHOOSE YOUR LANGUAGE</div>
+<div class="lang-btns">
+<a href="/enter/ar" class="lang-btn"><span class="flag">🇸🇦</span><span class="lname">العربية<span>ARABIC</span></span></a>
+<a href="/enter/en" class="lang-btn"><span class="flag">🇬🇧</span><span class="lname">English<span>ENGLISH</span></span></a>
+</div></div></div>
+<div class="brand">GOLAZOX</div>
 </div>
 <script>
-(function(){
-  try{
-    var mg = document.getElementById('gxMg');
-    var reduced = false;
-    try{ reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e0){}
-    var btns = document.querySelectorAll('[data-gx-lang]');
-    for(var i=0;i<btns.length;i++){
-      (function(btn){
-        btn.addEventListener('click', function(ev){
-          try{
-            ev.preventDefault();
-            var url = btn.getAttribute('href');
-            btn.classList.add('gx-pressed');
-            if(mg) mg.classList.add('gx-leaving');
-            var delay = reduced ? 160 : 950;
-            setTimeout(function(){ location.href = url; }, delay);
-          }catch(err){
-            try{ location.href = btn.getAttribute('href'); }catch(e2){}
-          }
-        });
-        btn.addEventListener('keydown', function(ev){
-          try{
-            if(ev.key===' ' || ev.code==='Space'){ ev.preventDefault(); btn.click(); }
-          }catch(e3){}
-        });
-      })(btns[i]);
-    }
-  }catch(mainErr){
-    /* if anything above fails, the <a href> links still work natively */
-  }
-})();
+(function(){var c=document.getElementById('particles');if(!c)return;
+for(var i=0;i<12;i++){var p=document.createElement('div');p.className='particle';p.style.left=Math.random()*100+'%';p.style.animationDuration=(8+Math.random()*12)+'s';p.style.animationDelay=Math.random()*8+'s';p.style.width=p.style.height=(1+Math.random()*2)+'px';c.appendChild(p)}})();
 </script>
-</body></html>""".replace("__LANGATTR__", "en" if en else "ar") \
-        .replace("__DIRATTR__", "ltr" if en else "rtl") \
+</body></html>""".replace("LANG", "en" if en else "ar") \
+        .replace("DIR", "ltr" if en else "rtl") \
         .replace("FONT", "Poppins" if en else "Cairo") \
         .replace("__WT__", d["welcome_t"]).replace("__WS__", d["welcome_s"])
 
@@ -6811,9 +6204,6 @@ def ticket_page(code):
             s=(d["size_w"] + esc(it["size"]) + " · ") if it.get("size") and it.get("kind") != "mug" else "",
             q=it.get("qty", 1), pr=fmt_cur(it.get("price", 0)), c=cur())
     items_html = "".join(item_html(i) for i in items)
-    notes = data.get("notes", "")
-    if notes:
-        items_html += '<div class="mtk-item"><span class="mtk-item-ic">📝</span><div class="mtk-item-info"><b>{}</b><span>{}</span></div></div>'.format(d["co_notes"], esc(notes))
     qr = "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" + url_for("track", code=code, _external=True)
     wa_msg = d["tk_msg"].format(code=code)
     idx = ORDER_FLOW.index(status) if status in ORDER_FLOW else -1
@@ -6974,13 +6364,13 @@ def track_page(code=""):
         '<div class="wrap"><div style="max-width:520px;margin:0 auto">'
         '<div class="tk" style="margin-bottom:20px"><div class="tk-stub"><div class="tk-code">{code}</div>'
         '<div class="tk-row"><span>{date}: <b>{dt}</b></span></div>'
-        '<div class="tk-row"><span>{pay}: <b>{pl}</b></span></div>{notes_html}</div></div>'
+        '<div class="tk-row"><span>{pay}: <b>{pl}</b></span></div></div></div>'
         '{os}'
         '<div class="timeline">{tl}</div>'
         '<div style="text-align:center;margin-top:20px"><a class="back" href="/home">← {b}</a></div>'
         '</div></div>'
     ).format(code=code, date=d["tk_date"], dt=data.get("date", ""), pay=d["tr_pay"], pl=pay,
-             os=os_block, tl=tl, b=d["back"], notes_html=('<div class="tk-row"><span>📝 {}: <b>{}</b></span></div>'.format(d["co_notes"], esc(data.get("notes", ""))) if data.get("notes") else ""))
+             os=os_block, tl=tl, b=d["back"])
     page_js = ""
     if status == "delivered":
         page_js = ("<script>document.addEventListener('DOMContentLoaded',function(){"
@@ -7103,18 +6493,25 @@ def track():
 
 @app.route("/lang/<l>")
 def setlang(l):
-    r = redirect("/home" if request.cookies.get("lang") else "/")
+    if l not in ("ar", "en"):
+        return redirect("/")
+    r = redirect("/home")
     r.set_cookie("lang", l, max_age=31536000)
     return r
 
 
 @app.route("/enter/<l>")
 def enter(l):
+    # Language must be selected first, then enter the actual site.
     if l not in ("ar", "en"):
         return redirect("/")
     r = redirect("/home")
     r.set_cookie("lang", l, max_age=31536000)
     return r
+
+
+def make_enter():
+    return Response(enter_page(), content_type="text/html")
 
 
 @app.route("/order/success")

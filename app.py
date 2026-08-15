@@ -2689,6 +2689,24 @@ linear-gradient(180deg,transparent,rgba(255,255,255,.035))}
   .gx-fan-moment .fm-dot,.gx-final-pitch .fp-ball{animation:none}
 }
 </style>
+
+/* ============================== ULTIMATE WOW MOBILE ============================== */
+.gx-wow-scan{position:relative;min-height:520px;margin:24px 0;border-radius:30px;overflow:hidden;border:1px solid rgba(255,255,255,.1);background:radial-gradient(circle at 50% 35%,rgba(24,232,117,.16),transparent 24%),linear-gradient(180deg,#020403,#07140d 56%,#020403);box-shadow:0 24px 70px rgba(0,0,0,.45)}
+.gx-wow-scan:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 48px,rgba(255,255,255,.028) 48px 50px);pointer-events:none}
+.gx-scan-light{position:absolute;left:50%;top:-18%;width:180px;height:760px;transform:translateX(-50%);background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(24,232,117,.08),transparent);filter:blur(18px);animation:gxScanLight 4s ease-in-out infinite}
+@keyframes gxScanLight{0%,100%{opacity:.38;transform:translateX(-50%) scaleX(.85)}50%{opacity:.8;transform:translateX(-50%) scaleX(1.15)}}
+.gx-scan-head{position:relative;z-index:2;text-align:center;padding:28px 18px 8px}.gx-scan-kicker{font-size:.62rem;letter-spacing:3px;color:#18e875;font-weight:900}.gx-scan-title{font-size:clamp(1.6rem,7vw,2.5rem);font-weight:900;margin-top:7px}.gx-scan-sub{color:var(--mut);font-size:.8rem;margin-top:5px}
+.gx-scan-stage{position:relative;z-index:2;height:320px;display:flex;align-items:center;justify-content:center;touch-action:none;cursor:grab}.gx-scan-stage.dragging{cursor:grabbing}.gx-scan-stage:after{content:"";position:absolute;bottom:40px;width:58%;height:18px;border-radius:50%;background:radial-gradient(ellipse,rgba(0,0,0,.55),transparent 70%);filter:blur(7px)}
+.gx-scan-jersey{width:min(70vw,300px);height:300px;object-fit:contain;filter:drop-shadow(0 24px 36px rgba(0,0,0,.55)) drop-shadow(0 0 35px var(--sw-ac,#18e875));transition:transform .25s ease;user-select:none;-webkit-user-drag:none}
+.gx-scan-meta{position:absolute;left:14px;right:14px;bottom:16px;z-index:3;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border-radius:16px;background:rgba(0,0,0,.34);border:1px solid rgba(255,255,255,.08);backdrop-filter:blur(12px)}.gx-scan-meta b{font-size:.9rem}.gx-scan-meta span{display:block;color:var(--mut);font-size:.68rem;margin-top:2px}.gx-scan-pill{padding:8px 11px;border-radius:999px;background:rgba(24,232,117,.11);color:#18e875;font-size:.66rem;font-weight:900;white-space:nowrap}
+.gx-scan-btn{position:relative;z-index:3;display:inline-flex;align-items:center;justify-content:center;gap:8px;margin:4px auto 20px;padding:13px 18px;border-radius:14px;background:linear-gradient(135deg,#18e875,#0b9f50);color:#031009;font-weight:900;border:none;box-shadow:0 10px 30px rgba(24,232,117,.18)}
+.gx-reaction{display:inline-flex;align-items:center;gap:8px;margin-top:9px;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);font-size:.66rem;color:rgba(255,255,255,.72)}.gx-reaction-dot{width:7px;height:7px;border-radius:50%;background:#18e875;box-shadow:0 0 12px rgba(24,232,117,.6);animation:gxReact 1s ease-in-out infinite}.gx-reaction.burst{animation:gxBurst .55s ease both}.gx-reaction.burst .gx-reaction-dot{background:#fff;box-shadow:0 0 18px #fff}@keyframes gxReact{50%{transform:scale(1.35);opacity:.75}}@keyframes gxBurst{0%{transform:scale(.95)}45%{transform:scale(1.05)}100%{transform:scale(1)}}
+.gx-quiz{position:relative;margin:24px 0;padding:22px;border-radius:24px;border:1px solid rgba(24,232,117,.14);background:linear-gradient(135deg,rgba(24,232,117,.08),rgba(255,255,255,.025));overflow:hidden}.gx-quiz h2{font-size:1.25rem;font-weight:900}.gx-quiz p{color:var(--mut);font-size:.8rem;margin-top:5px}.gx-quiz-q{margin-top:17px;font-weight:900;font-size:1rem}.gx-quiz-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.gx-qopt{border:1px solid var(--line);background:var(--card);color:var(--txt);border-radius:14px;padding:12px 10px;font-family:inherit;font-weight:800;text-align:start;cursor:pointer}.gx-qopt.on{border-color:var(--ac);box-shadow:0 0 0 1px var(--ac),0 0 22px color-mix(in srgb,var(--ac) 15%,transparent);}.gx-quiz-result{display:none;margin-top:16px;padding:16px;border-radius:16px;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.08)}.gx-quiz-result.show{display:block;animation:fadeUp .35s ease}.gx-match-line{color:var(--mut);font-size:.72rem}.gx-match-name{font-size:1.35rem;font-weight:900;margin-top:4px}.gx-quiz-go{margin-top:12px}
+.gx-walk{position:relative;min-height:620px;border-radius:30px;overflow:hidden;margin:28px 0;background:linear-gradient(180deg,#020403 0%,#081b10 58%,#020403 100%);border:1px solid rgba(24,232,117,.14)}.gx-walk:before{content:"";position:absolute;left:50%;bottom:-10%;width:115%;height:70%;transform:translateX(-50%) perspective(700px) rotateX(67deg);background:linear-gradient(90deg,transparent 49.7%,rgba(255,255,255,.14) 49.9%,rgba(255,255,255,.14) 50.1%,transparent 50.3%),repeating-linear-gradient(90deg,rgba(255,255,255,.02) 0 44px,transparent 44px 88px),linear-gradient(180deg,#123c24,#06130c)}.gx-walk-side{position:absolute;top:15%;bottom:12%;width:22%;background:repeating-linear-gradient(180deg,rgba(255,255,255,.07) 0 9px,transparent 9px 22px);filter:blur(.3px);opacity:.5}.gx-walk-side.l{left:3%;transform:skewY(-8deg)}.gx-walk-side.r{right:3%;transform:skewY(8deg)}.gx-walk-lights{position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 16% 18%,rgba(255,255,255,.28),transparent 9%),radial-gradient(circle at 84% 18%,rgba(255,255,255,.28),transparent 9%),radial-gradient(circle at 50% 8%,rgba(24,232,117,.12),transparent 26%);mix-blend-mode:screen}.gx-walk-content{position:relative;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:620px;text-align:center;padding:28px}.gx-walk-kicker{font-size:.62rem;letter-spacing:3px;color:#18e875;font-weight:900}.gx-walk h2{font-size:clamp(1.8rem,8vw,3rem);font-weight:900;margin-top:8px}.gx-walk p{max-width:360px;color:var(--mut);font-size:.82rem;line-height:1.7;margin-top:7px}.gx-walk-jersey{width:min(68vw,290px);height:320px;object-fit:contain;filter:drop-shadow(0 22px 40px rgba(0,0,0,.65)) drop-shadow(0 0 40px rgba(24,232,117,.14));animation:gxWalkJersey 3.2s ease-in-out infinite}.gx-walk.unlocked .gx-walk-jersey{animation:gxWalkReveal .8s cubic-bezier(.22,1,.36,1) both}@keyframes gxWalkJersey{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}@keyframes gxWalkReveal{from{transform:translateY(55px) scale(.78);opacity:0;filter:blur(8px) drop-shadow(0 0 0 transparent)}to{transform:none;opacity:1;filter:drop-shadow(0 22px 40px rgba(0,0,0,.65)) drop-shadow(0 0 40px rgba(24,232,117,.18))}}.gx-walk-btn{margin-top:12px;padding:14px 22px;border-radius:15px;border:1px solid rgba(24,232,117,.36);background:rgba(0,0,0,.32);color:#fff;font-family:inherit;font-weight:900;cursor:pointer;backdrop-filter:blur(10px)}.gx-walk-btn:hover{background:rgba(24,232,117,.12)}
+.gx-scan-toast{position:fixed;left:50%;bottom:104px;transform:translate(-50%,15px);opacity:0;z-index:500;padding:11px 15px;border-radius:999px;background:rgba(5,6,7,.9);color:#fff;border:1px solid rgba(24,232,117,.24);backdrop-filter:blur(10px);font-size:.76rem;font-weight:800;pointer-events:none;transition:.28s}.gx-scan-toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:640px){.gx-wow-scan{min-height:560px;border-radius:24px}.gx-scan-stage{height:340px}.gx-scan-jersey{width:min(76vw,280px);height:310px}.gx-quiz-opts{grid-template-columns:1fr}.gx-walk{min-height:580px;border-radius:24px}.gx-walk-content{min-height:580px}.gx-walk-jersey{height:300px}}
+@media(prefers-reduced-motion:reduce){.gx-scan-light,.gx-reaction-dot,.gx-walk-jersey{animation:none!important}}
+
 """
 
 BASE_JS = """<script>
@@ -3914,6 +3932,52 @@ document.addEventListener('DOMContentLoaded',function(){
     if(btn){ btn.classList.toggle('active',window._matchdayOn); btn.textContent=window._matchdayOn?'⚽ EXIT MATCHDAY':'⚽ MATCHDAY'; }
   };
 });
+
+/* ---------- Ultimate WOW: Jersey Scan ---------- */
+window._gxClubSwipeIndex=0;
+window._gxClubSwipeData=[];
+function gxInitWow(){
+  var cards=[].slice.call(document.querySelectorAll('.gx-club-swipe-card'));
+  window._gxClubSwipeData=cards.map(function(c){return{cid:c.getAttribute('data-cid')||'',name:(c.querySelector('.gx-swipe-bottom b')||{}).textContent||'',img:(c.querySelector('img')||{}).src||'',color:getComputedStyle(c).getPropertyValue('--sw-ac').trim()||'#18E875'};});
+  var stage=document.getElementById('gxScanStage'), img=document.getElementById('gxScanJersey');
+  if(stage&&img){
+    var sx=0,drag=false,last=0;
+    function move(x){var dx=x-sx;if(Math.abs(dx)>4){last=dx;img.style.transform='translateX('+(dx*.35)+'px) rotate('+(dx*.03)+'deg) scale('+(1+Math.min(.08,Math.abs(dx)/900))+')';}}
+    function finish(){if(!drag)return;drag=false;stage.classList.remove('dragging');var d=last;img.style.transform='';if(Math.abs(d)>55){gxScanMove(d<0?1:-1);} last=0;}
+    stage.addEventListener('touchstart',function(e){if(e.touches.length!==1)return;sx=e.touches[0].clientX;drag=true;stage.classList.add('dragging');},{passive:true});
+    stage.addEventListener('touchmove',function(e){if(!drag||e.touches.length!==1)return;move(e.touches[0].clientX);},{passive:true});
+    stage.addEventListener('touchend',finish,{passive:true});
+    stage.addEventListener('pointerdown',function(e){if(e.pointerType==='mouse'){sx=e.clientX;drag=true;stage.classList.add('dragging');stage.setPointerCapture&&stage.setPointerCapture(e.pointerId);}});
+    stage.addEventListener('pointermove',function(e){if(drag&&e.pointerType==='mouse')move(e.clientX);});
+    stage.addEventListener('pointerup',finish);stage.addEventListener('pointercancel',finish);
+  }
+  gxRenderScan();
+  var walk=document.getElementById('walkIntoJersey');if(walk&&'IntersectionObserver' in window){var io=new IntersectionObserver(function(es){if(es[0].isIntersecting){walk.classList.add('unlocked');io.disconnect();}},{threshold:.3});io.observe(walk);}
+}
+function gxRenderScan(){
+  var c=window._gxClubSwipeData||[], i=window._gxClubSwipeIndex||0; if(!c.length)return; if(i<0)i=c.length-1;if(i>=c.length)i=0;window._gxClubSwipeIndex=i;
+  var x=c[i],img=document.getElementById('gxScanJersey'),name=document.getElementById('gxScanName'),pill=document.getElementById('gxScanPill'),stage=document.getElementById('gxScanStage');
+  if(img){img.style.setProperty('--sw-ac',x.color);img.src=x.img;img.alt=x.name;img.style.transform='translateX(24px) scale(.94)';setTimeout(function(){img.style.transform='';},20);} if(name)name.textContent=x.name;if(pill)pill.textContent=(GX.lang==='en'?'SWIPE':'اسحبي');if(stage)stage.closest('.gx-wow-scan').style.setProperty('--sw-ac',x.color);
+  gxMaybeCrowd();
+}
+function gxScanMove(dir){window._gxClubSwipeIndex=(window._gxClubSwipeIndex||0)+dir;gxRenderScan();}
+function gxClubSwipe(dir){gxScanMove(dir);}
+function gxScanOpen(){var c=(window._gxClubSwipeData||[])[window._gxClubSwipeIndex||0];if(!c||!c.cid){location.href='/products';return;}location.href='/club/'+encodeURIComponent(c.cid);}
+function gxMaybeCrowd(){var r=document.getElementById('gxCrowdReaction');if(r){r.classList.remove('burst');void r.offsetWidth;r.classList.add('burst');}if(typeof gxCrowdBurst==='function'){try{gxCrowdBurst();}catch(e){}}}
+/* ---------- Crowd reaction ---------- */
+window.gxCrowdBurst=function(){try{var el=document.getElementById('gxCrowdReaction');if(el){el.classList.remove('burst');void el.offsetWidth;el.classList.add('burst');}}catch(e){}};
+/* ---------- Quiz ---------- */
+window._gxQuiz={q1:'',q2:''};
+function gxQuizPick(el){var wrap=el.parentElement,q=wrap.getAttribute('data-q');wrap.querySelectorAll('.gx-qopt').forEach(function(x){x.classList.remove('on');});el.classList.add('on');window._gxQuiz['q'+q]=el.getAttribute('data-v');if(window._gxQuiz.q1&&window._gxQuiz.q2)gxQuizResult();}
+function gxQuizResult(){
+  var c=window._gxClubSwipeData||[]; if(!c.length)return;
+  var red=c.filter(function(x){return /red|arsenal|liverpool|united|al.nassr/i.test(x.name);});
+  var pick=(window._gxQuiz.q1==='aggressive'&&red.length)?red[0]:(c[(window._gxQuiz.q2==='dark'?Math.min(2,c.length-1):0)]||c[0]);
+  var res=document.getElementById('gxQuizResult'),nm=document.getElementById('gxQuizMatch'),go=document.getElementById('gxQuizGo');if(nm)nm.textContent=pick.name;if(go)go.href='/club/'+encodeURIComponent(pick.cid);if(res)res.classList.add('show');
+}
+/* ---------- Walk Into The Jersey ---------- */
+function gxWalkEnter(){var el=document.getElementById('walkIntoJersey');if(el){el.classList.add('unlocked');el.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(function(){var img=document.getElementById('gxWalkJersey');if(img)img.style.transform='scale(1.05)';},650);gxMaybeCrowd();}}
+document.addEventListener('DOMContentLoaded',function(){setTimeout(gxInitWow,80);});
 </script>"""
 
 
@@ -4811,8 +4875,58 @@ def home_body():
                             '<div class="gx-swipe-bottom"><div><b>%s</b><span>%s</span></div><a class="gx-swipe-cta" href="/club/%s">%s →</a></div></article>')
                            % (i,cid and ac,ac2,em,esc(nm),("JERSEY COLLECTION" if en else "تشكيلة قمصان النادي"),esc(img),esc(nm),esc(nm),("SWIPE TO EXPLORE" if en else "اسحبي لاكتشاف الأندية"),cid,("VIEW CLUB" if en else "شوف النادي")))
     club_swipe_sec=('<div class="sec rv gx-club-swipe-wrap" id="clubSwipeSection"><div class="sec-head"><h2><span class="bar"></span>%s</h2><span class="sec-sub">%s</span></div><div class="gx-club-swipe" id="gxClubSwipe">%s</div><div class="gx-swipe-controls"><button type="button" class="gx-swipe-arrow" onclick="gxClubSwipe(-1)">‹</button><div class="gx-swipe-dots" id="gxSwipeDots"></div><button type="button" class="gx-swipe-arrow" onclick="gxClubSwipe(1)">›</button></div><div class="gx-swipe-note" id="gxSwipeNote">%s</div></div>') % (("EXPLORE BY CLUB" if en else "اكتشفي الأندية"),("Swipe the jerseys. Pick your club." if en else "اسحبي بين الأندية وشوفي القميص مباشرة"),"".join(swipe_items),("Swipe ← →" if en else "اسحبي يمين ويسار"))
+
+    # Ultimate WOW experiences
+    first_jersey = next((p for p in prods if p.get("kind") == "jersey"), None)
+    if first_jersey:
+        scan_cid = first_jersey.get("club_id") or ""
+        scan_theme = club_themes().get(scan_cid, {})
+        scan_ac = scan_theme.get("ac", "#18E875")
+        scan_ac2 = scan_theme.get("ac2", "#0B9F50")
+        scan_name = cfg.club_name(first_jersey, en)
+        scan_img = first_jersey.get("imgs", [""])[0]
+        wow_scan = ('<section class="sec rv gx-wow-scan" id="wowScan" style="--sw-ac:{ac};--sw-ac2:{ac2}">' 
+                    '<div class="gx-scan-light"></div>'
+                    '<div class="gx-scan-head"><div class="gx-scan-kicker">GOLAZOX SCAN</div>'
+                    '<div class="gx-scan-title">{title}</div><div class="gx-scan-sub">{sub}</div></div>'
+                    '<div class="gx-scan-stage" id="gxScanStage"><img id="gxScanJersey" class="gx-scan-jersey" src="/img/{img}" alt="{name}" draggable="false"></div>'
+                    '<div class="gx-scan-meta"><div><b id="gxScanName">{name}</b><span id="gxScanHint">{hint}</span></div>'
+                    '<span class="gx-scan-pill" id="gxScanPill">SWIPE</span></div>'
+                    '<button class="gx-scan-btn" type="button" onclick="gxScanOpen()">👕 {cta}</button>'
+                    '<div class="gx-reaction" id="gxCrowdReaction"><span class="gx-reaction-dot"></span><span>GOLAZOX CROWD</span></div></section>') .format(ac=scan_ac,ac2=scan_ac2,title=("FIND YOUR JERSEY" if en else "اكتشفي تيشيرتك"),sub=("Swipe the shirt. Feel the club." if en else "اسحبي القميص واكتشفي ناديك."),img=esc(scan_img),name=esc(scan_name),hint=("Swipe ← → to change club" if en else "اسحبي يمين ويسار لتغيير النادي"),cta=("VIEW THIS JERSEY" if en else "شوفي هذا التيشيرت"))
+    else:
+        wow_scan = ""
+
+    quiz_sec = ('<section class="sec rv gx-quiz" id="clubQuiz">'
+                '<h2>🧠 {title}</h2><p>{sub}</p>'
+                '<div class="gx-quiz-q">1. {q1}</div><div class="gx-quiz-opts" data-q="1">'
+                '<button class="gx-qopt" data-v="aggressive" onclick="gxQuizPick(this)">🔥 {o11}</button>'
+                '<button class="gx-qopt" data-v="classic" onclick="gxQuizPick(this)">✨ {o12}</button></div>'
+                '<div class="gx-quiz-q">2. {q2}</div><div class="gx-quiz-opts" data-q="2">'
+                '<button class="gx-qopt" data-v="red" onclick="gxQuizPick(this)">🔴 {o21}</button>'
+                '<button class="gx-qopt" data-v="dark" onclick="gxQuizPick(this)">⚫ {o22}</button></div>'
+                '<div class="gx-quiz-result" id="gxQuizResult"><div class="gx-match-line">{resultLabel}</div><div class="gx-match-name" id="gxQuizMatch">—</div><a id="gxQuizGo" class="btn pri gx-quiz-go" href="#">{go}</a></div>'
+                '</section>').format(title=("FIND YOUR CLUB" if en else "أي تيشيرت يناسبك؟"),sub=("Two taps. One match." if en else "اختاري بسرعة ونحدد لك القميص المناسب."),q1=("What energy are you?" if en else "وش أجواؤك؟"),o11=("Bold & loud" if en else "جريء وحماسي"),o12=("Classic & clean" if en else "كلاسيكي ومرتب"),q2=("Pick a color mood" if en else "اختاري ألوانك"),o21=("Red / fiery" if en else "أحمر وحماسي"),o22=("Dark / elite" if en else "داكن وفخم"),resultLabel=("YOUR MATCH" if en else "اختيارك"),go=("SHOP THIS JERSEY" if en else "شوفي التيشيرت"))
+
+    walk_prod = first_jersey or next((p for p in prods if p.get("kind")=="jersey"), None)
+    if walk_prod:
+        walk_name = cfg.club_name(walk_prod, en)
+        walk_img = walk_prod.get("imgs", [""])[0]
+        walk_sec = ('<section class="sec rv gx-walk" id="walkIntoJersey">'
+                    '<div class="gx-walk-side l"></div><div class="gx-walk-side r"></div><div class="gx-walk-lights"></div>'
+                    '<div class="gx-walk-content"><div class="gx-walk-kicker">GOLAZOX MATCHDAY</div>'
+                    '<h2>{title}</h2><p>{sub}</p><img id="gxWalkJersey" class="gx-walk-jersey" src="/img/{img}" alt="{name}">'
+                    '<button class="gx-walk-btn" type="button" onclick="gxWalkEnter()">⚡ {btn}</button></div></section>') .format(title=("WALK INTO THE JERSEY" if en else "ادخلي عالم التيشيرت"),sub=("Scroll. Hear the crowd. Meet your jersey." if en else "انزلي، اسمعي الجمهور، وقابلي تيشيرتك."),img=esc(walk_img),name=esc(walk_name),btn=("ENTER MATCHDAY" if en else "ادخلي أجواء المباراة"))
+    else:
+        walk_sec=""
+
+    # Insert new experiences near the top for maximum impact
     return (atmos_html("full")
             + '<div class="wrap">' 
+            + wow_scan
+            + walk_sec
+            + quiz_sec
+
 
             + hero
             + fan_moment

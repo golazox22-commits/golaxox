@@ -5936,7 +5936,7 @@ body{font-family:'FONT','Segoe UI',sans-serif;background:#050607;color:#fff;min-
 <div class="lang-label">CHOOSE YOUR LANGUAGE</div>
 <div class="lang-btns">
 <a href="/enter/ar" class="lang-btn"><span class="flag">🇸🇦</span><span class="lname">العربية<span>ARABIC</span></span></a>
-<a href="/enter/en" class="lang-btn"><span class="flag">🇬🇧</span><span class="lname">English<span>ENGLISH</span></span></a>
+<a href="/enter/en" class="lang-btn"><span class="flag">🇬🇧</span><span class="lname">English<span>UNITED KINGDOM</span></span></a>
 </div>
 </div>
 </div>
@@ -6453,14 +6453,16 @@ def track_page(code=""):
 # ============================== ROUTES ==============================
 @app.route("/")
 def index():
-    if not has_lang():
-        return welcome_page()
-    return redirect("/home")
+    # Always show the GOLAXOX entrance screen first.
+    # The user must click ENTER GOLAXOX and then choose a language.
+    return welcome_page()
 
 
 @app.route("/home")
 def home():
-    if not has_lang():
+    # Do not allow a direct /home visit to bypass the entrance screen.
+    # Only /enter/<l> marks the entrance as completed.
+    if request.cookies.get("gx_entry_completed") != "1" or not has_lang():
         return redirect("/")
     return base_page(home_body(), active="home")
 
@@ -6575,6 +6577,7 @@ def enter(l):
         return redirect("/")
     r = redirect("/home")
     r.set_cookie("lang", l, max_age=31536000)
+    r.set_cookie("gx_entry_completed", "1", max_age=31536000)
     return r
 
 

@@ -14,6 +14,15 @@ import random
 from flask import Flask, request, redirect, Response, send_file, session, url_for
 
 import cfg
+
+# GOLAZOX catalog visibility: these clubs are not sold and must never appear in the UI.
+REMOVED_CLUB_IDS = {"hilal", "green"}
+try:
+    cfg.CLUBS = {k:v for k,v in cfg.CLUBS.items() if k not in REMOVED_CLUB_IDS}
+    cfg.CLUB_THEMES = {k:v for k,v in cfg.CLUB_THEMES.items() if k not in REMOVED_CLUB_IDS}
+    cfg.PRODUCTS = [p for p in cfg.PRODUCTS if p.get("club_id") not in REMOVED_CLUB_IDS]
+except Exception:
+    pass
 import db
 
 app = Flask(__name__)
@@ -4719,12 +4728,6 @@ def home_body():
                  ).format(t=d["loyal_title"], q=d["loyal_q"], pick=d["loyal_pick_plz"],
                           btns=loy_btns, great=d["loyal_great"], go=d["loyal_go"])
 
-    size_sec = ('<div class="sec rv"><div class="szsec-banner">'
-                '<span class="big-ic">📏</span>'
-                '<div><h2>{t}</h2><p>{s}</p></div>'
-                '<a class="btn btn-light" href="/size-guide">{b} ←</a></div></div>'
-                ).format(t=d["szsec_title"], s=d["szsec_sub"], b=d["szsec_btn"])
-
     steps_sec = ('<div class="sec rv"><div class="sec-head"><h2><span class="bar"></span>{t}</h2></div>'
                  '<div class="steps-grid">{steps}</div></div>'
                  ).format(t=d["steps_title"], steps=steps)
@@ -4991,7 +4994,6 @@ def home_body():
             + loyal_sec
             + '<div class="sec rv" id="mugs"><div class="sec-head"><h2><span class="bar"></span>{sm}</h2><span class="sec-sub">{sm_sub}</span></div>'
             + '<div class="grid" id="gridM">{mgrid}</div></div>'
-            + size_sec
             + steps_sec
             + pitch_sec
             + match_html

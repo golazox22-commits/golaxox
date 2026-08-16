@@ -42,9 +42,7 @@ CLUBS = {
     "juve":    {"ar": "يوفنتوس",         "en": "Juventus",            "accent": "#111111", "accent2": "#5B5B5B", "emoji": "⚫"},
     "barca":   {"ar": "برشلونة",        "en": "Barcelona",           "accent": "#A50044", "accent2": "#004D98", "emoji": "🔵"},
     "real":    {"ar": "ريال مدريد",     "en": "Real Madrid",         "accent": "#C9A24B", "accent2": "#1F3864", "emoji": "🤍"},
-    "green":   {"ar": "الأخضر والأبيض", "en": "Green & White",       "accent": "#1B7A3D", "accent2": "#0E4D26", "emoji": "🟢"},
     "psg":     {"ar": "باريس سان جيرمان", "en": "Paris Saint-Germain", "accent": "#004170", "accent2": "#DA291C", "emoji": "🔵"},
-    "hilal":   {"ar": "الهلال",         "en": "Al-Hilal",            "accent": "#1E4FA3", "accent2": "#0C2D6E", "emoji": "🔵"},
 }
 
 # ============================== CLUB THEMES (dynamic, admin-editable) ==============================
@@ -61,9 +59,7 @@ CLUB_THEMES = {
     "juve":    {"ac": "#111111", "ac2": "#5B5B5B", "glow": "#111111", "tint": "#111111"},
     "barca":   {"ac": "#A50044", "ac2": "#004D98", "glow": "#A50044", "tint": "#004D98"},
     "real":    {"ac": "#C9A24B", "ac2": "#1F3864", "glow": "#C9A24B", "tint": "#C9A24B"},
-    "green":   {"ac": "#1B7A3D", "ac2": "#0E4D26", "glow": "#1B7A3D", "tint": "#1B7A3D"},
     "psg":     {"ac": "#004170", "ac2": "#DA291C", "glow": "#004170", "tint": "#004170"},
-    "hilal":   {"ac": "#1E4FA3", "ac2": "#0C2D6E", "glow": "#1E4FA3", "tint": "#1E4FA3"},
 }
 
 # ============================== TEAM PAGE THEMES (product page atmosphere) ==============================
@@ -81,13 +77,6 @@ TEAM_PAGE_THEMES = {
         "accent": "#004D98", "accent2": "#A50044",
         "pitch": "rgba(0,77,152,.04)", "particle": "rgba(0,77,152,.12)",
         "label": "Camp Nou",
-    },
-    "hilal": {
-        "bg1": "#03060E", "bg2": "#060C1A", "bg3": "#0A1028",
-        "glow1": "rgba(30,79,163,.14)", "glow2": "rgba(255,255,255,.04)",
-        "accent": "#1E4FA3", "accent2": "#FFFFFF",
-        "pitch": "rgba(30,79,163,.04)", "particle": "rgba(30,79,163,.12)",
-        "label": "Blue Kingdom",
     },
     "nassr": {
         "bg1": "#060808", "bg2": "#0C1010", "bg3": "#121818",
@@ -137,13 +126,6 @@ TEAM_PAGE_THEMES = {
         "accent": "#FFFFFF", "accent2": "#5B5B5B",
         "pitch": "rgba(255,255,255,.03)", "particle": "rgba(255,255,255,.06)",
         "label": "Allianz Stadium",
-    },
-    "green": {
-        "bg1": "#040806", "bg2": "#08100C", "bg3": "#0C1814",
-        "glow1": "rgba(27,122,61,.12)", "glow2": "rgba(27,122,61,.05)",
-        "accent": "#1B7A3D", "accent2": "#0E4D26",
-        "pitch": "rgba(27,122,61,.04)", "particle": "rgba(27,122,61,.10)",
-        "label": "Green Stadium",
     },
     "psg": {
         "bg1": "#030508", "bg2": "#060A10", "bg3": "#0A101A",

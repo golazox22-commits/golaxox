@@ -5056,13 +5056,18 @@ def home_body():
         'Object.keys(DATA).forEach(function(k){var d=DATA[k],b=document.createElement("button");b.type="button";b.className="gx-jm-country-tab";b.dataset.country=k;b.textContent=d.flag+" "+d.label;b.addEventListener("click",function(){renderCountry(k);document.getElementById("gxJmJourney").scrollIntoView({behavior:"smooth",block:"center"});});strip.appendChild(b);});\n'
         'root.querySelectorAll(".gx-jm-marker").forEach(function(m){m.addEventListener("click",function(){renderCountry(m.dataset.country);document.getElementById("gxJmJourney").scrollIntoView({behavior:"smooth",block:"center"});});});\n'
         'sizes.querySelectorAll("button[data-size]").forEach(function(b){b.addEventListener("click",function(){sizes.querySelectorAll("button").forEach(function(x){x.classList.remove("active")});b.classList.add("active");});});\n'
-        'renderCountry(currentCountry);\n})();</script>'
+        'renderCountry(currentCountry);\n  var st=document.getElementById("gxJmClubStat"); if(st){st.textContent=Object.keys(DATA).reduce(function(n,k){return n+DATA[k].clubs.length},0);}\n})();</script>'
     )
+
+    # Escape braces inside the standalone Jersey Map HTML/JS block because the
+    # surrounding homepage string uses str.format() later. After formatting,
+    # the doubled braces become normal JavaScript/CSS braces.
+    jersey_map_html_safe = jersey_map_html.replace("{", "{{").replace("}", "}}")
 
     home_html = (atmos_html("full")
             + '<div class="wrap">' 
             + hero
-            + jersey_map_html
+            + jersey_map_html_safe
             + fit_home
             + club_color_section
             + quiz_sec

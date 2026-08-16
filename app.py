@@ -345,6 +345,18 @@ def img(name):
 
 
 
+
+# ============================== GOLAZOX JERSEY MAP ==============================
+# Curated country groups. Only clubs/products that actually exist in cfg are rendered.
+JERSEY_MAP_COUNTRIES = [
+    ("england", "England", "إنجلترا", "🏴", ["arsenal", "liver", "united", "city"], "#3B82F6", "#8B5CF6"),
+    ("spain", "Spain", "إسبانيا", "🇪🇸", ["real", "barca"], "#EF4444", "#F59E0B"),
+    ("germany", "Germany", "ألمانيا", "🇩🇪", ["bayern"], "#111827", "#EF4444"),
+    ("italy", "Italy", "إيطاليا", "🇮🇹", ["juve"], "#059669", "#111827"),
+    ("saudi", "Saudi Arabia", "السعودية", "🇸🇦", ["nassr", "hilal", "green"], "#16A34A", "#F7D033"),
+    ("france", "France", "فرنسا", "🇫🇷", ["psg"], "#1D4ED8", "#EF4444"),
+]
+
 # ============================== PAGE TEMPLATES ==============================
 CSS = """<style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -615,6 +627,60 @@ select.sort { font-weight:800; }
 html[data-theme="light"] .sel { color-scheme:light; }
 .sel option { background:#0B1712; color:#F4F7F5; }
 html[data-theme="light"] .sel option { background:#fff; color:#0F172A; }
+/* ============================== GOLAZOX FIT CHECK + CLUB COLOR ============================== */
+.gx-fit-card{background:linear-gradient(145deg,rgba(24,232,117,.07),rgba(255,255,255,.025));border:1px solid rgba(24,232,117,.14);border-radius:22px;padding:20px;margin:20px 0;box-shadow:0 18px 40px rgba(0,0,0,.16)}
+.gx-fit-card .gx-fit-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.gx-fit-card h3{font-size:1.05rem;font-weight:900}.gx-fit-card p{margin-top:4px;color:var(--mut);font-size:.78rem}.fit-check-btn{background:linear-gradient(135deg,var(--ac),var(--ac2));color:#07110c;border:none;border-radius:14px;padding:11px 16px;font-weight:900;box-shadow:0 10px 26px color-mix(in srgb,var(--ac) 18%,transparent)}
+.gx-fit-result{display:none;margin-top:14px;border-radius:16px;padding:14px 16px;background:rgba(24,232,117,.06);border:1px solid rgba(24,232,117,.18);text-align:center}.gx-fit-result.show{display:block;animation:fadeUp .35s ease both}.gx-fit-size{font-size:2.2rem;font-weight:1000;color:var(--ac);letter-spacing:1px}.gx-fit-sub{font-size:.78rem;color:var(--mut);margin-top:4px}
+.gx-club-color{position:relative;overflow:hidden;border-radius:24px;padding:22px;background:linear-gradient(135deg,var(--club-a,#18E875),var(--club-b,#0B9F50));color:#fff;box-shadow:0 22px 50px color-mix(in srgb,var(--club-a,#18E875) 20%,transparent)}.gx-club-color:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 80% 20%,rgba(255,255,255,.18),transparent 28%),linear-gradient(135deg,transparent 55%,rgba(255,255,255,.06));pointer-events:none}.gx-club-color-inner{position:relative;z-index:1}.gx-club-color-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.gx-club-color h3{font-size:1.35rem;font-weight:1000}.gx-club-color small{opacity:.85;font-weight:800}.gx-club-swatches{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.gx-club-swatch{border:1px solid rgba(255,255,255,.22);background:rgba(0,0,0,.18);color:#fff;border-radius:999px;padding:8px 12px;font:inherit;font-size:.74rem;font-weight:900;cursor:pointer;backdrop-filter:blur(8px)}.gx-club-swatch.on{background:#fff;color:#0b1712;border-color:#fff;box-shadow:0 6px 16px rgba(0,0,0,.18)}.gx-club-color-cta{display:inline-flex;margin-top:14px;padding:10px 14px;border-radius:12px;background:rgba(255,255,255,.14);font-size:.76rem;font-weight:900;border:1px solid rgba(255,255,255,.18)}
+@media(max-width:640px){.gx-fit-card{padding:16px}.gx-fit-size{font-size:1.9rem}.gx-club-color{padding:18px;border-radius:20px}}
+
+
+/* ============================== GOLAZOX JERSEY MAP ============================== */
+.gx-jmap-preview{position:relative;overflow:hidden;border:1px solid rgba(24,232,117,.14);border-radius:28px;
+margin:8px 0 28px;padding:22px;background:radial-gradient(65% 80% at 18% 20%,rgba(59,130,246,.16),transparent 62%),radial-gradient(55% 70% at 78% 25%,rgba(24,232,117,.11),transparent 60%),linear-gradient(180deg,#040809 0%,#07130f 100%);
+box-shadow:0 24px 70px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.04)}
+.gx-jmap-preview::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px);background-size:42px 42px;pointer-events:none;opacity:.45}
+.gx-jmap-grid{position:relative;z-index:1;display:grid;grid-template-columns:1.2fr .8fr;gap:18px;align-items:stretch}
+.gx-jmap-stage{min-height:390px;position:relative;border-radius:22px;border:1px solid rgba(255,255,255,.08);overflow:hidden;background:radial-gradient(circle at 34% 46%,rgba(24,232,117,.14),transparent 14%),radial-gradient(circle at 67% 32%,rgba(59,130,246,.12),transparent 17%),radial-gradient(circle at 72% 68%,rgba(245,158,11,.08),transparent 16%),linear-gradient(180deg,#07111a,#030607)}
+.gx-jmap-stage::after{content:"";position:absolute;inset:10% 7%;border:1px solid rgba(255,255,255,.055);border-radius:50%;box-shadow:0 0 0 24px rgba(255,255,255,.012),0 0 0 48px rgba(255,255,255,.008)}
+.gx-jmap-stars{position:absolute;inset:0;background-image:radial-gradient(circle at 14% 25%,rgba(255,255,255,.8) 0 1px,transparent 1.5px),radial-gradient(circle at 30% 70%,rgba(24,232,117,.8) 0 1px,transparent 1.5px),radial-gradient(circle at 58% 18%,rgba(255,255,255,.65) 0 1px,transparent 1.5px),radial-gradient(circle at 77% 52%,rgba(59,130,246,.8) 0 1px,transparent 1.5px),radial-gradient(circle at 86% 26%,rgba(216,180,90,.7) 0 1px,transparent 1.5px);opacity:.6}
+.gx-jmap-orbit{position:absolute;left:50%;top:50%;width:min(70vw,430px);height:min(70vw,430px);transform:translate(-50%,-50%);border:1px solid rgba(24,232,117,.12);border-radius:50%;box-shadow:0 0 50px rgba(24,232,117,.04)}
+.gx-jmap-orbit::before,.gx-jmap-orbit::after{content:"";position:absolute;inset:13%;border:1px solid rgba(255,255,255,.045);border-radius:50%}
+.gx-jmap-orbit::after{inset:31%}
+.gx-jmap-lines{position:absolute;inset:0;background:linear-gradient(14deg,transparent 49.8%,rgba(255,255,255,.05) 49.9%,rgba(255,255,255,.05) 50.1%,transparent 50.2%),linear-gradient(-22deg,transparent 49.8%,rgba(255,255,255,.035) 49.9%,rgba(255,255,255,.035) 50.1%,transparent 50.2%);opacity:.9}
+.gx-jmap-title{position:absolute;z-index:5;top:18px;left:18px;right:18px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.gx-jmap-title h3{font-size:1.45rem;font-weight:1000;letter-spacing:.5px}
+.gx-jmap-title p{margin-top:4px;color:rgba(255,255,255,.52);font-size:.72rem}
+.gx-jmap-tag{padding:7px 10px;border-radius:999px;border:1px solid rgba(24,232,117,.18);color:#18E875;background:rgba(24,232,117,.06);font-size:.66rem;font-weight:900}
+.gx-jpin{position:absolute;z-index:4;transform:translate(-50%,-50%);padding:7px 9px;border:1px solid rgba(255,255,255,.14);background:rgba(3,7,8,.74);color:#fff;border-radius:14px;backdrop-filter:blur(10px);font-size:.68rem;font-weight:900;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:0 10px 24px rgba(0,0,0,.22);transition:.22s}
+.gx-jpin:hover,.gx-jpin.active{border-color:var(--pin,#18E875);box-shadow:0 0 28px color-mix(in srgb,var(--pin,#18E875) 24%,transparent);transform:translate(-50%,-52%) scale(1.03)}
+.gx-jpin .dot{width:8px;height:8px;border-radius:50%;background:var(--pin,#18E875);box-shadow:0 0 14px var(--pin,#18E875)}
+.gx-jmap-showcase{position:relative;border:1px solid rgba(255,255,255,.08);border-radius:22px;background:rgba(0,0,0,.26);overflow:hidden;min-height:390px}
+.gx-jmap-showcase::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 35%,var(--show-a,rgba(24,232,117,.18)),transparent 38%)}
+.gx-jmap-show-inner{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;padding:18px}
+.gx-jmap-show-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.gx-jmap-club{font-size:1rem;font-weight:1000}.gx-jmap-country{font-size:.65rem;color:var(--mut);margin-top:3px}
+.gx-jmap-product-scene{flex:1;display:flex;align-items:center;justify-content:center;min-height:220px}
+.gx-jmap-product-scene img{width:min(88%,320px);height:240px;object-fit:contain;filter:drop-shadow(0 24px 40px rgba(0,0,0,.5));transition:transform .35s}
+.gx-jmap-showcase:hover .gx-jmap-product-scene img{transform:translateY(-5px) scale(1.03)}
+.gx-jmap-price{font-size:1.25rem;font-weight:1000;color:var(--ac);margin-top:4px}.gx-jmap-sub{font-size:.72rem;color:var(--mut);margin-top:3px}
+.gx-jmap-cta{margin-top:12px;display:flex;gap:8px}.gx-jmap-cta a{flex:1;justify-content:center}
+.gx-jmap-label{font-size:.72rem;font-weight:900;color:var(--mut);margin-top:12px}
+.gx-jmap-countries{display:flex;gap:9px;overflow-x:auto;padding:12px 2px 4px;scroll-snap-type:x proximity;scrollbar-width:none}
+.gx-jmap-countries::-webkit-scrollbar{display:none}
+.gx-jcountry{flex:0 0 104px;scroll-snap-align:start;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:10px 8px;background:rgba(255,255,255,.025);color:#fff;cursor:pointer;text-align:center;transition:.2s}
+.gx-jcountry:hover,.gx-jcountry.active{border-color:var(--jc,#18E875);background:color-mix(in srgb,var(--jc,#18E875) 8%,transparent);box-shadow:0 8px 24px color-mix(in srgb,var(--jc,#18E875) 14%,transparent)}
+.gx-jcountry .flag{font-size:1.4rem;display:block}.gx-jcountry b{display:block;font-size:.72rem;margin-top:5px}.gx-jcountry small{display:block;color:rgba(255,255,255,.42);font-size:.56rem;margin-top:2px}
+.gx-jmap-clubs{display:flex;gap:9px;overflow-x:auto;padding:8px 2px 0;scrollbar-width:none}.gx-jmap-clubs::-webkit-scrollbar{display:none}
+.gx-jclub{flex:0 0 128px;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:10px;background:rgba(255,255,255,.025);cursor:pointer;transition:.2s}
+.gx-jclub:hover,.gx-jclub.active{border-color:var(--ca,#18E875);box-shadow:0 10px 28px color-mix(in srgb,var(--ca,#18E875) 13%,transparent);transform:translateY(-2px)}
+.gx-jclub-top{display:flex;justify-content:space-between;gap:6px;align-items:center}.gx-jclub em{font-style:normal;font-size:1.2rem}.gx-jclub b{font-size:.7rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.gx-jclub span{display:block;margin-top:8px;color:rgba(255,255,255,.42);font-size:.56rem}
+.gx-jmap-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;flex-wrap:wrap}.gx-jmap-count{font-size:.7rem;color:rgba(255,255,255,.48)}
+.gx-jmap-open{border:1px solid rgba(24,232,117,.24);color:#18E875;background:rgba(24,232,117,.055);border-radius:999px;padding:8px 12px;font-size:.68rem;font-weight:900}
+.gx-jmap-page{padding-bottom:110px}.gx-jmap-page .gx-jmap-grid{grid-template-columns:1.25fr .75fr}.gx-jmap-page .gx-jmap-stage,.gx-jmap-page .gx-jmap-showcase{min-height:500px}.gx-jmap-page .gx-jmap-product-scene img{height:315px}
+@media(max-width:900px){.gx-jmap-grid,.gx-jmap-page .gx-jmap-grid{grid-template-columns:1fr}.gx-jmap-stage,.gx-jmap-page .gx-jmap-stage{min-height:360px}.gx-jmap-showcase,.gx-jmap-page .gx-jmap-showcase{min-height:430px}}
+@media(max-width:640px){.gx-jmap-preview{padding:12px;border-radius:20px}.gx-jmap-stage{min-height:330px}.gx-jmap-title h3{font-size:1.05rem}.gx-jmap-title p{font-size:.62rem}.gx-jpin{font-size:.6rem;padding:6px 8px}.gx-jmap-showcase{min-height:360px}.gx-jmap-product-scene{min-height:190px}.gx-jmap-product-scene img{height:200px}.gx-jcountry{flex-basis:90px}.gx-jclub{flex-basis:118px}}
+
 /* info cards */
 .quick { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:18px; }
 .qcard { background:rgba(10,13,12,.80); border:1px solid rgba(24,232,117,.06); border-radius:20px; padding:22px; cursor:pointer;
@@ -3882,6 +3948,15 @@ document.addEventListener('DOMContentLoaded',function(){
   };
 });
 
+/* ---------- GOLAZOX FIT CHECK + CLUB COLOR ---------- */
+window._gxFitPref='regular';window._gxFitResult=null;
+function gxFitPick(el){var w=el.parentElement;if(!w)return;w.querySelectorAll('.radio').forEach(function(x){x.classList.remove('on');});el.classList.add('on');window._gxFitPref=el.getAttribute('data-v')||'regular';}
+function gxParseRange(v){var s=String(v||'').replace(/[–—]/g,'-').trim();if(!s)return[0,0];var p=s.split('-').map(Number);return p.length===1?[p[0],p[0]]:[p[0],p[1]];}
+function gxRangePenalty(v,lo,hi){if(v>=lo&&v<=hi)return 0;var span=Math.max(1,hi-lo);return v<lo?(lo-v)/span:(v-hi)/span;}
+function gxRunFitCheck(){var w=parseFloat($('fit_weight')&&$('fit_weight').value),h=parseFloat($('fit_height')&&$('fit_height').value);if(!isFinite(w)||!isFinite(h)||w<30||w>180||h<120||h>220){toast(GX.lang==='en'?'Enter a valid weight and height.':'اكتبي وزنًا وطولًا صحيحين.');return;}var chart=GX.chart||{},keys=GX.sizes||Object.keys(chart),best=null;keys.forEach(function(sz,i){var r=chart[sz]||{},hr=gxParseRange(r.height),wr=gxParseRange(r.weight),score=gxRangePenalty(h,hr[0],hr[1])*1.35+gxRangePenalty(w,wr[0],wr[1]);var target=i+(window._gxFitPref==='loose'?0.7:(window._gxFitPref==='tight'?-0.7:0));score+=Math.abs(i-target)*0.22;if(!best||score<best.score||Math.abs(score-best.score)<.03&&((window._gxFitPref==='loose'&&i>best.index)||(window._gxFitPref==='tight'&&i<best.index)))best={size:sz,score:score,index:i};});window._gxFitResult=best;if($('fitSize'))$('fitSize').textContent=best.size;if($('fitExplain'))$('fitExplain').textContent=GX.lang==='en'?'Based on your measurements and preferred fit.':'تم اختيار المقاس بناءً على وزنك وطولك وطريقة اللبس.';if($('fitResult'))$('fitResult').classList.add('show');}
+function gxUseFitSize(){var r=window._gxFitResult;if(!r)return;var c=document.querySelector('.size-chip[data-sz="'+r.size+'"]');if(c&&!c.classList.contains('oos')){selectSize(c);closeModal('m-fitcheck');toast(GX.lang==='en'?'Size '+r.size+' selected.':'تم اختيار المقاس '+r.size+'.');}else{closeModal('m-fitcheck');toast(GX.lang==='en'?'That size is currently unavailable.':'هذا المقاس غير متوفر حاليًا.');}}
+function gxPickClubColor(btn){var box=$('gxClubColor');if(!box)return;document.querySelectorAll('.gx-club-swatch').forEach(function(x){x.classList.remove('on');});btn.classList.add('on');var a=btn.getAttribute('data-a')||'#18E875',b=btn.getAttribute('data-b')||'#0B9F50',cid=btn.getAttribute('data-cid')||'';box.style.setProperty('--club-a',a);box.style.setProperty('--club-b',b);var n=$('gxClubColorName');if(n)n.textContent=GX.lang==='en'?btn.getAttribute('data-name')+' • YOUR COLOR':btn.getAttribute('data-name')+' • ألوانك';var e=$('gxClubColorEmoji');if(e)e.textContent=btn.getAttribute('data-emoji')||'⚽';var l=$('gxClubColorLink');if(l)l.href='/club/'+encodeURIComponent(cid);setMyClub(cid);}
+
 /* ---------- Ultimate WOW: Jersey Scan ---------- */
 window._gxClubSwipeIndex=0;
 window._gxClubSwipeData=[];
@@ -3901,7 +3976,7 @@ function gxInitWow(){
     stage.addEventListener('pointerup',finish);stage.addEventListener('pointercancel',finish);
   }
   gxRenderScan();
-  var walk=document.getElementById('walkIntoJersey');if(walk&&'IntersectionObserver' in window){var io=new IntersectionObserver(function(es){if(es[0].isIntersecting){walk.classList.add('unlocked');io.disconnect();}},{threshold:.3});io.observe(walk);}
+
 }
 function gxRenderScan(){
   var c=window._gxClubSwipeData||[], i=window._gxClubSwipeIndex||0; if(!c.length)return; if(i<0)i=c.length-1;if(i>=c.length)i=0;window._gxClubSwipeIndex=i;
@@ -3926,7 +4001,7 @@ function gxQuizResult(){
 }
 /* ---------- Walk Into The Jersey ---------- */
 function gxWalkEnter(){var el=document.getElementById('walkIntoJersey');if(el){el.classList.add('unlocked');el.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(function(){var img=document.getElementById('gxWalkJersey');if(img)img.style.transform='scale(1.05)';},650);gxMaybeCrowd();}}
-document.addEventListener('DOMContentLoaded',function(){setTimeout(gxInitWow,80);});
+document.addEventListener('DOMContentLoaded',function(){try{var cid=gxGet('gx_club',null);if(cid){var b=document.querySelector('.gx-club-swatch[data-cid=\"'+cid+'\"]');if(b)gxPickClubColor(b);}}catch(e){}setTimeout(gxInitWow,80);});
 </script>"""
 
 
@@ -4441,7 +4516,29 @@ def modals_html():
 
     reorder_body = '<div id="ro_body"></div>'
 
-    return (modal("m-sizes", d["szt_head"], size_body, True)
+    fit_body = (
+        '<div class="mnote" style="margin-bottom:14px">{intro}</div>'
+        '<div class="frow"><div class="fld"><label>{weight}</label><input id="fit_weight" type="number" min="30" max="180" step="0.1" inputmode="decimal" placeholder="70"></div>'
+        '<div class="fld"><label>{height}</label><input id="fit_height" type="number" min="120" max="220" step="1" inputmode="numeric" placeholder="175"></div></div>'
+        '<div class="fld"><label>{fit}</label><div class="radios">'
+        '<button class="radio" data-g="fitpref" data-v="tight" onclick="gxFitPick(this)">🧩 {tight}</button>'
+        '<button class="radio on" data-g="fitpref" data-v="regular" onclick="gxFitPick(this)">👌 {regular}</button>'
+        '<button class="radio" data-g="fitpref" data-v="loose" onclick="gxFitPick(this)">🫶 {loose}</button>'
+        '</div></div>'
+        '<button class="btn pri big" onclick="gxRunFitCheck()">{btn}</button>'
+        '<div id="fitResult" class="gx-fit-result"><div class="gx-fit-sub">{result}</div><div id="fitSize" class="gx-fit-size">—</div><div id="fitExplain" class="gx-fit-sub"></div>'
+        '<button class="btn ghost sm" style="margin-top:10px" onclick="gxUseFitSize()">{use}</button></div>'
+        '<p class="mnote" style="margin-top:12px;font-size:.72rem">{note}</p>'
+    ).format(
+        intro=("أدخل وزنك وطولك واختر شكل اللبسة، ونقترح لك أقرب مقاس حسب جدول GOLAZOX." if not en else "Enter your weight and height, then choose your preferred fit. We’ll suggest the closest GOLAZOX size."),
+        weight=("الوزن (كجم)" if not en else "Weight (kg)"), height=("الطول (سم)" if not en else "Height (cm)"),
+        fit=("كيف تحب يكون التيشيرت؟" if not en else "How do you want it to fit?"),
+        tight=("ضيق" if not en else "Slim"), regular=("معتدل" if not en else "Regular"), loose=("واسع" if not en else "Loose"),
+        btn=("احسب مقاسي" if not en else "Find my size"), result=("المقاس المقترح" if not en else "Suggested size"),
+        use=("استخدم هذا المقاس" if not en else "Use this size"), note=("المقاس تقديري وقد يختلف حسب القصة وطريقة القياس." if not en else "This is a guide estimate; fit can vary by cut and measurement method."))
+
+    return (modal("m-fitcheck", "GOLAZOX FIT CHECK", fit_body, True)
+            + modal("m-sizes", d["szt_head"], size_body, True)
             + modal("m-wash", d["wash_title"], wash_body, True)
             + modal("m-ret", d["ret_title"], ret_body, True)
             + modal("m-how", d["how_title"], how_body)
@@ -4585,6 +4682,148 @@ def spotlight_html(prods):
              desc=esc(desc or ""), pr=pr, cur=cur(), view=d["view"])
 
 
+
+def jersey_map_catalog():
+    """Return country groups using only configured clubs with visible jersey products."""
+    prods = [p for p in cfg.PRODUCTS if not p.get("hidden") and p.get("kind") == "jersey"]
+    out = []
+    for key, en_name, ar_name, flag, club_ids, a, b in JERSEY_MAP_COUNTRIES:
+        clubs = []
+        for cid in club_ids:
+            c = cfg.CLUBS.get(cid)
+            cp = [p for p in prods if p.get("club_id") == cid]
+            if not c or not cp:
+                continue
+            th = club_themes().get(cid, {})
+            fp = cp[0]
+            clubs.append({
+                "id": cid,
+                "ar": c.get("ar", cid),
+                "en": c.get("en", cid),
+                "emoji": c.get("emoji", "⚽"),
+                "ac": th.get("ac", a),
+                "ac2": th.get("ac2", b),
+                "img": (fp.get("imgs") or [""])[0],
+                "product": fp["id"],
+                "count": len(cp),
+                "price": eff_price(fp),
+            })
+        if clubs:
+            out.append({"id": key, "en": en_name, "ar": ar_name, "flag": flag, "a": a, "b": b, "clubs": clubs})
+    return out
+
+
+def jersey_map_markup(standalone=False):
+    """Interactive WOW Jersey Map block or standalone page."""
+    en = lang() == "en"
+    countries = jersey_map_catalog()
+    if not countries:
+        return ""
+    first_country = countries[0]
+    first_club = first_country["clubs"][0]
+    pins = {"england": (30, 28), "spain": (35, 42), "germany": (44, 32), "italy": (49, 50), "saudi": (65, 55), "france": (38, 51)}
+    pin_html = ""
+    for c in countries:
+        left, top = pins.get(c["id"], (50, 50))
+        nm = c["en"] if en else c["ar"]
+        pin_html += (
+            '<button class="gx-jpin%s" data-country="%s" style="left:%s%%;top:%s%%;--pin:%s" '
+            'onclick="gxJMapCountry(\'%s\')" type="button"><span class="dot"></span>%s %s</button>'
+        ) % (" active" if c["id"] == first_country["id"] else "", c["id"], left, top, c["a"], c["id"], c["flag"], esc(nm))
+    country_names = {"england": "إنجلترا", "spain": "إسبانيا", "germany": "ألمانيا", "italy": "إيطاليا", "saudi": "السعودية", "france": "فرنسا"}
+    title = "JERSEY MAP" if en else "خريطة القمصان حول العالم"
+    sub = "Discover club jerseys by country — then jump straight to the shirt." if en else "اختاري دولة، اكتشفي أنديتها، ثم ادخلي مباشرة على القميص."
+    view = "VIEW JERSEY" if en else "شوفي القميص"
+    viewclub = "VIEW CLUB" if en else "شوف النادي"
+    explore = "EXPLORE THE MAP" if en else "اكتشفي الخريطة"
+    first_name = first_club["en"] if en else first_club["ar"]
+    first_country_name = first_country["en"] if en else first_country["ar"]
+    markup = """
+<div class="sec rv gx-jmap-wrap %s" id="jerseyMap">
+  <div class="sec-head"><h2><span class="bar"></span>%s 🌍</h2><span class="sec-sub">%s</span></div>
+  <div class="gx-jmap-preview">
+    <div class="gx-jmap-grid">
+      <div class="gx-jmap-stage">
+        <div class="gx-jmap-stars"></div><div class="gx-jmap-lines"></div><div class="gx-jmap-orbit"></div>
+        <div class="gx-jmap-title"><div><h3>JERSEY MAP</h3><p>%s</p></div><span class="gx-jmap-tag">GOLAZOX WORLD</span></div>
+        %s
+      </div>
+      <div class="gx-jmap-showcase" id="gxJMapShow" style="--show-a:%s33">
+        <div class="gx-jmap-show-inner">
+          <div class="gx-jmap-show-head"><div><div class="gx-jmap-club" id="gxJMapClub">%s</div><div class="gx-jmap-country" id="gxJMapCountry">%s</div></div><div id="gxJMapEmoji" style="font-size:1.7rem">%s</div></div>
+          <div class="gx-jmap-product-scene"><img id="gxJMapImg" src="/img/%s" alt="%s" loading="lazy"></div>
+          <div class="gx-jmap-price" id="gxJMapPrice">%s %s</div>
+          <div class="gx-jmap-sub" id="gxJMapSub">%s</div>
+          <div class="gx-jmap-cta"><a id="gxJMapView" class="btn pri" href="/product/%s">%s →</a><a id="gxJMapClubLink" class="btn ghost" href="/club/%s">%s</a></div>
+        </div>
+      </div>
+    </div>
+    <div class="gx-jmap-label">%s</div>
+    <div class="gx-jmap-countries" id="gxJMapCountries"></div>
+    <div class="gx-jmap-label" id="gxJMapClubLabel">%s %s</div>
+    <div class="gx-jmap-clubs" id="gxJMapClubs"></div>
+    <div class="gx-jmap-foot"><span class="gx-jmap-count" id="gxJMapCount"></span><a class="gx-jmap-open" href="/jersey-map">%s ↗</a></div>
+  </div>
+</div>
+<script>
+(function(){
+  var DATA=%s;
+  var lang=%s;
+  var cur=%s;
+  function country(id){return DATA.find(function(x){return x.id===id})||DATA[0];}
+  function club(c,id){return c.clubs.find(function(x){return x.id===id})||c.clubs[0];}
+  function renderCountries(active){
+    var box=document.getElementById('gxJMapCountries'); if(!box)return;
+    box.innerHTML=DATA.map(function(c){
+      var nm=lang==='en'?c.en:c.ar;
+      return '<button type="button" class="gx-jcountry'+(c.id===active?' active':'')+'" style="--jc:'+c.a+'" onclick="gxJMapCountry(\''+c.id+'\')"><span class="flag">'+c.flag+'</span><b>'+esc(nm)+'</b><small>'+c.clubs.length+' '+(lang==='en'?'clubs':'أندية')+'</small></button>';
+    }).join('');
+  }
+  function renderClubs(c,active){
+    var box=document.getElementById('gxJMapClubs'), label=document.getElementById('gxJMapClubLabel'); if(!box)return;
+    label.textContent=(lang==='en'?'CLUBS IN ':'أندية ')+(lang==='en'?c.en:c.ar);
+    box.innerHTML=c.clubs.map(function(x){
+      var nm=lang==='en'?x.en:x.ar;
+      return '<button type="button" class="gx-jclub'+(x.id===active?' active':'')+'" style="--ca:'+x.ac+'" onclick="gxJMapClub(\''+c.id+'\',\''+x.id+'\')"><div class="gx-jclub-top"><em>'+x.emoji+'</em><b>'+esc(nm)+'</b></div><span>'+x.count+' '+(lang==='en'?'jerseys':'قمصان')+'</span></button>';
+    }).join('');
+  }
+  function update(c,x){
+    var nm=lang==='en'?x.en:x.ar, cn=lang==='en'?c.en:c.ar;
+    var show=document.getElementById('gxJMapShow'); if(show)show.style.setProperty('--show-a',c.a+'33');
+    var e=document.getElementById('gxJMapClub'); if(e)e.textContent=nm;
+    e=document.getElementById('gxJMapCountry'); if(e)e.textContent=c.flag+' '+cn;
+    e=document.getElementById('gxJMapEmoji'); if(e)e.textContent=x.emoji;
+    e=document.getElementById('gxJMapImg'); if(e){e.src='/img/'+x.img;e.alt=nm;}
+    e=document.getElementById('gxJMapPrice'); if(e)e.textContent=pmoney(x.price)+' '+cur;
+    e=document.getElementById('gxJMapSub'); if(e)e.textContent=lang==='en'?'High-quality sports jersey':'تيشيرت رياضي بجودة عالية';
+    e=document.getElementById('gxJMapView'); if(e)e.href='/product/'+x.product;
+    e=document.getElementById('gxJMapClubLink'); if(e)e.href='/club/'+x.id;
+    e=document.getElementById('gxJMapCount'); if(e)e.textContent=c.clubs.reduce(function(n,z){return n+z.count},0)+' '+(lang==='en'?'jerseys in this country':'قمصان في هذه الدولة');
+  }
+  window.gxJMapCountry=function(id){
+    var c=country(id), x=c.clubs[0]; renderCountries(c.id); renderClubs(c,x.id); update(c,x);
+    document.querySelectorAll('.gx-jpin').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-country')===c.id)});
+  };
+  window.gxJMapClub=function(cid,id){
+    var c=country(cid), x=club(c,id); renderCountries(c.id); renderClubs(c,x.id); update(c,x);
+    document.querySelectorAll('.gx-jpin').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-country')===c.id)});
+  };
+  function init(){renderCountries(DATA[0].id);renderClubs(DATA[0],DATA[0].clubs[0].id);update(DATA[0],DATA[0].clubs[0]);}
+  document.addEventListener('DOMContentLoaded',init);
+})();
+</script>
+""" % (
+        "gx-jmap-page" if standalone else "",
+        title, sub, sub, pin_html, first_country["a"], first_name, first_country_name, first_club["emoji"],
+        esc(first_club["img"]), esc(first_name), first_club["price"], cur(), "تيشيرت رياضي بجودة عالية" if not en else "High-quality sports jersey",
+        first_club["product"], view, first_club["id"], viewclub,
+        "اختاري دولة" if not en else "CHOOSE A COUNTRY",
+        "أندية" if not en else "CLUBS IN", first_country_name,
+        explore, json_d(countries), json.dumps("en" if en else "ar"), json.dumps(cur())
+    )
+    return markup
+
+
 def home_body():
     en = lang() == "en"
     d = cfg.L[lang()]
@@ -4632,6 +4871,14 @@ def home_body():
             ).format(tag=d["home_section_hero_tag"], t1=d["home_hero_t1"], t2=d["home_hero_t2"],
                      sub=("تيشيرت رياضي بجودة عالية بخامة الأبطال، يلبسك حماس الملعب من أول لحظة. اختار فريقك وعيش الأجواء ⚽🔥" if not en else "High-quality sports jerseys with a premium feel. Pick your team and live the matchday atmosphere ⚽🔥"), cj=d["home_cta_shop"], ct=d["home_cta_team"],
                      pj=fmt_cur(cfg.PRICE_JERSEY), pm=fmt_cur(cfg.PRICE_MUG))
+
+    fit_home = ("<div class='sec rv'><div class='gx-fit-card'><div class='gx-fit-head'><div><h3>✨ {title}</h3><p>{sub}</p></div><button class='fit-check-btn' onclick=\"openModal('m-fitcheck')\">{btn}</button></div></div></div>").format(title=("اعرف مقاسك قبل الطلب" if not en else "KNOW YOUR SIZE BEFORE YOU ORDER"),sub=("وزن + طول + طريقة اللبس = مقاس أقرب لك." if not en else "Weight + height + fit preference = a closer size recommendation."),btn=("ابدأ Fit Check" if not en else "Start Fit Check"))
+
+    club_swatches=[]
+    for cid,c in cfg.CLUBS.items():
+        th=club_themes().get(cid,{})
+        club_swatches.append('<button class="gx-club-swatch" data-cid="%s" data-a="%s" data-b="%s" data-name="%s" data-emoji="%s" onclick="gxPickClubColor(this)">%s</button>' % (cid,th.get("ac","#18E875"),th.get("ac2","#0B9F50"),esc(c.get("en" if en else "ar",cid)),esc(c.get("emoji","⚽")),esc(c.get("en" if en else "ar",cid))))
+    club_color_section=('<div class="sec rv"><div class="gx-club-color" id="gxClubColor"><div class="gx-club-color-inner"><div class="gx-club-color-top"><div><h3 id="gxClubColorName">YOUR CLUB. YOUR COLOR.</h3><small>{sub}</small></div><div id="gxClubColorEmoji" style="font-size:2rem">⚽</div></div><div class="gx-club-swatches">{swatches}</div><a id="gxClubColorLink" class="gx-club-color-cta" href="/products">{cta}</a></div></div></div>').format(sub=("اختار ناديك، وخلي ألوان GOLAZOX على مزاجك." if not en else "Pick your club and make GOLAZOX feel like your colors."),swatches="".join(club_swatches),cta=("شوف قمصان النادي" if not en else "Shop this club"))
 
     clubs_sec = ('<div class="sec rv" id="clubs"><div class="sec-head"><h2><span class="bar"></span>{t}</h2>'
                  '<span class="sec-sub">{s}</span></div>'
@@ -4826,6 +5073,9 @@ def home_body():
 
 
             + hero
+            + fit_home
+            + club_color_section
+            + jersey_map_markup(False)
             + fan_moment
             + pc_sec
             + md_ticker
@@ -5326,7 +5576,7 @@ def product_body(pid):
                       "{x}</button>").format(s=(" oos" if oos else ""), o=on, sz=sz,
                                              x="<span class='xs'>×</span>" if oos else "")
         sizes = ('<div class="szsec"><div class="lbl"><span>{sl}</span>'
-                 '<span class="szlink" onclick="openModal(\'m-sizes\')">📏 {sg}</span></div>'
+                 '<span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="szlink" onclick="openModal(\'m-sizes\')">📏 {sg}</span><span class="szlink" onclick="openModal(\'m-fitcheck\')">✨ Fit Check</span></span></div>'
                  '<div class="sizes">{chips}</div>{note}</div>').format(
             sl=d["size_label"], sg=d["size_guide"], chips=chips,
             note=('<p class="mnote sz-note">' + (prev_note or d["saved_size"].format(sz=my_sz)) + '</p>') if (prev_note or my_sz) else "")
@@ -6608,6 +6858,13 @@ def home():
         return redirect("/")
     return base_page(home_body(), active="home")
 
+
+@app.route("/jersey-map")
+def jersey_map_page():
+    return base_page(
+        '<div class="wrap">' + jersey_map_markup(True) + '</div>',
+        active="clubs"
+    )
 
 @app.route("/products")
 def products_page():

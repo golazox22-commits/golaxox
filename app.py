@@ -4860,22 +4860,6 @@ def home_body():
         play=("PLAY PENALTY" if en else "العب الركلة")
     )
 
-    swipe_cards=[]
-    for cid,c in cfg.CLUBS.items():
-        th=club_themes().get(cid,{})
-        club_prods=[p for p in prods if p.get("club_id")==cid and p.get("kind")=="jersey"]
-        if not club_prods: continue
-        fp=club_prods[0]
-        swipe_cards.append((cid,th.get("ac","#E11D48"),th.get("ac2","#F97316"),c.get("en" if en else "ar",cid),c.get("emoji","⚽"),fp["imgs"][0],len(club_prods)))
-    swipe_items=[]
-    for i,(cid,ac,ac2,nm,em,img,count) in enumerate(swipe_cards):
-        swipe_items.append(('<article class="gx-club-swipe-card" data-index="%d" style="--sw-ac:%s;--sw-ac2:%s">'
-                            '<div class="gx-swipe-bg"></div><div class="gx-swipe-top"><span>%s %s</span><small>%s</small></div>'
-                            '<div class="gx-swipe-stage"><div class="gx-swipe-glow"></div><img src="/img/%s" alt="%s" loading="lazy"></div>'
-                            '<div class="gx-swipe-bottom"><div><b>%s</b><span>%s</span></div><a class="gx-swipe-cta" href="/club/%s">%s →</a></div></article>')
-                           % (i,cid and ac,ac2,em,esc(nm),("JERSEY COLLECTION" if en else "تشكيلة قمصان النادي"),esc(img),esc(nm),esc(nm),("SWIPE TO EXPLORE" if en else "اسحبي لاكتشاف الأندية"),cid,("VIEW CLUB" if en else "شوف النادي")))
-    club_swipe_sec=('<div class="sec rv gx-club-swipe-wrap" id="clubSwipeSection"><div class="sec-head"><h2><span class="bar"></span>%s</h2><span class="sec-sub">%s</span></div><div class="gx-club-swipe" id="gxClubSwipe">%s</div><div class="gx-swipe-controls"><button type="button" class="gx-swipe-arrow" onclick="gxClubSwipe(-1)">‹</button><div class="gx-swipe-dots" id="gxSwipeDots"></div><button type="button" class="gx-swipe-arrow" onclick="gxClubSwipe(1)">›</button></div><div class="gx-swipe-note" id="gxSwipeNote">%s</div></div>') % (("EXPLORE BY CLUB" if en else "اكتشفي الأندية"),("Swipe the jerseys. Pick your club." if en else "اسحبي بين الأندية وشوفي القميص مباشرة"),"".join(swipe_items),("Swipe ← →" if en else "اسحبي يمين ويسار"))
-
     # WOW scan and walk-through removed per request.
     quiz_sec = ('<section class="sec rv gx-quiz" id="clubQuiz">'
                 '<h2>🧠 {title}</h2><p>{sub}</p>'
@@ -4995,7 +4979,6 @@ def home_body():
             + fan_moment
             + pc_sec
             + md_ticker
-            + club_swipe_sec
             + clubs_sec
             + ads_html("home")
             + features_html()

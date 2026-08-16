@@ -16,6 +16,17 @@ from flask import Flask, request, redirect, Response, send_file, session, url_fo
 import cfg
 import db
 
+# Clubs intentionally not sold by GOLAZOX: remove them from every dynamic club list/theme.
+for _hidden_club in ("green", "hilal"):
+    try:
+        cfg.CLUBS.pop(_hidden_club, None)
+    except Exception:
+        pass
+    try:
+        cfg.CLUB_THEMES.pop(_hidden_club, None)
+    except Exception:
+        pass
+
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "golazox-secret-2026")
 app.config["SESSION_COOKIE_HTTPONLY"] = True
@@ -671,6 +682,14 @@ box-shadow:0 24px 70px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.04)}
 @media(max-width:640px){.gx-jmap-preview{padding:12px;border-radius:20px}.gx-jmap-stage{min-height:330px}.gx-jmap-title h3{font-size:1.05rem}.gx-jmap-title p{font-size:.62rem}.gx-jpin{font-size:.6rem;padding:6px 8px}.gx-jmap-showcase{min-height:360px}.gx-jmap-product-scene{min-height:190px}.gx-jmap-product-scene img{height:200px}.gx-jcountry{flex-basis:90px}.gx-jclub{flex-basis:118px}}
 
 .gx-jmap-fallback{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:20px 22px;border-radius:20px;border:1px solid rgba(24,232,117,.12);background:linear-gradient(135deg,rgba(24,232,117,.07),rgba(255,255,255,.02));box-shadow:0 18px 38px rgba(0,0,0,.18)}.gx-jmap-fallback>div{display:flex;flex-direction:column;gap:5px}.gx-jmap-fallback b{font-size:1.05rem}.gx-jmap-fallback span{color:var(--mut);font-size:.82rem}@media(max-width:640px){.gx-jmap-fallback{padding:16px}.gx-jmap-fallback .btn{width:100%;justify-content:center}}
+/* ============================== JERSEY MAP ============================== */
+.gx-jersey-map{position:relative;overflow:hidden;border-radius:28px;padding:22px;background:linear-gradient(145deg,rgba(7,21,15,.96),rgba(4,10,8,.96));border:1px solid rgba(24,232,117,.18);box-shadow:0 28px 70px rgba(0,0,0,.36),0 0 50px rgba(24,232,117,.05)}
+.gx-jm-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:16px}.gx-jm-kicker{display:block;color:#18e875;font-size:.66rem;font-weight:900;letter-spacing:3px}.gx-jm-head h2{margin-top:4px;font-size:1.45rem;font-weight:1000}.gx-jm-head p{margin-top:5px;color:var(--mut);font-size:.82rem}.gx-jm-live{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(24,232,117,.2);padding:7px 10px;border-radius:999px;color:#b8f8d1;font-size:.68rem;font-weight:900;white-space:nowrap}.gx-jm-live i{width:7px;height:7px;border-radius:50%;background:#18e875;box-shadow:0 0 12px #18e875}
+.gx-jm-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,.75fr);gap:16px}.gx-jm-map{position:relative;min-height:430px;overflow:hidden;border-radius:22px;border:1px solid rgba(255,255,255,.07);background:radial-gradient(circle at 50% 45%,rgba(24,232,117,.06),transparent 40%),#04100b}.gx-jm-svg{position:absolute;inset:34px 14px 28px;width:calc(100% - 28px);height:calc(100% - 62px);opacity:.9}.gx-jm-map-title{position:absolute;top:15px;left:18px;color:rgba(245,247,245,.45);font-size:.62rem;letter-spacing:2px;font-weight:900}.gx-jm-marker{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;z-index:5;transition:transform .25s ease,filter .25s ease}.gx-jm-marker span{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(4,16,11,.9);border:1px solid rgba(255,255,255,.12);font-size:21px;box-shadow:0 8px 22px rgba(0,0,0,.35)}.gx-jm-marker b{padding:3px 7px;border-radius:999px;background:rgba(4,10,8,.75);font-size:.63rem;color:#e8efeb;backdrop-filter:blur(8px);white-space:nowrap}.gx-jm-marker:hover{transform:translate(-50%,-50%) scale(1.08)}.gx-jm-marker.is-active{transform:translate(-50%,-50%) scale(1.15);filter:drop-shadow(0 0 14px rgba(24,232,117,.45))}.gx-jm-marker.is-active span{border-color:#18e875;box-shadow:0 0 0 6px rgba(24,232,117,.08),0 0 26px rgba(24,232,117,.24)}
+.gx-jm-route{position:absolute;height:1px;background:linear-gradient(90deg,transparent,rgba(24,232,117,.35),transparent);transform-origin:left center;opacity:.7}.gx-jm-route.r1{left:49%;top:39%;width:24%;transform:rotate(8deg)}.gx-jm-route.r2{left:49%;top:39%;width:18%;transform:rotate(-10deg)}.gx-jm-route.r3{left:49%;top:39%;width:20%;transform:rotate(-33deg)}.gx-jm-map-foot{position:absolute;left:18px;bottom:13px;display:flex;gap:8px;align-items:center;color:rgba(245,247,245,.52);font-size:.67rem}.gx-jm-map-foot b{color:#18e875}.gx-jm-panel{min-width:0;border-radius:22px;border:1px solid rgba(255,255,255,.08);padding:16px;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));display:flex;flex-direction:column}.gx-jm-panel-top{display:flex;align-items:center;justify-content:space-between;gap:10px}.gx-jm-panel-top span{font-weight:900}.gx-jm-panel-top button{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--card2);color:var(--txt);font-size:18px}.gx-jm-clubs{display:flex;gap:8px;overflow:auto;margin:14px 0 10px;padding-bottom:2px}.gx-jm-clubs button{flex:0 0 auto;display:flex;align-items:center;gap:7px;padding:8px 11px;border-radius:12px;border:1px solid color-mix(in srgb,var(--ca) 28%,rgba(255,255,255,.08));background:color-mix(in srgb,var(--ca) 7%,rgba(255,255,255,.02));color:#eef4f1;cursor:pointer;font:inherit;font-size:.73rem}.gx-jm-clubs button.on{background:linear-gradient(135deg,var(--ca),var(--cb));color:#061009;border-color:transparent}.gx-jm-product{position:relative;flex:1;min-height:300px;display:grid;grid-template-rows:minmax(175px,1fr) auto;overflow:hidden;border-radius:18px;border:1px solid rgba(255,255,255,.07);background:linear-gradient(180deg,#07130d,#06100c)}.gx-jm-product>img{width:100%;height:220px;object-fit:contain;position:relative;z-index:2;filter:drop-shadow(0 16px 32px rgba(0,0,0,.4));padding:12px}.gx-jm-product-glow{position:absolute;inset:15% 10% 40%;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--ca) 20%,transparent),transparent 70%);filter:blur(22px)}.gx-jm-product-info{position:relative;z-index:2;padding:13px 14px 15px}.gx-jm-product-tag{font-size:.56rem;letter-spacing:2px;color:var(--ac);font-weight:900}.gx-jm-product-info h3{font-size:1.15rem;font-weight:1000;margin-top:3px}.gx-jm-product-info p{color:var(--mut);font-size:.76rem;margin-top:3px}.gx-jm-product-info strong{display:block;color:var(--ac);font-size:1.15rem;margin-top:8px}.gx-jm-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.gx-jm-actions .btn{flex:1;justify-content:center;min-width:120px;font-size:.76rem;padding:10px 12px}.gx-jm-countries{display:flex;gap:8px;overflow:auto;margin-top:14px;padding-bottom:4px;scrollbar-width:thin}.gx-jm-country{flex:0 0 auto;min-width:86px;padding:9px 11px;border-radius:13px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.025);color:var(--txt);display:flex;align-items:center;gap:7px;cursor:pointer;font:inherit}.gx-jm-country.on{background:linear-gradient(135deg,#18e875,#0b9f50);color:#061009;border-color:transparent;box-shadow:0 8px 24px rgba(24,232,117,.16)}.gx-jm-country span{font-size:18px}.gx-jm-country b{font-size:.72rem;white-space:nowrap}.gx-jm-empty{padding:26px;text-align:center;color:var(--mut);font-size:.8rem}
+@media(max-width:850px){.gx-jm-grid{grid-template-columns:1fr}.gx-jm-map{min-height:360px}.gx-jm-product{min-height:280px}}
+@media(max-width:640px){.gx-jersey-map{padding:15px;border-radius:22px}.gx-jm-head{align-items:flex-start}.gx-jm-head h2{font-size:1.15rem}.gx-jm-live{font-size:.58rem}.gx-jm-map{min-height:320px}.gx-jm-svg{inset:36px 8px 25px;width:calc(100% - 16px);height:calc(100% - 61px)}.gx-jm-marker span{width:34px;height:34px;font-size:18px}.gx-jm-marker b{font-size:.55rem}.gx-jm-product>img{height:190px}.gx-jm-actions{flex-direction:column}.gx-jm-actions .btn{width:100%}}
+
 /* info cards */
 .quick { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:18px; }
 .qcard { background:rgba(10,13,12,.80); border:1px solid rgba(24,232,117,.06); border-radius:20px; padding:22px; cursor:pointer;
@@ -4915,13 +4934,121 @@ def home_body():
                 '<div class="gx-quiz-result" id="gxQuizResult"><div class="gx-match-line">{resultLabel}</div><div class="gx-match-name" id="gxQuizMatch">—</div><a id="gxQuizGo" class="btn pri gx-quiz-go" href="#">{go}</a></div>'
                 '</section>').format(title=("FIND YOUR CLUB" if en else "أي تيشيرت يناسبك؟"),sub=("Two taps. One match." if en else "اختاري بسرعة ونحدد لك القميص المناسب."),q1=("What energy are you?" if en else "وش أجواؤك؟"),o11=("Bold & loud" if en else "جريء وحماسي"),o12=("Classic & clean" if en else "كلاسيكي ومرتب"),q2=("Pick a color mood" if en else "اختاري ألوانك"),o21=("Red / fiery" if en else "أحمر وحماسي"),o22=("Dark / elite" if en else "داكن وفخم"),resultLabel=("YOUR MATCH" if en else "اختيارك"),go=("SHOP THIS JERSEY" if en else "شوفي التيشيرت"))
 
-    # Insert new experiences near the top for maximum impact
+    # Hero should be the first main section of the homepage.
+    # JERSEY MAP is added AFTER the hero using a separately-built HTML/JS block.
+    # It is deliberately concatenated after the main .format() operation so its
+    # JavaScript braces can never be interpreted by Python string formatting.
+    jersey_map_html = """
+    <section class="sec rv gx-jersey-map" id="jerseyMap">
+      <div class="gx-jm-head">
+        <div>
+          <span class="gx-jm-kicker">GOLAZOX WORLD</span>
+          <h2>🌍 اكتشف القمصان حول العالم</h2>
+          <p>اختار الدولة، اكتشف أنديتها، ثم افتح القميص مباشرة.</p>
+        </div>
+        <span class="gx-jm-live"><i></i> JERSEY MAP</span>
+      </div>
+      <div class="gx-jm-grid">
+        <div class="gx-jm-map">
+          <div class="gx-jm-stars"></div>
+          <div class="gx-jm-map-title">FOOTBALL AROUND THE WORLD</div>
+          <svg class="gx-jm-svg" viewBox="0 0 900 470" role="img" aria-label="World football jersey map">
+            <defs>
+              <linearGradient id="jmOcean" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#081b16"/><stop offset="1" stop-color="#03100c"/></linearGradient>
+              <linearGradient id="jmLand" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1b5d3d"/><stop offset="1" stop-color="#0b2b1d"/></linearGradient>
+              <filter id="jmGlow"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            </defs>
+            <rect x="0" y="0" width="900" height="470" rx="28" fill="url(#jmOcean)"/>
+            <g fill="url(#jmLand)" stroke="rgba(255,255,255,.08)" stroke-width="1.5" opacity=".95">
+              <path d="M90 118 L124 90 169 92 193 116 185 140 157 151 151 180 122 186 104 164 76 155 61 130Z"/>
+              <path d="M180 198 L213 192 238 216 245 260 226 292 216 338 192 364 176 336 181 306 169 278 178 248 161 229Z"/>
+              <path d="M325 96 L361 78 401 82 423 103 456 109 468 134 449 154 413 152 399 171 371 160 351 171 328 151 316 129Z"/>
+              <path d="M365 182 L397 177 430 194 455 225 454 274 432 297 411 323 383 348 365 334 371 300 355 274 363 246 344 221Z"/>
+              <path d="M471 216 L492 204 513 211 535 202 555 214 572 235 564 250 545 258 532 279 509 284 493 268 473 264 458 244Z"/>
+              <path d="M560 106 L584 93 614 98 640 87 674 96 703 116 739 130 760 154 752 176 728 185 710 202 684 203 662 187 635 193 610 176 592 161 567 152Z"/>
+              <path d="M650 229 L676 222 696 235 714 255 711 277 696 290 691 316 671 337 654 322 658 297 647 279Z"/>
+              <path d="M741 280 L762 272 781 280 792 296 786 314 767 322 748 314 736 298Z"/>
+            </g>
+            <g stroke="rgba(24,232,117,.16)" fill="none">
+              <path d="M105 128 Q270 30 410 118 T735 154"/>
+              <path d="M200 280 Q390 140 560 240 T780 300"/>
+              <path d="M350 340 Q470 230 650 110"/>
+            </g>
+          </svg>
+          <div class="gx-jm-marker" data-country="england" style="left:48%;top:27%"><span>🇬🇧</span><b>إنجلترا</b></div>
+          <div class="gx-jm-marker" data-country="germany" style="left:54%;top:31%"><span>🇩🇪</span><b>ألمانيا</b></div>
+          <div class="gx-jm-marker is-active" data-country="spain" style="left:49%;top:39%"><span>🇪🇸</span><b>إسبانيا</b></div>
+          <div class="gx-jm-marker" data-country="italy" style="left:58%;top:42%"><span>🇮🇹</span><b>إيطاليا</b></div>
+          <div class="gx-jm-marker" data-country="france" style="left:52%;top:37%"><span>🇫🇷</span><b>فرنسا</b></div>
+          <div class="gx-jm-marker" data-country="saudi" style="left:66%;top:48%"><span>🇸🇦</span><b>السعودية</b></div>
+          <div class="gx-jm-route r1"></div><div class="gx-jm-route r2"></div><div class="gx-jm-route r3"></div>
+          <div class="gx-jm-map-foot"><span>اسحبي / اضغطي</span><b>لاكتشاف العالم الكروي</b></div>
+        </div>
+        <div class="gx-jm-panel">
+          <div class="gx-jm-panel-top"><span id="gxJmCountry">🇪🇸 إسبانيا</span><button type="button" id="gxJmFav" aria-label="favorite">♡</button></div>
+          <div class="gx-jm-clubs" id="gxJmClubs"></div>
+          <div class="gx-jm-product" id="gxJmProduct"></div>
+        </div>
+      </div>
+      <div class="gx-jm-countries" id="gxJmCountries"></div>
+    </section>
+    """
+
+    # Build real product data from the existing catalog. No new database data is created.
+    _jm_map = {
+        "england": ("🇬🇧", "إنجلترا", ["arsenal", "liver", "united", "city"]),
+        "germany": ("🇩🇪", "ألمانيا", ["bayern"]),
+        "spain": ("🇪🇸", "إسبانيا", ["real", "barca"]),
+        "italy": ("🇮🇹", "إيطاليا", ["juve"]),
+        "france": ("🇫🇷", "فرنسا", ["psg"]),
+        "saudi": ("🇸🇦", "السعودية", ["nassr"]),
+    }
+    _jm_data = {}
+    for _country, (_flag, _label, _ids) in _jm_map.items():
+        _clubs = []
+        for _cid in _ids:
+            _p = next((x for x in prods if x.get("club_id") == _cid and x.get("kind") == "jersey"), None)
+            if not _p:
+                continue
+            _th = club_themes().get(_cid, {})
+            _clubs.append({
+                "id": _cid,
+                "name": cfg.CLUBS.get(_cid, {}).get(en and "en" or "ar", _cid),
+                "emoji": cfg.CLUBS.get(_cid, {}).get("emoji", "⚽"),
+                "img": _p.get("imgs", [""])[0],
+                "price": eff_price(_p),
+                "ac": _th.get("ac", "#18E875"),
+                "ac2": _th.get("ac2", "#0B9F50"),
+                "product": _p.get("id"),
+            })
+        _jm_data[_country] = {"flag": _flag, "label": _label, "clubs": _clubs}
+
+    jersey_map_js = (
+        '<script>\n'
+        '(function(){\n'
+        'var DATA=' + json_d(_jm_data) + ';\n'
+        'var root=document.getElementById("jerseyMap"); if(!root) return;\n'
+        'var countryBox=document.getElementById("gxJmCountries"),clubBox=document.getElementById("gxJmClubs"),productBox=document.getElementById("gxJmProduct"),countryTitle=document.getElementById("gxJmCountry");\n'
+        'var currentCountry="spain", currentClub=null;\n'
+        'function money(v){var n=Number(v)||0;return Number.isInteger(n)?String(n):String(n).replace(/0+$/," ").replace(/\.$/,"");}\n'
+        'function esc(s){return String(s||"").replace(/[&<>"\']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","\'":"&#39;"}[c];});}\n'
+        'function selectClub(c){currentClub=c;productBox.innerHTML="<div class=\"gx-jm-product-glow\" style=\"--ca:"+c.ac+";--cb:"+c.ac2+"\"></div><img src=\"/img/"+encodeURIComponent(c.img)+"\" alt=\"\" loading=\"lazy\"><div class=\"gx-jm-product-info\"><span class=\"gx-jm-product-tag\">GOLAZOX MATCHDAY</span><h3>"+c.name+"</h3><p>تيشيرت رياضي بجودة عالية</p><strong>"+money(c.price)+" د.ب</strong><div class=\"gx-jm-actions\"><a class=\"btn pri\" href=\"/product/"+encodeURIComponent(c.product)+"\">شوف التيشيرت ←</a><button class=\"btn ghost\" type=\"button\" onclick=\"location.href=\'/club/"+encodeURIComponent(c.id)+"\'\">شوف النادي</button></div></div>";\n'
+        'clubBox.querySelectorAll("button[data-jm-club]").forEach(function(b){b.classList.toggle("on",b.getAttribute("data-jm-club")===c.id);});\n'
+        '}\n'
+        'function renderCountry(key){var d=DATA[key]; if(!d)return; currentCountry=key; countryTitle.textContent=d.flag+" "+d.label; countryBox.querySelectorAll("button[data-jm-country]").forEach(function(b){b.classList.toggle("on",b.getAttribute("data-jm-country")===key);}); document.querySelectorAll(".gx-jm-marker").forEach(function(m){m.classList.toggle("is-active",m.getAttribute("data-country")===key);}); clubBox.innerHTML=d.clubs.map(function(c){return "<button type=\"button\" data-jm-club=\""+c.id+"\" style=\"--ca:"+c.ac+";--cb:"+c.ac2+"\"><span>"+c.emoji+"</span><b>"+esc(c.name)+"</b></button>";}).join("")||"<div class=\"gx-jm-empty\">لا توجد قمصان مسجلة لهذه الدولة حاليًا.</div>"; clubBox.querySelectorAll("button[data-jm-club]").forEach(function(b){b.addEventListener("click",function(){var c=d.clubs.find(function(x){return x.id===b.getAttribute("data-jm-club")});if(c)selectClub(c);});}); if(d.clubs[0])selectClub(d.clubs[0]); else productBox.innerHTML="";}\n'
+        'Object.keys(DATA).forEach(function(k){var d=DATA[k],b=document.createElement("button");b.type="button";b.className="gx-jm-country";b.setAttribute("data-jm-country",k);b.innerHTML="<span>"+d.flag+"</span><b>"+d.label+"</b>";b.addEventListener("click",function(){renderCountry(k)});countryBox.appendChild(b);});\n'
+        'document.querySelectorAll(".gx-jm-marker").forEach(function(m){m.addEventListener("click",function(){renderCountry(m.getAttribute("data-country"));root.scrollIntoView({behavior:"smooth",block:"center"});});});\n'
+        'renderCountry(currentCountry);\n'
+        '})();</script>'
+    )
+
     home_html = (atmos_html("full")
             + '<div class="wrap">' 
-            + quiz_sec
             + hero
+            + jersey_map_html
             + fit_home
             + club_color_section
+            + quiz_sec
             + fan_moment
             + pc_sec
             + md_ticker
@@ -4950,6 +5077,7 @@ def home_body():
             ).format(sj=d["sec_jerseys"], sj_sub=d["sec_jerseys_sub"],
                      sm=d["sec_mugs"], sm_sub=d["sec_mugs_sub"], qt=d["quick_title"],
                      jgrid=jgrid, mgrid=mgrid, quick=quick)
+    home_html += jersey_map_js
     return home_html
 
 

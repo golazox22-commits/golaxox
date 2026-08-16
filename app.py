@@ -346,17 +346,6 @@ def img(name):
 
 
 
-# ============================== GOLAZOX JERSEY MAP ==============================
-# Curated country groups. Only clubs/products that actually exist in cfg are rendered.
-JERSEY_MAP_COUNTRIES = [
-    ("england", "England", "إنجلترا", "🏴", ["arsenal", "liver", "united", "city"], "#3B82F6", "#8B5CF6"),
-    ("spain", "Spain", "إسبانيا", "🇪🇸", ["real", "barca"], "#EF4444", "#F59E0B"),
-    ("germany", "Germany", "ألمانيا", "🇩🇪", ["bayern"], "#111827", "#EF4444"),
-    ("italy", "Italy", "إيطاليا", "🇮🇹", ["juve"], "#059669", "#111827"),
-    ("saudi", "Saudi Arabia", "السعودية", "🇸🇦", ["nassr", "hilal", "green"], "#16A34A", "#F7D033"),
-    ("france", "France", "فرنسا", "🇫🇷", ["psg"], "#1D4ED8", "#EF4444"),
-]
-
 # ============================== PAGE TEMPLATES ==============================
 CSS = """<style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -681,6 +670,7 @@ box-shadow:0 24px 70px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.04)}
 @media(max-width:900px){.gx-jmap-grid,.gx-jmap-page .gx-jmap-grid{grid-template-columns:1fr}.gx-jmap-stage,.gx-jmap-page .gx-jmap-stage{min-height:360px}.gx-jmap-showcase,.gx-jmap-page .gx-jmap-showcase{min-height:430px}}
 @media(max-width:640px){.gx-jmap-preview{padding:12px;border-radius:20px}.gx-jmap-stage{min-height:330px}.gx-jmap-title h3{font-size:1.05rem}.gx-jmap-title p{font-size:.62rem}.gx-jpin{font-size:.6rem;padding:6px 8px}.gx-jmap-showcase{min-height:360px}.gx-jmap-product-scene{min-height:190px}.gx-jmap-product-scene img{height:200px}.gx-jcountry{flex-basis:90px}.gx-jclub{flex-basis:118px}}
 
+.gx-jmap-fallback{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:20px 22px;border-radius:20px;border:1px solid rgba(24,232,117,.12);background:linear-gradient(135deg,rgba(24,232,117,.07),rgba(255,255,255,.02));box-shadow:0 18px 38px rgba(0,0,0,.18)}.gx-jmap-fallback>div{display:flex;flex-direction:column;gap:5px}.gx-jmap-fallback b{font-size:1.05rem}.gx-jmap-fallback span{color:var(--mut);font-size:.82rem}@media(max-width:640px){.gx-jmap-fallback{padding:16px}.gx-jmap-fallback .btn{width:100%;justify-content:center}}
 /* info cards */
 .quick { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:18px; }
 .qcard { background:rgba(10,13,12,.80); border:1px solid rgba(24,232,117,.06); border-radius:20px; padding:22px; cursor:pointer;
@@ -4683,147 +4673,6 @@ def spotlight_html(prods):
 
 
 
-def jersey_map_catalog():
-    """Return country groups using only configured clubs with visible jersey products."""
-    prods = [p for p in cfg.PRODUCTS if not p.get("hidden") and p.get("kind") == "jersey"]
-    out = []
-    for key, en_name, ar_name, flag, club_ids, a, b in JERSEY_MAP_COUNTRIES:
-        clubs = []
-        for cid in club_ids:
-            c = cfg.CLUBS.get(cid)
-            cp = [p for p in prods if p.get("club_id") == cid]
-            if not c or not cp:
-                continue
-            th = club_themes().get(cid, {})
-            fp = cp[0]
-            clubs.append({
-                "id": cid,
-                "ar": c.get("ar", cid),
-                "en": c.get("en", cid),
-                "emoji": c.get("emoji", "⚽"),
-                "ac": th.get("ac", a),
-                "ac2": th.get("ac2", b),
-                "img": (fp.get("imgs") or [""])[0],
-                "product": fp["id"],
-                "count": len(cp),
-                "price": eff_price(fp),
-            })
-        if clubs:
-            out.append({"id": key, "en": en_name, "ar": ar_name, "flag": flag, "a": a, "b": b, "clubs": clubs})
-    return out
-
-
-def jersey_map_markup(standalone=False):
-    """Interactive WOW Jersey Map block or standalone page."""
-    en = lang() == "en"
-    countries = jersey_map_catalog()
-    if not countries:
-        return ""
-    first_country = countries[0]
-    first_club = first_country["clubs"][0]
-    pins = {"england": (30, 28), "spain": (35, 42), "germany": (44, 32), "italy": (49, 50), "saudi": (65, 55), "france": (38, 51)}
-    pin_html = ""
-    for c in countries:
-        left, top = pins.get(c["id"], (50, 50))
-        nm = c["en"] if en else c["ar"]
-        pin_html += (
-            '<button class="gx-jpin%s" data-country="%s" style="left:%s%%;top:%s%%;--pin:%s" '
-            'onclick="gxJMapCountry(\'%s\')" type="button"><span class="dot"></span>%s %s</button>'
-        ) % (" active" if c["id"] == first_country["id"] else "", c["id"], left, top, c["a"], c["id"], c["flag"], esc(nm))
-    country_names = {"england": "إنجلترا", "spain": "إسبانيا", "germany": "ألمانيا", "italy": "إيطاليا", "saudi": "السعودية", "france": "فرنسا"}
-    title = "JERSEY MAP" if en else "خريطة القمصان حول العالم"
-    sub = "Discover club jerseys by country — then jump straight to the shirt." if en else "اختاري دولة، اكتشفي أنديتها، ثم ادخلي مباشرة على القميص."
-    view = "VIEW JERSEY" if en else "شوفي القميص"
-    viewclub = "VIEW CLUB" if en else "شوف النادي"
-    explore = "EXPLORE THE MAP" if en else "اكتشفي الخريطة"
-    first_name = first_club["en"] if en else first_club["ar"]
-    first_country_name = first_country["en"] if en else first_country["ar"]
-    markup = """
-<div class="sec rv gx-jmap-wrap %s" id="jerseyMap">
-  <div class="sec-head"><h2><span class="bar"></span>%s 🌍</h2><span class="sec-sub">%s</span></div>
-  <div class="gx-jmap-preview">
-    <div class="gx-jmap-grid">
-      <div class="gx-jmap-stage">
-        <div class="gx-jmap-stars"></div><div class="gx-jmap-lines"></div><div class="gx-jmap-orbit"></div>
-        <div class="gx-jmap-title"><div><h3>JERSEY MAP</h3><p>%s</p></div><span class="gx-jmap-tag">GOLAZOX WORLD</span></div>
-        %s
-      </div>
-      <div class="gx-jmap-showcase" id="gxJMapShow" style="--show-a:%s33">
-        <div class="gx-jmap-show-inner">
-          <div class="gx-jmap-show-head"><div><div class="gx-jmap-club" id="gxJMapClub">%s</div><div class="gx-jmap-country" id="gxJMapCountry">%s</div></div><div id="gxJMapEmoji" style="font-size:1.7rem">%s</div></div>
-          <div class="gx-jmap-product-scene"><img id="gxJMapImg" src="/img/%s" alt="%s" loading="lazy"></div>
-          <div class="gx-jmap-price" id="gxJMapPrice">%s %s</div>
-          <div class="gx-jmap-sub" id="gxJMapSub">%s</div>
-          <div class="gx-jmap-cta"><a id="gxJMapView" class="btn pri" href="/product/%s">%s →</a><a id="gxJMapClubLink" class="btn ghost" href="/club/%s">%s</a></div>
-        </div>
-      </div>
-    </div>
-    <div class="gx-jmap-label">%s</div>
-    <div class="gx-jmap-countries" id="gxJMapCountries"></div>
-    <div class="gx-jmap-label" id="gxJMapClubLabel">%s %s</div>
-    <div class="gx-jmap-clubs" id="gxJMapClubs"></div>
-    <div class="gx-jmap-foot"><span class="gx-jmap-count" id="gxJMapCount"></span><a class="gx-jmap-open" href="/jersey-map">%s ↗</a></div>
-  </div>
-</div>
-<script>
-(function(){
-  var DATA=%s;
-  var lang=%s;
-  var cur=%s;
-  function country(id){return DATA.find(function(x){return x.id===id})||DATA[0];}
-  function club(c,id){return c.clubs.find(function(x){return x.id===id})||c.clubs[0];}
-  function renderCountries(active){
-    var box=document.getElementById('gxJMapCountries'); if(!box)return;
-    box.innerHTML=DATA.map(function(c){
-      var nm=lang==='en'?c.en:c.ar;
-      return '<button type="button" class="gx-jcountry'+(c.id===active?' active':'')+'" style="--jc:'+c.a+'" onclick="gxJMapCountry(\''+c.id+'\')"><span class="flag">'+c.flag+'</span><b>'+esc(nm)+'</b><small>'+c.clubs.length+' '+(lang==='en'?'clubs':'أندية')+'</small></button>';
-    }).join('');
-  }
-  function renderClubs(c,active){
-    var box=document.getElementById('gxJMapClubs'), label=document.getElementById('gxJMapClubLabel'); if(!box)return;
-    label.textContent=(lang==='en'?'CLUBS IN ':'أندية ')+(lang==='en'?c.en:c.ar);
-    box.innerHTML=c.clubs.map(function(x){
-      var nm=lang==='en'?x.en:x.ar;
-      return '<button type="button" class="gx-jclub'+(x.id===active?' active':'')+'" style="--ca:'+x.ac+'" onclick="gxJMapClub(\''+c.id+'\',\''+x.id+'\')"><div class="gx-jclub-top"><em>'+x.emoji+'</em><b>'+esc(nm)+'</b></div><span>'+x.count+' '+(lang==='en'?'jerseys':'قمصان')+'</span></button>';
-    }).join('');
-  }
-  function update(c,x){
-    var nm=lang==='en'?x.en:x.ar, cn=lang==='en'?c.en:c.ar;
-    var show=document.getElementById('gxJMapShow'); if(show)show.style.setProperty('--show-a',c.a+'33');
-    var e=document.getElementById('gxJMapClub'); if(e)e.textContent=nm;
-    e=document.getElementById('gxJMapCountry'); if(e)e.textContent=c.flag+' '+cn;
-    e=document.getElementById('gxJMapEmoji'); if(e)e.textContent=x.emoji;
-    e=document.getElementById('gxJMapImg'); if(e){e.src='/img/'+x.img;e.alt=nm;}
-    e=document.getElementById('gxJMapPrice'); if(e)e.textContent=pmoney(x.price)+' '+cur;
-    e=document.getElementById('gxJMapSub'); if(e)e.textContent=lang==='en'?'High-quality sports jersey':'تيشيرت رياضي بجودة عالية';
-    e=document.getElementById('gxJMapView'); if(e)e.href='/product/'+x.product;
-    e=document.getElementById('gxJMapClubLink'); if(e)e.href='/club/'+x.id;
-    e=document.getElementById('gxJMapCount'); if(e)e.textContent=c.clubs.reduce(function(n,z){return n+z.count},0)+' '+(lang==='en'?'jerseys in this country':'قمصان في هذه الدولة');
-  }
-  window.gxJMapCountry=function(id){
-    var c=country(id), x=c.clubs[0]; renderCountries(c.id); renderClubs(c,x.id); update(c,x);
-    document.querySelectorAll('.gx-jpin').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-country')===c.id)});
-  };
-  window.gxJMapClub=function(cid,id){
-    var c=country(cid), x=club(c,id); renderCountries(c.id); renderClubs(c,x.id); update(c,x);
-    document.querySelectorAll('.gx-jpin').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-country')===c.id)});
-  };
-  function init(){renderCountries(DATA[0].id);renderClubs(DATA[0],DATA[0].clubs[0].id);update(DATA[0],DATA[0].clubs[0]);}
-  document.addEventListener('DOMContentLoaded',init);
-})();
-</script>
-""" % (
-        "gx-jmap-page" if standalone else "",
-        title, sub, sub, pin_html, first_country["a"], first_name, first_country_name, first_club["emoji"],
-        esc(first_club["img"]), esc(first_name), first_club["price"], cur(), "تيشيرت رياضي بجودة عالية" if not en else "High-quality sports jersey",
-        first_club["product"], view, first_club["id"], viewclub,
-        "اختاري دولة" if not en else "CHOOSE A COUNTRY",
-        "أندية" if not en else "CLUBS IN", first_country_name,
-        explore, json_d(countries), json.dumps("en" if en else "ar"), json.dumps(cur())
-    )
-    return markup
-
-
 def home_body():
     en = lang() == "en"
     d = cfg.L[lang()]
@@ -5067,15 +4916,12 @@ def home_body():
                 '</section>').format(title=("FIND YOUR CLUB" if en else "أي تيشيرت يناسبك؟"),sub=("Two taps. One match." if en else "اختاري بسرعة ونحدد لك القميص المناسب."),q1=("What energy are you?" if en else "وش أجواؤك؟"),o11=("Bold & loud" if en else "جريء وحماسي"),o12=("Classic & clean" if en else "كلاسيكي ومرتب"),q2=("Pick a color mood" if en else "اختاري ألوانك"),o21=("Red / fiery" if en else "أحمر وحماسي"),o22=("Dark / elite" if en else "داكن وفخم"),resultLabel=("YOUR MATCH" if en else "اختيارك"),go=("SHOP THIS JERSEY" if en else "شوفي التيشيرت"))
 
     # Insert new experiences near the top for maximum impact
-    return (atmos_html("full")
+    home_html = (atmos_html("full")
             + '<div class="wrap">' 
             + quiz_sec
-
-
             + hero
             + fit_home
             + club_color_section
-            + jersey_map_markup(False)
             + fan_moment
             + pc_sec
             + md_ticker
@@ -5104,6 +4950,7 @@ def home_body():
             ).format(sj=d["sec_jerseys"], sj_sub=d["sec_jerseys_sub"],
                      sm=d["sec_mugs"], sm_sub=d["sec_mugs_sub"], qt=d["quick_title"],
                      jgrid=jgrid, mgrid=mgrid, quick=quick)
+    return home_html
 
 
 def listing_page(kind):
@@ -6858,13 +6705,6 @@ def home():
         return redirect("/")
     return base_page(home_body(), active="home")
 
-
-@app.route("/jersey-map")
-def jersey_map_page():
-    return base_page(
-        '<div class="wrap">' + jersey_map_markup(True) + '</div>',
-        active="clubs"
-    )
 
 @app.route("/products")
 def products_page():

@@ -14,15 +14,6 @@ import random
 from flask import Flask, request, redirect, Response, send_file, session, url_for
 
 import cfg
-
-# GOLAZOX catalog visibility: these clubs are not sold and must never appear in the UI.
-REMOVED_CLUB_IDS = {"hilal", "green"}
-try:
-    cfg.CLUBS = {k:v for k,v in cfg.CLUBS.items() if k not in REMOVED_CLUB_IDS}
-    cfg.CLUB_THEMES = {k:v for k,v in cfg.CLUB_THEMES.items() if k not in REMOVED_CLUB_IDS}
-    cfg.PRODUCTS = [p for p in cfg.PRODUCTS if p.get("club_id") not in REMOVED_CLUB_IDS]
-except Exception:
-    pass
 import db
 
 app = Flask(__name__)
@@ -354,7 +345,6 @@ def img(name):
 
 
 
-
 # ============================== PAGE TEMPLATES ==============================
 CSS = """<style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -632,27 +622,6 @@ html[data-theme="light"] .sel option { background:#fff; color:#0F172A; }
 .gx-club-color{position:relative;overflow:hidden;border-radius:24px;padding:22px;background:linear-gradient(135deg,var(--club-a,#18E875),var(--club-b,#0B9F50));color:#fff;box-shadow:0 22px 50px color-mix(in srgb,var(--club-a,#18E875) 20%,transparent)}.gx-club-color:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 80% 20%,rgba(255,255,255,.18),transparent 28%),linear-gradient(135deg,transparent 55%,rgba(255,255,255,.06));pointer-events:none}.gx-club-color-inner{position:relative;z-index:1}.gx-club-color-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.gx-club-color h3{font-size:1.35rem;font-weight:1000}.gx-club-color small{opacity:.85;font-weight:800}.gx-club-swatches{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.gx-club-swatch{border:1px solid rgba(255,255,255,.22);background:rgba(0,0,0,.18);color:#fff;border-radius:999px;padding:8px 12px;font:inherit;font-size:.74rem;font-weight:900;cursor:pointer;backdrop-filter:blur(8px)}.gx-club-swatch.on{background:#fff;color:#0b1712;border-color:#fff;box-shadow:0 6px 16px rgba(0,0,0,.18)}.gx-club-color-cta{display:inline-flex;margin-top:14px;padding:10px 14px;border-radius:12px;background:rgba(255,255,255,.14);font-size:.76rem;font-weight:900;border:1px solid rgba(255,255,255,.18)}
 @media(max-width:640px){.gx-fit-card{padding:16px}.gx-fit-size{font-size:1.9rem}.gx-club-color{padding:18px;border-radius:20px}}
 
-
-/* ============================== GOLAZOX WORLD PORTAL ============================== */
-.gx-jersey-map{position:relative;overflow:hidden;margin:14px 0 28px;border:1px solid rgba(24,232,117,.16);border-radius:32px;background:
-radial-gradient(900px 420px at 18% 0%,rgba(24,232,117,.10),transparent 64%),
-radial-gradient(620px 420px at 88% 14%,rgba(216,180,90,.08),transparent 64%),
-linear-gradient(180deg,#050907 0%,#07110d 100%);box-shadow:0 28px 90px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.05)}
-.gx-jersey-map:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px);background-size:44px 44px;mask-image:linear-gradient(to bottom,#000,transparent 92%);pointer-events:none;opacity:.32}
-.gx-world-inner{position:relative;z-index:2;padding:24px}.gx-world-head{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:18px}.gx-world-kicker{display:inline-flex;align-items:center;gap:7px;font-size:.62rem;letter-spacing:4px;font-weight:1000;color:#18e875}.gx-world-head h2{font-size:clamp(1.55rem,3vw,2.4rem);line-height:1.02;font-weight:1000;margin-top:6px}.gx-world-head p{margin-top:8px;color:rgba(255,255,255,.5);font-size:.74rem;max-width:520px}.gx-world-badges{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px}.gx-world-badge{border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.025);border-radius:999px;padding:8px 11px;font-size:.58rem;color:rgba(255,255,255,.7);font-weight:900;backdrop-filter:blur(10px)}.gx-world-badge.hot{color:#07110c;background:#18e875;border-color:transparent}.gx-world-layout{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(320px,.8fr);gap:16px;align-items:stretch}
-.gx-world-globe{position:relative;min-height:560px;border-radius:28px;border:1px solid rgba(255,255,255,.07);overflow:hidden;background:radial-gradient(circle at 50% 42%,rgba(24,232,117,.10),transparent 28%),linear-gradient(180deg,#07110d,#030605 78%)}
-.gx-world-globe:before{content:"";position:absolute;inset:7%;border-radius:50%;border:1px solid rgba(255,255,255,.035);box-shadow:0 0 0 24px rgba(255,255,255,.012),0 0 0 52px rgba(24,232,117,.012),inset 0 0 70px rgba(24,232,117,.06)}
-.gx-world-orb{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);width:min(54vw,470px);aspect-ratio:1;border-radius:50%;background:
-radial-gradient(circle at 31% 29%,rgba(255,255,255,.12),transparent 18%),
-radial-gradient(circle at 40% 42%,rgba(24,232,117,.18),transparent 30%),
-radial-gradient(circle at 68% 63%,rgba(216,180,90,.11),transparent 28%),
-linear-gradient(145deg,#0d2a1c,#06130d 64%,#020605);box-shadow:0 0 0 1px rgba(24,232,117,.16),0 0 60px rgba(24,232,117,.10),inset -35px -40px 80px rgba(0,0,0,.42);overflow:hidden}
-.gx-world-orb:before{content:"";position:absolute;inset:-4%;border-radius:50%;background:repeating-linear-gradient(90deg,transparent 0 28px,rgba(255,255,255,.025) 29px 30px),repeating-linear-gradient(0deg,transparent 0 28px,rgba(255,255,255,.018) 29px 30px);transform:rotate(8deg);opacity:.7}.gx-world-orb:after{content:"";position:absolute;inset:-7%;border-radius:50%;border:1px solid rgba(24,232,117,.18);box-shadow:0 0 0 18px rgba(24,232,117,.025),0 0 0 46px rgba(216,180,90,.012)}
-.gx-land{position:absolute;opacity:.84;filter:drop-shadow(0 0 12px rgba(24,232,117,.08))}.gx-land.europe{left:33%;top:29%;width:29%;height:24%;background:linear-gradient(145deg,#185334,#0a2417);clip-path:polygon(5% 57%,14% 40%,29% 37%,37% 23%,48% 28%,57% 20%,67% 36%,82% 39%,92% 55%,84% 66%,71% 61%,64% 78%,50% 71%,40% 87%,28% 72%,16% 77%)}.gx-land.uk{left:29%;top:22%;width:9%;height:11%;background:#1d6440;clip-path:polygon(20% 6%,60% 0,85% 27%,70% 60%,45% 92%,14% 68%,4% 30%)}.gx-land.africa{left:48%;top:48%;width:20%;height:31%;background:linear-gradient(145deg,#0f3f28,#06170e);clip-path:polygon(37% 2%,62% 9%,73% 28%,68% 44%,79% 61%,63% 78%,56% 97%,39% 89%,29% 67%,14% 55%,17% 35%,7% 19%)}.gx-land.asia{left:57%;top:24%;width:31%;height:31%;background:linear-gradient(145deg,#12452c,#06190f);clip-path:polygon(4% 36%,13% 19%,29% 15%,42% 6%,58% 14%,72% 5%,88% 18%,96% 39%,83% 54%,73% 46%,63% 65%,50% 56%,38% 70%,22% 58%,13% 74%)}.gx-land.north-america{left:5%;top:30%;width:25%;height:28%;background:linear-gradient(145deg,#0b2b1d,#04130c);clip-path:polygon(7% 18%,25% 7%,46% 12%,61% 29%,84% 37%,79% 51%,66% 51%,58% 67%,39% 61%,31% 83%,16% 72%,18% 54%,3% 45%)}.gx-land.south-america{left:24%;top:54%;width:16%;height:33%;background:linear-gradient(145deg,#0b2e1f,#03130c);clip-path:polygon(41% 4%,61% 15%,71% 31%,61% 48%,70% 68%,57% 89%,39% 98%,31% 77%,16% 60%,21% 39%,8% 21%)}
-.gx-world-arc{position:absolute;left:50%;top:51%;width:74%;height:33%;transform:translate(-25%,-35%) rotate(13deg);border:1px solid rgba(24,232,117,.20);border-left-color:transparent;border-bottom-color:transparent;border-radius:50%;box-shadow:0 0 25px rgba(24,232,117,.04)}.gx-world-arc.two{width:86%;height:42%;transform:translate(-31%,-40%) rotate(-11deg);border-color:rgba(216,180,90,.14);border-left-color:transparent;border-bottom-color:transparent}
-.gx-world-country{position:absolute;z-index:8;transform:translate(-50%,-50%);display:flex;align-items:center;gap:7px;padding:8px 10px;border-radius:14px;border:1px solid rgba(255,255,255,.09);background:rgba(2,7,5,.76);color:#fff;backdrop-filter:blur(12px);font:inherit;font-size:.64rem;font-weight:1000;cursor:pointer;box-shadow:0 14px 30px rgba(0,0,0,.35);transition:.2s}.gx-world-country:hover,.gx-world-country.active{transform:translate(-50%,-52%) scale(1.05);border-color:var(--country-color,#18e875);box-shadow:0 0 34px color-mix(in srgb,var(--country-color,#18e875) 24%,transparent)}.gx-world-country .f{font-size:1rem}.gx-world-country small{display:block;color:rgba(255,255,255,.42);font-size:.48rem;margin-top:1px}
-.gx-world-side{position:relative;min-height:560px;border-radius:28px;border:1px solid rgba(255,255,255,.08);background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.015));overflow:hidden}.gx-world-side:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 22%,var(--side-a,rgba(24,232,117,.16)),transparent 35%)}.gx-world-side-inner{position:relative;z-index:2;height:100%;display:flex;flex-direction:column;padding:18px}.gx-world-side-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.gx-world-selected{font-size:1.05rem;font-weight:1000}.gx-world-selected-sub{font-size:.6rem;color:rgba(255,255,255,.43);margin-top:3px}.gx-world-selected-flag{font-size:1.9rem}.gx-world-clubs{display:flex;gap:8px;overflow:auto;scrollbar-width:none;padding:12px 0 4px}.gx-world-clubs::-webkit-scrollbar{display:none}.gx-world-club{flex:0 0 104px;padding:9px;border-radius:16px;border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.20);color:#fff;cursor:pointer;font:inherit;text-align:center;transition:.2s}.gx-world-club.active{border-color:var(--club-color,#18e875);background:linear-gradient(145deg,color-mix(in srgb,var(--club-color,#18e875) 18%,transparent),rgba(0,0,0,.16));box-shadow:0 10px 30px color-mix(in srgb,var(--club-color,#18e875) 14%,transparent)}.gx-world-club .emoji{font-size:1.25rem}.gx-world-club b{display:block;font-size:.58rem;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.gx-world-product{flex:1;display:flex;align-items:center;justify-content:center;margin:8px 0}.gx-world-product img{width:min(94%,330px);height:290px;object-fit:contain;filter:drop-shadow(0 28px 42px rgba(0,0,0,.62));transition:transform .35s ease}.gx-world-product:hover img{transform:translateY(-8px) scale(1.025)}.gx-world-empty{color:rgba(255,255,255,.35);font-size:.7rem;text-align:center;padding:36px}.gx-world-price-row{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}.gx-world-product-name{font-size:.92rem;font-weight:1000}.gx-world-fit{font-size:.58rem;color:#18e875;margin-top:4px}.gx-world-price{font-size:1.65rem;font-weight:1000;color:#d8b45a}.gx-world-sizes{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.gx-world-size{min-width:42px;padding:8px 9px;border-radius:11px;border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.22);color:#fff;font:inherit;font-size:.58rem;font-weight:900;cursor:pointer}.gx-world-size.active{background:rgba(216,180,90,.12);border-color:#d8b45a}.gx-world-buy{margin-top:12px;width:100%;justify-content:center;background:linear-gradient(135deg,#d8b45a,#f1db95)!important;color:#06100b!important;border:0!important;min-height:48px}.gx-world-trust{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}.gx-world-trust span{font-size:.52rem;color:rgba(255,255,255,.43)}.gx-world-nav{display:flex;gap:8px;overflow:auto;scrollbar-width:none;padding:12px 0 0}.gx-world-nav::-webkit-scrollbar{display:none}.gx-world-tab{flex:0 0 auto;border-radius:999px;padding:8px 11px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.025);color:#fff;font:inherit;font-size:.58rem;font-weight:900;cursor:pointer}.gx-world-tab.active{background:#18e875;color:#041009;border-color:transparent}.gx-world-steps{display:flex;align-items:center;gap:8px;margin:16px 0 0;overflow:auto;scrollbar-width:none}.gx-world-steps::-webkit-scrollbar{display:none}.gx-world-step{display:flex;align-items:center;gap:6px;white-space:nowrap;color:rgba(255,255,255,.4);font-size:.53rem;font-weight:900}.gx-world-step .n{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;border:1px solid rgba(216,180,90,.18);color:#d8b45a}.gx-world-step.current{color:#fff}.gx-world-step.current .n{background:#d8b45a;color:#07100b;border-color:transparent}
-@media(max-width:1000px){.gx-world-layout{grid-template-columns:1fr}.gx-world-side{min-height:490px}.gx-world-globe{min-height:500px}.gx-world-product img{height:250px}}@media(max-width:650px){.gx-world-inner{padding:14px}.gx-world-head{flex-direction:column}.gx-world-badges{justify-content:flex-start}.gx-world-globe{min-height:410px}.gx-world-orb{width:84vw}.gx-world-country{font-size:.55rem;padding:7px 8px}.gx-world-country .f{font-size:.85rem}.gx-world-side{min-height:520px}.gx-world-product img{height:230px}.gx-world-steps{margin-top:10px}.gx-world-head h2{font-size:1.5rem}}
 /* info cards */
 .quick { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:18px; }
 .qcard { background:rgba(10,13,12,.80); border:1px solid rgba(24,232,117,.06); border-radius:20px; padding:22px; cursor:pointer;
@@ -3925,7 +3894,7 @@ window._gxFitPref='regular';window._gxFitResult=null;
 function gxFitPick(el){var w=el.parentElement;if(!w)return;w.querySelectorAll('.radio').forEach(function(x){x.classList.remove('on');});el.classList.add('on');window._gxFitPref=el.getAttribute('data-v')||'regular';}
 function gxParseRange(v){var s=String(v||'').replace(/[–—]/g,'-').trim();if(!s)return[0,0];var p=s.split('-').map(Number);return p.length===1?[p[0],p[0]]:[p[0],p[1]];}
 function gxRangePenalty(v,lo,hi){if(v>=lo&&v<=hi)return 0;var span=Math.max(1,hi-lo);return v<lo?(lo-v)/span:(v-hi)/span;}
-function gxRunFitCheck(){var w=parseFloat($('fit_weight')&&$('fit_weight').value),h=parseFloat($('fit_height')&&$('fit_height').value);if(!isFinite(w)||!isFinite(h)||w<30||w>180||h<120||h>220){toast(GX.lang==='en'?'Enter a valid weight and height.':'اكتبي وزنًا وطولًا صحيحين.');return;}var chart=GX.chart||{},keys=GX.sizes||Object.keys(chart),best=null;keys.forEach(function(sz,i){var r=chart[sz]||{},hr=gxParseRange(r.height),wr=gxParseRange(r.weight),score=gxRangePenalty(h,hr[0],hr[1])*1.35+gxRangePenalty(w,wr[0],wr[1]);var target=i+(window._gxFitPref==='loose'?0.7:(window._gxFitPref==='tight'?-0.7:0));score+=Math.abs(i-target)*0.22;if(!best||score<best.score||Math.abs(score-best.score)<.03&&((window._gxFitPref==='loose'&&i>best.index)||(window._gxFitPref==='tight'&&i<best.index)))best={size:sz,score:score,index:i};});window._gxFitResult=best;if($('fitSize'))$('fitSize').textContent=best.size;if($('fitExplain'))$('fitExplain').textContent=GX.lang==='en'?'Based on your measurements and preferred fit.':'تم اختيار المقاس بناءً على وزنك وطولك وطريقة اللبس.';if($('fitResult'))$('fitResult').classList.add('show');}
+function gxRunFitCheck(){var w=parseFloat($('fit_weight')&&$('fit_weight').value),h=parseFloat($('fit_height')&&$('fit_height').value);if(!isFinite(w)||!isFinite(h)||w<30||w>180||h<120||h>220){toast(GX.lang==='en'?'Enter a valid weight and height.':'اكتبي وزنًا وطولًا صحيحين.');return;}var chart=GX.chart||{},keys=GX.sizes||Object.keys(chart),matches=[];keys.forEach(function(sz,i){var r=chart[sz]||{},hr=gxParseRange(r.height),wr=gxParseRange(r.weight);if(h>=hr[0]&&h<=hr[1]&&w>=wr[0]&&w<=wr[1])matches.push({size:sz,index:i});});var best=null;if(matches.length){if(window._gxFitPref==='tight')best=matches[0];else if(window._gxFitPref==='loose')best=matches[matches.length-1];else best=matches[Math.floor((matches.length-1)/2)];}window._gxFitResult=best;if($('fitResult'))$('fitResult').classList.add('show');if($('fitSize'))$('fitSize').textContent=best?best.size:(GX.lang==='en'?'NO EXACT SIZE':'لا يوجد مقاس مطابق');if($('fitExplain'))$('fitExplain').textContent=best?(GX.lang==='en'?'Exact match from the Asian Fit height and weight ranges.':'المقاس مطابق تمامًا لنطاق الطول والوزن في جدول الـAsian Fit.'):(GX.lang==='en'?'Your height and weight do not fall within the same Asian Fit size range. Please check the size chart.':'الطول والوزن لا يقعان معًا ضمن نفس نطاق في جدول الـAsian Fit، لذلك لن نختار مقاسًا من عندنا. راجعي جدول المقاسات.');var useBtn=$('fitResult')&&$('fitResult').querySelector('button');if(useBtn)useBtn.style.display=best?'inline-flex':'none';}
 function gxUseFitSize(){var r=window._gxFitResult;if(!r)return;var c=document.querySelector('.size-chip[data-sz="'+r.size+'"]');if(c&&!c.classList.contains('oos')){selectSize(c);closeModal('m-fitcheck');toast(GX.lang==='en'?'Size '+r.size+' selected.':'تم اختيار المقاس '+r.size+'.');}else{closeModal('m-fitcheck');toast(GX.lang==='en'?'That size is currently unavailable.':'هذا المقاس غير متوفر حاليًا.');}}
 function gxPickClubColor(btn){var box=$('gxClubColor');if(!box)return;document.querySelectorAll('.gx-club-swatch').forEach(function(x){x.classList.remove('on');});btn.classList.add('on');var a=btn.getAttribute('data-a')||'#18E875',b=btn.getAttribute('data-b')||'#0B9F50',cid=btn.getAttribute('data-cid')||'';box.style.setProperty('--club-a',a);box.style.setProperty('--club-b',b);var n=$('gxClubColorName');if(n)n.textContent=GX.lang==='en'?btn.getAttribute('data-name')+' • YOUR COLOR':btn.getAttribute('data-name')+' • ألوانك';var e=$('gxClubColorEmoji');if(e)e.textContent=btn.getAttribute('data-emoji')||'⚽';var l=$('gxClubColorLink');if(l)l.href='/club/'+encodeURIComponent(cid);setMyClub(cid);}
 
@@ -3953,7 +3922,7 @@ function gxInitWow(){
 function gxRenderScan(){
   var c=window._gxClubSwipeData||[], i=window._gxClubSwipeIndex||0; if(!c.length)return; if(i<0)i=c.length-1;if(i>=c.length)i=0;window._gxClubSwipeIndex=i;
   var x=c[i],img=document.getElementById('gxScanJersey'),name=document.getElementById('gxScanName'),pill=document.getElementById('gxScanPill'),stage=document.getElementById('gxScanStage');
-  if(img){img.style.setProperty('--sw-ac',x.color);img.src=x.img;img.alt=x.name;img.style.transform='translateX(24px) scale(.94)';setTimeout(function(){img.style.transform='';},20);} if(name)name.textContent=x.name;if(pill)pill.textContent=(GX.lang==='en'?'SWIPE':'اسحبي');if(stage)stage.closest('.gx-wow-scan').style.setProperty('--sw-ac',x.color);
+  if(img){img.style.setProperty('--sw-ac',x.color);img.src=x.img;img.alt=x.name;img.style.transform='translateX(24px) scale(.94)';setTimeout(function(){img.style.transform='';},20);} if(name)name.textContent=x.name;if(pill)pill.textContent=(GX.lang==='en'?'SWIPE':'اسحب');if(stage)stage.closest('.gx-wow-scan').style.setProperty('--sw-ac',x.color);
   gxMaybeCrowd();
 }
 function gxScanMove(dir){window._gxClubSwipeIndex=(window._gxClubSwipeIndex||0)+dir;gxRenderScan();}
@@ -4502,7 +4471,7 @@ def modals_html():
         '<button class="btn ghost sm" style="margin-top:10px" onclick="gxUseFitSize()">{use}</button></div>'
         '<p class="mnote" style="margin-top:12px;font-size:.72rem">{note}</p>'
     ).format(
-        intro=("أدخل وزنك وطولك واختر شكل اللبسة، ونقترح لك أقرب مقاس حسب جدول GOLAZOX." if not en else "Enter your weight and height, then choose your preferred fit. We’ll suggest the closest GOLAZOX size."),
+        intro=("أدخل وزنك وطولك واختر شكل اللبسة. المقاس سيُطابق نطاقات الطول والوزن في جدول الـAsian Fit فقط." if not en else "Enter your weight and height, then choose your preferred fit. We only return a size when both values fit the Asian Fit chart ranges."),
         weight=("الوزن (كجم)" if not en else "Weight (kg)"), height=("الطول (سم)" if not en else "Height (cm)"),
         fit=("كيف تحب يكون التيشيرت؟" if not en else "How do you want it to fit?"),
         tight=("ضيق" if not en else "Slim"), regular=("معتدل" if not en else "Regular"), loose=("واسع" if not en else "Loose"),
@@ -4654,7 +4623,6 @@ def spotlight_html(prods):
              desc=esc(desc or ""), pr=pr, cur=cur(), view=d["view"])
 
 
-
 def home_body():
     en = lang() == "en"
     d = cfg.L[lang()]
@@ -4727,6 +4695,12 @@ def home_body():
                  '</div></div>'
                  ).format(t=d["loyal_title"], q=d["loyal_q"], pick=d["loyal_pick_plz"],
                           btns=loy_btns, great=d["loyal_great"], go=d["loyal_go"])
+
+    size_sec = ('<div class="sec rv"><div class="szsec-banner">'
+                '<span class="big-ic">📏</span>'
+                '<div><h2>{t}</h2><p>{s}</p></div>'
+                '<a class="btn btn-light" href="/size-guide">{b} ←</a></div></div>'
+                ).format(t=d["szsec_title"], s=d["szsec_sub"], b=d["szsec_btn"])
 
     steps_sec = ('<div class="sec rv"><div class="sec-head"><h2><span class="bar"></span>{t}</h2></div>'
                  '<div class="steps-grid">{steps}</div></div>'
@@ -4863,6 +4837,22 @@ def home_body():
         play=("PLAY PENALTY" if en else "العب الركلة")
     )
 
+    swipe_cards=[]
+    for cid,c in cfg.CLUBS.items():
+        th=club_themes().get(cid,{})
+        club_prods=[p for p in prods if p.get("club_id")==cid and p.get("kind")=="jersey"]
+        if not club_prods: continue
+        fp=club_prods[0]
+        swipe_cards.append((cid,th.get("ac","#E11D48"),th.get("ac2","#F97316"),c.get("en" if en else "ar",cid),c.get("emoji","⚽"),fp["imgs"][0],len(club_prods)))
+    swipe_items=[]
+    for i,(cid,ac,ac2,nm,em,img,count) in enumerate(swipe_cards):
+        swipe_items.append(('<article class="gx-club-swipe-card" data-index="%d" style="--sw-ac:%s;--sw-ac2:%s">'
+                            '<div class="gx-swipe-bg"></div><div class="gx-swipe-top"><span>%s %s</span><small>%s</small></div>'
+                            '<div class="gx-swipe-stage"><div class="gx-swipe-glow"></div><img src="/img/%s" alt="%s" loading="lazy"></div>'
+                            '<div class="gx-swipe-bottom"><div><b>%s</b><span>%s</span></div><a class="gx-swipe-cta" href="/club/%s">%s →</a></div></article>')
+                           % (i,cid and ac,ac2,em,esc(nm),("JERSEY COLLECTION" if en else "تشكيلة قمصان النادي"),esc(img),esc(nm),esc(nm),("SWIPE TO EXPLORE" if en else "اسحب لاكتشاف الأندية"),cid,("VIEW CLUB" if en else "شوف النادي")))
+    club_swipe_sec=('<div class="sec rv gx-club-swipe-wrap" id="clubSwipeSection"><div class="sec-head"><h2><span class="bar"></span>%s</h2><span class="sec-sub">%s</span></div><div class="gx-club-swipe" id="gxClubSwipe">%s</div><div class="gx-swipe-controls"><button type="button" class="gx-swipe-arrow" onclick="gxClubSwipe(-1)">‹</button><div class="gx-swipe-dots" id="gxSwipeDots"></div><button type="button" class="gx-swipe-arrow" onclick="gxClubSwipe(1)">›</button></div><div class="gx-swipe-note" id="gxSwipeNote">%s</div></div>') % (("EXPLORE BY CLUB" if en else "اكتشف الأندية"),("Swipe the jerseys. Pick your club." if en else "اسحب بين الأندية وشوف القميص مباشرة"),"".join(swipe_items),("Swipe ← →" if en else "اسحب يمين ويسار"))
+
     # WOW scan and walk-through removed per request.
     quiz_sec = ('<section class="sec rv gx-quiz" id="clubQuiz">'
                 '<h2>🧠 {title}</h2><p>{sub}</p>'
@@ -4873,115 +4863,21 @@ def home_body():
                 '<button class="gx-qopt" data-v="red" onclick="gxQuizPick(this)">🔴 {o21}</button>'
                 '<button class="gx-qopt" data-v="dark" onclick="gxQuizPick(this)">⚫ {o22}</button></div>'
                 '<div class="gx-quiz-result" id="gxQuizResult"><div class="gx-match-line">{resultLabel}</div><div class="gx-match-name" id="gxQuizMatch">—</div><a id="gxQuizGo" class="btn pri gx-quiz-go" href="#">{go}</a></div>'
-                '</section>').format(title=("FIND YOUR CLUB" if en else "أي تيشيرت يناسبك؟"),sub=("Two taps. One match." if en else "اختاري بسرعة ونحدد لك القميص المناسب."),q1=("What energy are you?" if en else "وش أجواؤك؟"),o11=("Bold & loud" if en else "جريء وحماسي"),o12=("Classic & clean" if en else "كلاسيكي ومرتب"),q2=("Pick a color mood" if en else "اختاري ألوانك"),o21=("Red / fiery" if en else "أحمر وحماسي"),o22=("Dark / elite" if en else "داكن وفخم"),resultLabel=("YOUR MATCH" if en else "اختيارك"),go=("SHOP THIS JERSEY" if en else "شوفي التيشيرت"))
+                '</section>').format(title=("FIND YOUR CLUB" if en else "أي تيشيرت يناسبك؟"),sub=("Two taps. One match." if en else "اختار بسرعة ونحدد لك القميص المناسب."),q1=("What energy are you?" if en else "وش أجواءك؟"),o11=("Bold & loud" if en else "جريء وحماسي"),o12=("Classic & clean" if en else "كلاسيكي ومرتب"),q2=("Pick a color mood" if en else "اختار ألوانك"),o21=("Red / fiery" if en else "أحمر وحماسي"),o22=("Dark / elite" if en else "داكن وفخم"),resultLabel=("YOUR MATCH" if en else "اختيارك"),go=("SHOP THIS JERSEY" if en else "شوف التيشيرت"))
 
-    # Hero first, then the premium world jersey portal.
-    jersey_map_html = """
-    <section class="sec rv gx-jersey-map" id="jerseyMap">
-      <div class="gx-world-inner">
-        <div class="gx-world-head">
-          <div>
-            <span class="gx-world-kicker">GOLAZOX WORLD 🌍</span>
-            <h2>اكتشفي قمصان العالم</h2>
-            <p>اختاري الدولة، ناديك، ثم القميص والمقاس — كل الرحلة في مكان واحد.</p>
-          </div>
-          <div class="gx-world-badges">
-            <span class="gx-world-badge hot">WORLD MAP</span><span class="gx-world-badge">ASIAN FIT</span><span class="gx-world-badge">7 د.ب</span>
-          </div>
-        </div>
-        <div class="gx-world-layout">
-          <div class="gx-world-globe">
-            <div class="gx-world-orb">
-              <div class="gx-land north-america"></div><div class="gx-land europe"></div><div class="gx-land uk"></div><div class="gx-land africa"></div><div class="gx-land asia"></div><div class="gx-land south-america"></div>
-              <div class="gx-world-arc"></div><div class="gx-world-arc two"></div>
-              <div class="gx-world-country active" data-country="spain" style="left:42%;top:38%;--country-color:#e04444"><span class="f">🇪🇸</span><div>إسبانيا<small>2 أندية</small></div></div>
-              <div class="gx-world-country" data-country="england" style="left:40%;top:25%;--country-color:#7dd3fc"><span class="f">🇬🇧</span><div>إنجلترا<small>4 أندية</small></div></div>
-              <div class="gx-world-country" data-country="germany" style="left:51%;top:29%;--country-color:#f5c542"><span class="f">🇩🇪</span><div>ألمانيا<small>1 نادي</small></div></div>
-              <div class="gx-world-country" data-country="france" style="left:45%;top:33%;--country-color:#60a5fa"><span class="f">🇫🇷</span><div>فرنسا<small>1 نادي</small></div></div>
-              <div class="gx-world-country" data-country="italy" style="left:56%;top:38%;--country-color:#34d399"><span class="f">🇮🇹</span><div>إيطاليا<small>1 نادي</small></div></div>
-              <div class="gx-world-country" data-country="saudi" style="left:65%;top:48%;--country-color:#18e875"><span class="f">🇸🇦</span><div>السعودية<small>1 نادي</small></div></div>
-            </div>
-          </div>
-          <div class="gx-world-side" id="gxWorldSide">
-            <div class="gx-world-side-inner">
-              <div class="gx-world-side-top"><div><div class="gx-world-selected" id="gxWorldCountry">إسبانيا</div><div class="gx-world-selected-sub" id="gxWorldCountrySub">اختاري ناديًا من هذه الدولة</div></div><div class="gx-world-selected-flag" id="gxWorldFlag">🇪🇸</div></div>
-              <div class="gx-world-clubs" id="gxWorldClubs"></div>
-              <div class="gx-world-product" id="gxWorldProduct"><span class="gx-world-empty">اختاري ناديًا</span></div>
-              <div class="gx-world-price-row"><div><div class="gx-world-product-name" id="gxWorldProductName">—</div><div class="gx-world-fit">Asian Fit • جودة عالية</div></div><div class="gx-world-price" id="gxWorldPrice">7</div></div>
-              <div class="gx-world-sizes" id="gxWorldSizes"><button class="gx-world-size active" data-size="M">M</button><button class="gx-world-size" data-size="S">S</button><button class="gx-world-size" data-size="L">L</button><button class="gx-world-size" data-size="XL">XL</button><button class="gx-world-size" data-size="2XL">2XL</button><button class="gx-world-size" data-size="3XL">3XL</button></div>
-              <a id="gxWorldBuy" class="btn gx-world-buy" href="/products">🛒 اشتري الآن</a>
-              <div class="gx-world-trust"><span>✓ اختيار المقاس</span><span>✓ الطلب مباشرة</span><span>✓ السعر 7 د.ب</span></div>
-            </div>
-          </div>
-        </div>
-        <div class="gx-world-nav" id="gxWorldNav"></div>
-        <div class="gx-world-steps"><div class="gx-world-step current"><span class="n">1</span> الدولة</div><span>→</span><div class="gx-world-step"><span class="n">2</span> النادي</div><span>→</span><div class="gx-world-step"><span class="n">3</span> القميص</div><span>→</span><div class="gx-world-step"><span class="n">4</span> المقاس</div><span>→</span><div class="gx-world-step"><span class="n">5</span> الشراء</div></div>
-      </div>
-    </section>
-    """
+    # Insert new experiences near the top for maximum impact
+    return (atmos_html("full")
+            + '<div class="wrap">' 
+            + quiz_sec
 
-    _jm_map = {
-        "england": ("🇬🇧", "إنجلترا", ["arsenal", "liver", "united", "city"]),
-        "germany": ("🇩🇪", "ألمانيا", ["bayern"]),
-        "spain": ("🇪🇸", "إسبانيا", ["real", "barca"]),
-        "italy": ("🇮🇹", "إيطاليا", ["juve"]),
-        "france": ("🇫🇷", "فرنسا", ["psg"]),
-        "saudi": ("🇸🇦", "السعودية", ["nassr"]),
-    }
-    _jm_data = {}
-    for _country, (_flag, _label, _ids) in _jm_map.items():
-        _clubs = []
-        for _cid in _ids:
-            _p = next((x for x in prods if x.get("club_id") == _cid and x.get("kind") == "jersey"), None)
-            if not _p:
-                continue
-            _th = club_themes().get(_cid, {})
-            _clubs.append({"id":_cid,"name":cfg.CLUBS.get(_cid,{}).get(en and "en" or "ar",_cid),"emoji":cfg.CLUBS.get(_cid,{}).get("emoji","⚽"),"img":_p.get("imgs",[""])[0],"price":eff_price(_p),"ac":_th.get("ac","#18E875"),"ac2":_th.get("ac2","#0B9F50"),"product":_p.get("id")})
-        _jm_data[_country] = {"flag":_flag,"label":_label,"clubs":_clubs}
 
-    jersey_map_js = r"""<script>
-(function(){
-  var DATA=__JM_DATA__, root=document.getElementById('jerseyMap'); if(!root)return;
-  var countryEl=document.getElementById('gxWorldCountry'), subEl=document.getElementById('gxWorldCountrySub'), flagEl=document.getElementById('gxWorldFlag');
-  var clubsEl=document.getElementById('gxWorldClubs'), productEl=document.getElementById('gxWorldProduct'), nameEl=document.getElementById('gxWorldProductName'), priceEl=document.getElementById('gxWorldPrice'), buyEl=document.getElementById('gxWorldBuy'), navEl=document.getElementById('gxWorldNav'), side=document.getElementById('gxWorldSide');
-  var sizes=document.getElementById('gxWorldSizes'), currentCountry='spain', currentClub=null;
-  function money(v){var n=Math.round((Number(v)||0)*100)/100;return Number.isInteger(n)?String(n):String(n).replace(/0+$/,'').replace(/\.$/,'');}
-  function clearSel(){root.querySelectorAll('.gx-world-country').forEach(function(x){x.classList.toggle('active',x.getAttribute('data-country')===currentCountry)}); if(navEl)navEl.querySelectorAll('button').forEach(function(x){x.classList.toggle('active',x.getAttribute('data-country')===currentCountry)});}
-  function selectClub(c){
-    if(!c)return; currentClub=c;
-    if(side)side.style.setProperty('--side-a',c.ac+'30');
-    if(nameEl)nameEl.textContent=c.name;
-    if(priceEl)priceEl.textContent=money(c.price);
-    if(productEl)productEl.innerHTML='<img src="/img/'+encodeURIComponent(c.img)+'" alt="" loading="lazy">';
-    if(buyEl)buyEl.href='/product/'+encodeURIComponent(c.product||'');
-    clubsEl.querySelectorAll('button[data-club]').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-club')===c.id);});
-  }
-  function renderCountry(k){
-    var d=DATA[k]; if(!d)return; currentCountry=k; clearSel();
-    if(countryEl)countryEl.textContent=d.label; if(flagEl)flagEl.textContent=d.flag; if(subEl)subEl.textContent=d.clubs.length+' نادي متاح في هذه الدولة';
-    clubsEl.innerHTML=d.clubs.length?d.clubs.map(function(c){return '<button type="button" class="gx-world-club" data-club="'+c.id+'" style="--club-color:'+c.ac+'"><div class="emoji">'+c.emoji+'</div><b>'+c.name+'</b></button>';}).join(''):'<span class="gx-world-empty">لا توجد قمصان متاحة حاليًا</span>';
-    clubsEl.querySelectorAll('button[data-club]').forEach(function(b){b.addEventListener('click',function(){var c=d.clubs.find(function(x){return x.id===b.dataset.club});if(c)selectClub(c);});});
-    if(d.clubs[0])selectClub(d.clubs[0]);
-  }
-  Object.keys(DATA).forEach(function(k){var d=DATA[k];var b=document.createElement('button');b.type='button';b.className='gx-world-tab';b.setAttribute('data-country',k);b.textContent=d.flag+' '+d.label;b.addEventListener('click',function(){renderCountry(k);});navEl.appendChild(b);});
-  root.querySelectorAll('.gx-world-country').forEach(function(b){b.addEventListener('click',function(){renderCountry(b.getAttribute('data-country'));});});
-  if(sizes)sizes.querySelectorAll('button[data-size]').forEach(function(b){b.addEventListener('click',function(){sizes.querySelectorAll('button').forEach(function(x){x.classList.remove('active')});b.classList.add('active');});});
-  renderCountry(currentCountry);
-})();
-</script>""".replace("__JM_DATA__", json_d(_jm_data))
-
-    jersey_map_html_safe = jersey_map_html.replace("{", "{{").replace("}", "}}")
-
-    home_html = (atmos_html("full")
-            + '<div class="wrap">'
             + hero
-            + jersey_map_html_safe
             + fit_home
             + club_color_section
-            + quiz_sec
             + fan_moment
             + pc_sec
             + md_ticker
+            + club_swipe_sec
             + clubs_sec
             + ads_html("home")
             + features_html()
@@ -4994,6 +4890,7 @@ def home_body():
             + loyal_sec
             + '<div class="sec rv" id="mugs"><div class="sec-head"><h2><span class="bar"></span>{sm}</h2><span class="sec-sub">{sm_sub}</span></div>'
             + '<div class="grid" id="gridM">{mgrid}</div></div>'
+            + size_sec
             + steps_sec
             + pitch_sec
             + match_html
@@ -5002,9 +4899,9 @@ def home_body():
             + '<div class="sec rv" id="info"><div class="sec-head"><h2><span class="bar"></span>{qt}</h2></div>'
             + '<div class="quick">{quick}</div></div>'
             + '</div>'
-            ).format(sj=d["sec_jerseys"], sj_sub=d["sec_jerseys_sub"], sm=d["sec_mugs"], sm_sub=d["sec_mugs_sub"], qt=d["quick_title"], jgrid=jgrid, mgrid=mgrid, quick=quick)
-    home_html += jersey_map_js
-    return home_html
+            ).format(sj=d["sec_jerseys"], sj_sub=d["sec_jerseys_sub"],
+                     sm=d["sec_mugs"], sm_sub=d["sec_mugs_sub"], qt=d["quick_title"],
+                     jgrid=jgrid, mgrid=mgrid, quick=quick)
 
 
 def listing_page(kind):

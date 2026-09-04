@@ -93,17 +93,17 @@ COLOR_FILTERS = [
 # calculated from the current visible jersey catalogue on every request.
 WORLD_COUNTRIES = [
     {"id": "england", "ar": "إنجلترا", "en": "England", "flag": "🇬🇧",
-     "clubs": ("arsenal", "liver", "united", "city"), "x": 43, "y": 22},
+     "clubs": ("arsenal", "liver", "united", "city"), "x": 43, "y": 22, "color": "#6EC8FF"},
     {"id": "spain", "ar": "إسبانيا", "en": "Spain", "flag": "🇪🇸",
-     "clubs": ("real", "barca"), "x": 43, "y": 45},
+     "clubs": ("real", "barca"), "x": 43, "y": 45, "color": "#FFD34D"},
     {"id": "france", "ar": "فرنسا", "en": "France", "flag": "🇫🇷",
-     "clubs": ("psg",), "x": 49, "y": 35},
+     "clubs": ("psg",), "x": 49, "y": 35, "color": "#6A8CFF"},
     {"id": "germany", "ar": "ألمانيا", "en": "Germany", "flag": "🇩🇪",
-     "clubs": ("bayern",), "x": 55, "y": 25},
+     "clubs": ("bayern",), "x": 55, "y": 25, "color": "#FF9F43"},
     {"id": "italy", "ar": "إيطاليا", "en": "Italy", "flag": "🇮🇹",
-     "clubs": ("juve",), "x": 56, "y": 45},
+     "clubs": ("juve",), "x": 56, "y": 45, "color": "#44D17A"},
     {"id": "saudi", "ar": "السعودية", "en": "Saudi Arabia", "flag": "🇸🇦",
-     "clubs": ("nassr",), "x": 66, "y": 54},
+     "clubs": ("nassr",), "x": 66, "y": 54, "color": "#18E875"},
 ]
 
 
@@ -1523,33 +1523,43 @@ html[data-club] .hero-ball { filter:drop-shadow(0 24px 36px var(--glow, rgba(225
 /* ============================== JERSEYS AROUND THE WORLD ============================== */
 .gx-world-layout { display:grid; grid-template-columns:minmax(0,1.65fr) minmax(270px,.78fr); gap:16px; align-items:stretch; }
 .gx-world-map { position:relative; min-height:430px; overflow:hidden; direction:ltr; border:1px solid rgba(24,232,117,.13);
-  border-radius:26px; background:radial-gradient(circle at 52% 45%,rgba(24,232,117,.09),transparent 42%),linear-gradient(160deg,#07110c,#030605); }
-html[data-theme="light"] .gx-world-map { background:radial-gradient(circle at 52% 45%,rgba(11,159,80,.10),transparent 42%),linear-gradient(160deg,#F8FCFA,#EEF7F2); border-color:var(--line); }
-.gx-world-map::before { content:'GOLAZOX WORLD'; position:absolute; inset-inline-start:18px; bottom:14px; z-index:1;
-  color:rgba(24,232,117,.22); font-family:'Poppins',sans-serif; font-size:.66rem; font-weight:900; letter-spacing:4px; }
-.gx-world-map svg { position:absolute; inset:0; width:100%; height:100%; }
-.gx-map-grid { fill:none; stroke:rgba(255,255,255,.045); stroke-width:1; }
-html[data-theme="light"] .gx-map-grid { stroke:rgba(15,23,42,.065); }
-.gx-map-land { fill:#102219; stroke:#28533b; stroke-width:2; transition:fill .25s ease,stroke .25s ease; }
-html[data-theme="light"] .gx-map-land { fill:#DDEDE4; stroke:#A8CCB8; }
-.gx-map-marker { position:absolute; left:var(--mx); top:var(--my); transform:translate(-50%,-50%); z-index:3;
+  isolation:isolate; border-radius:26px;
+  background:radial-gradient(circle at 18% 18%,rgba(67,145,255,.17),transparent 27%),radial-gradient(circle at 82% 78%,rgba(255,159,67,.12),transparent 29%),radial-gradient(circle at 52% 45%,rgba(24,232,117,.13),transparent 44%),linear-gradient(160deg,#07120d,#020504); }
+html[data-theme="light"] .gx-world-map { background:radial-gradient(circle at 18% 18%,rgba(67,145,255,.12),transparent 27%),radial-gradient(circle at 82% 78%,rgba(255,159,67,.10),transparent 29%),radial-gradient(circle at 52% 45%,rgba(11,159,80,.11),transparent 44%),linear-gradient(160deg,#F8FCFA,#EAF5EF); border-color:var(--line); }
+.gx-world-map::before { content:'GOLAZOX WORLD'; position:absolute; inset-inline-start:18px; bottom:14px; z-index:3; pointer-events:none;
+  color:rgba(24,232,117,.28); text-shadow:0 0 18px rgba(24,232,117,.22); font-family:'Poppins',sans-serif; font-size:.66rem; font-weight:900; letter-spacing:4px; }
+.gx-world-map::after { content:''; position:absolute; inset:-38% -55%; z-index:2; pointer-events:none;
+  background:linear-gradient(105deg,transparent 43%,rgba(255,255,255,.085) 49%,rgba(24,232,117,.07) 51%,transparent 57%);
+  transform:translateX(-38%); animation:gxWorldSweep 8s ease-in-out infinite; }
+.gx-world-map svg { position:absolute; inset:0; z-index:1; width:100%; height:100%; }
+.gx-world-lights { position:absolute; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
+.gx-world-lights span { position:absolute; top:-32%; width:31%; height:118%; opacity:.34; filter:blur(9px); transform-origin:50% 0; mix-blend-mode:screen; }
+.gx-world-lights span:nth-child(1) { left:5%; background:linear-gradient(180deg,rgba(74,144,255,.5),rgba(74,144,255,.05) 58%,transparent 76%); transform:rotate(-18deg); animation:gxWorldLightLeft 7s ease-in-out infinite; }
+.gx-world-lights span:nth-child(2) { left:38%; background:linear-gradient(180deg,rgba(24,232,117,.42),rgba(24,232,117,.04) 58%,transparent 76%); transform:rotate(5deg); animation:gxWorldLightMid 8.5s ease-in-out infinite; }
+.gx-world-lights span:nth-child(3) { right:4%; background:linear-gradient(180deg,rgba(255,184,77,.43),rgba(255,184,77,.04) 58%,transparent 76%); transform:rotate(18deg); animation:gxWorldLightRight 7.8s ease-in-out infinite; }
+.gx-map-grid { fill:none; stroke:rgba(255,255,255,.07); stroke-width:1; }
+html[data-theme="light"] .gx-map-grid { stroke:rgba(15,23,42,.075); }
+.gx-map-land { fill:url(#gxWorldLandGradient); stroke:#3B7654; stroke-width:2; filter:drop-shadow(0 0 10px rgba(24,232,117,.16)); transition:fill .25s ease,stroke .25s ease; }
+html[data-theme="light"] .gx-map-land { fill:#DDEDE4; stroke:#94C5A8; filter:drop-shadow(0 5px 9px rgba(15,23,42,.08)); }
+.gx-map-marker { position:absolute; left:var(--mx); top:var(--my); transform:translate(-50%,-50%); z-index:4;
   display:flex; align-items:center; justify-content:center; gap:5px; min-width:58px; min-height:46px; padding:5px 8px;
-  border:1px solid rgba(255,255,255,.16); border-radius:15px; background:rgba(5,10,7,.88); color:#F5F7F6;
-  font-family:inherit; cursor:pointer; box-shadow:0 8px 22px rgba(0,0,0,.36); backdrop-filter:blur(9px); transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease; }
-.gx-map-marker::after { content:''; position:absolute; width:8px; height:8px; bottom:-5px; border-radius:50%; background:var(--ac); box-shadow:0 0 0 5px rgba(24,232,117,.12),0 0 18px var(--ac); }
-.gx-map-marker:hover,.gx-map-marker.on { transform:translate(-50%,-50%) scale(1.08); border-color:var(--ac); box-shadow:0 10px 28px rgba(24,232,117,.2); }
+  border:1px solid color-mix(in srgb,var(--mc,var(--ac)) 46%,rgba(255,255,255,.2)); border-radius:15px; background:rgba(4,10,7,.88); color:#F5F7F6;
+  font-family:inherit; cursor:pointer; box-shadow:0 8px 22px rgba(0,0,0,.36),0 0 20px color-mix(in srgb,var(--mc,var(--ac)) 17%,transparent); backdrop-filter:blur(9px); transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease; }
+.gx-map-marker::before { content:''; position:absolute; inset:-7px; pointer-events:none; border:1px solid var(--mc,var(--ac)); border-radius:19px; opacity:.13; animation:gxMapHalo 2.8s ease-in-out infinite; animation-delay:var(--delay,0s); }
+.gx-map-marker::after { content:''; position:absolute; width:8px; height:8px; bottom:-5px; border-radius:50%; background:var(--mc,var(--ac)); box-shadow:0 0 0 5px color-mix(in srgb,var(--mc,var(--ac)) 15%,transparent),0 0 18px var(--mc,var(--ac)); animation:gxMapDot 2.8s ease-in-out infinite; animation-delay:var(--delay,0s); }
+.gx-map-marker:hover,.gx-map-marker.on { transform:translate(-50%,-50%) scale(1.08); border-color:var(--mc,var(--ac)); box-shadow:0 10px 28px color-mix(in srgb,var(--mc,var(--ac)) 27%,transparent),0 0 24px color-mix(in srgb,var(--mc,var(--ac)) 22%,transparent); }
 html[data-theme="light"] .gx-map-marker { background:rgba(255,255,255,.94); color:#0F172A; border-color:rgba(15,23,42,.12); box-shadow:0 8px 20px rgba(15,23,42,.13); }
-.gx-marker-flag { font-size:1.05rem; line-height:1; }.gx-marker-count { font-size:.69rem; font-weight:900; white-space:nowrap; }
+.gx-marker-flag,.gx-marker-count { position:relative; z-index:1; }.gx-marker-flag { font-size:1.05rem; line-height:1; }.gx-marker-count { font-size:.69rem; font-weight:900; white-space:nowrap; }
 .gx-world-side { display:flex; flex-direction:column; min-width:0; padding:14px; border-radius:24px; background:var(--card); border:1px solid var(--line); }
 .gx-country-nav-title { color:var(--mut); font-size:.72rem; font-weight:800; margin:2px 2px 9px; }
 .gx-country-nav { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
 .gx-country-tab { display:flex; align-items:center; justify-content:space-between; gap:7px; min-width:0; min-height:44px; padding:8px 9px;
   border:1px solid var(--line); border-radius:12px; background:var(--card2); color:var(--txt); font-family:inherit; font-size:.73rem; font-weight:800; cursor:pointer; }
 .gx-country-tab span:first-child { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.gx-country-tab small { color:var(--mut); font-size:.65rem; }.gx-country-tab.on { border-color:var(--ac); background:rgba(24,232,117,.08); color:var(--ac); }
-.gx-country-panel { margin-top:12px; padding-top:12px; border-top:1px solid var(--line); }.gx-country-panel[hidden] { display:none!important; }
+.gx-country-tab small { color:var(--mut); font-size:.65rem; }.gx-country-tab.on { border-color:var(--mc,var(--ac)); background:color-mix(in srgb,var(--mc,var(--ac)) 10%,var(--card2)); color:var(--mc,var(--ac)); box-shadow:inset 0 0 18px color-mix(in srgb,var(--mc,var(--ac)) 8%,transparent); }
+.gx-country-panel { position:relative; margin-top:12px; padding-top:12px; border-top:1px solid color-mix(in srgb,var(--mc,var(--ac)) 34%,var(--line)); }.gx-country-panel[hidden] { display:none!important; }
 .gx-country-panel-head { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px; }
-.gx-country-panel-head b { font-size:.96rem; }.gx-country-panel-head span { color:var(--ac); font-size:.72rem; font-weight:900; }
+.gx-country-panel-head b { font-size:.96rem; }.gx-country-panel-head span { color:var(--mc,var(--ac)); font-size:.72rem; font-weight:900; }
 .gx-map-clubs { display:grid; gap:8px; }.gx-map-club { display:grid; grid-template-columns:52px minmax(0,1fr); align-items:center; gap:9px;
   min-height:68px; padding:7px; border-radius:13px; background:var(--card2); border:1px solid var(--line); text-decoration:none; transition:border-color .18s ease,transform .18s ease; }
 .gx-map-club:hover { border-color:var(--cc,var(--ac)); transform:translateY(-2px); }.gx-map-club img { width:52px; height:54px; object-fit:contain; border-radius:9px; background:rgba(0,0,0,.16); }
@@ -1557,13 +1567,26 @@ html[data-theme="light"] .gx-map-marker { background:rgba(255,255,255,.94); colo
 .gx-map-club span { display:block; margin-top:3px; color:var(--mut); font-size:.68rem; }
 @media(max-width:768px){
   .gx-world-layout{grid-template-columns:1fr}.gx-world-map{min-height:280px;border-radius:20px}.gx-world-side{padding:12px;border-radius:18px}
+  .gx-world-lights span{opacity:.25}.gx-world-map::after{opacity:.75}
   .gx-map-marker{min-width:46px;min-height:44px;padding:4px 6px;border-radius:13px}.gx-marker-flag{font-size:.95rem}.gx-marker-count{font-size:.62rem}
+  .gx-map-marker[data-country="england"]{--mx:36%!important;--my:18%!important}.gx-map-marker[data-country="germany"]{--mx:60%!important;--my:18%!important}
+  .gx-map-marker[data-country="france"]{--mx:48%!important;--my:34%!important}.gx-map-marker[data-country="spain"]{--mx:34%!important;--my:51%!important}
+  .gx-map-marker[data-country="italy"]{--mx:60%!important;--my:49%!important}.gx-map-marker[data-country="saudi"]{--mx:76%!important;--my:58%!important}
   .gx-country-nav{display:flex;overflow-x:auto;gap:7px;padding-bottom:4px;scroll-snap-type:x proximity;scrollbar-width:none}.gx-country-nav::-webkit-scrollbar{display:none}
   .gx-country-tab{flex:0 0 auto;min-width:112px;scroll-snap-align:start}.gx-map-clubs{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media(max-width:390px){
   .gx-world-map{min-height:250px}.gx-world-map::before{font-size:.58rem;letter-spacing:2px}.gx-map-marker{min-width:44px;gap:3px}.gx-marker-flag{font-size:.88rem}
   .gx-map-club{grid-template-columns:44px minmax(0,1fr);gap:6px;padding:6px}.gx-map-club img{width:44px;height:48px}.gx-map-club b{font-size:.74rem}.gx-map-club span{font-size:.64rem}
+}
+@keyframes gxWorldSweep { 0%,18%{transform:translateX(-38%);opacity:0} 40%{opacity:1} 64%,100%{transform:translateX(38%);opacity:0} }
+@keyframes gxWorldLightLeft { 0%,100%{transform:rotate(-18deg);opacity:.25} 50%{transform:rotate(-10deg);opacity:.42} }
+@keyframes gxWorldLightMid { 0%,100%{transform:rotate(5deg);opacity:.25} 50%{transform:rotate(-2deg);opacity:.39} }
+@keyframes gxWorldLightRight { 0%,100%{transform:rotate(18deg);opacity:.24} 50%{transform:rotate(10deg);opacity:.4} }
+@keyframes gxMapHalo { 0%,100%{transform:scale(.86);opacity:.08} 50%{transform:scale(1.08);opacity:.28} }
+@keyframes gxMapDot { 0%,100%{transform:scale(.86)} 50%{transform:scale(1.16)} }
+@media(prefers-reduced-motion:reduce){
+  .gx-world-map::after,.gx-world-lights span,.gx-map-marker::before,.gx-map-marker::after{animation:none!important}
 }
 /* ============================== CLUB PAGE ============================== */
 .club-banner { border-radius:26px; padding:40px 26px; color:#fff; text-align:center; position:relative; overflow:hidden;
@@ -2394,7 +2417,7 @@ html[data-theme="light"] .sg-adj-sz { color: #0F172A; }
 html[data-theme="light"] .sg-table-section h3 { color: #0F172A; }
 /* Products Section */
 .sg-products { max-width: 1120px; margin: 30px auto 0; padding: 0 18px; }
-/* Asian Fit Note */
+/* Players Version sizing note */
 .sg-asian-note {
   background: rgba(24,232,117,.06); border: 1px solid rgba(24,232,117,.18);
   border-radius: 16px; padding: 18px 22px; margin-bottom: 20px;
@@ -4207,7 +4230,7 @@ function gxRunFitCheck(){
   if($('fitExplain')){
     if(!best){$('fitExplain').textContent=GX.lang==='en'?'The size chart is currently unavailable.':'جدول المقاسات غير متاح حاليًا.';}
     else if(best.adjusted){$('fitExplain').textContent=GX.lang==='en'?'Adjusted from '+base.size+' to '+best.size+' for your preferred fit. Compare jersey width and length before ordering.':'تم تعديل الاقتراح من '+base.size+' إلى '+best.size+' حسب طريقة اللبس التي اخترتها. قارن عرض وطول التيشيرت قبل الطلب.';}
-    else if(base.exact){$('fitExplain').textContent=hasCW?(GX.lang==='en'?'Your reference shirt width falls within this Fan Version range. Compare the listed length before ordering.':'يقع عرض تيشيرتك المرجعي داخل نطاق هذا المقاس في جدول Fan Version. قارن الطول المدرج قبل الطلب.'):(GX.lang==='en'?'Your height and weight fall within this Fan Version reference range. Confirm with jersey width and length.':'يقع طولك ووزنك داخل النطاق الاسترشادي لهذا المقاس في جدول Fan Version. أكّد الاختيار بمقارنة عرض وطول التيشيرت.');}
+    else if(base.exact){$('fitExplain').textContent=hasCW?(GX.lang==='en'?'Your reference shirt width falls within this Players Version range. Compare the listed length before ordering.':'يقع عرض تيشيرتك المرجعي داخل نطاق هذا المقاس في جدول Players Version. قارن الطول المدرج قبل الطلب.'):(GX.lang==='en'?'Your height and weight fall within this Players Version reference range. Confirm with jersey width and length.':'يقع طولك ووزنك داخل النطاق الاسترشادي لهذا المقاس في جدول Players Version. أكّد الاختيار بمقارنة عرض وطول التيشيرت.');}
     else{$('fitExplain').textContent=GX.lang==='en'?'This is the closest available size, but one or both values are outside its published range. Compare jersey width and length before ordering.':'هذا أقرب مقاس متوفر، لكن الطول أو الوزن خارج نطاقه المنشور. قارن عرض وطول تيشيرت مناسب لك قبل الطلب.';}
   }
   var useBtn=$('fitResult')&&$('fitResult').querySelector('button');if(useBtn)useBtn.style.display=best?'inline-flex':'none';
@@ -4731,7 +4754,7 @@ def modals_html():
                  + "<ol class='steps'><li>{a}</li><li>{b}</li></ol>".format(a=d["szt_measure_1"], b=d["szt_measure_2"])
                  + "<div class='mwarning'>💡 {t}<br>{x}</div>".format(t=d["szt_between"], x=d["szt_between_txt"])
                  + ("<div class='gx-fit-sources'><b>مصادر القياس</b>" if not en else "<div class='gx-fit-sources'><b>Sizing sources</b>")
-                 + ("<a href='https://www.gakits.com/Size-Chartsize-n2086868.html' target='_blank' rel='noopener noreferrer'>جدول Fan Version المستخدم للأرقام ↗</a>" if not en else "<a href='https://www.gakits.com/Size-Chartsize-n2086868.html' target='_blank' rel='noopener noreferrer'>Fan Version chart used for the numbers ↗</a>")
+                 + ("<a href='https://www.gakits.com/2026-27-BA-Third-Player-Version-Soccer-Jersey-p3657900.html' target='_blank' rel='noopener noreferrer'>جدول Players Version المستخدم للأرقام ↗</a>" if not en else "<a href='https://www.gakits.com/2026-27-BA-Third-Player-Version-Soccer-Jersey-p3657900.html' target='_blank' rel='noopener noreferrer'>Players Version chart used for the numbers ↗</a>")
                  + "<a href='https://www.iso.org/standard/61686.html' target='_blank' rel='noopener noreferrer'>ISO 8559-1 ↗</a>"
                  + "<a href='https://www.iso.org/standard/85590.html' target='_blank' rel='noopener noreferrer'>ISO 8559-2:2025 ↗</a>"
                  + ("<a href='https://www.nike.com/size-fit/nba-wnba-jerseys' target='_blank' rel='noopener noreferrer'>طريقة القياس والاختيار بين مقاسين — Nike ↗</a></div>" if not en else "<a href='https://www.nike.com/size-fit/nba-wnba-jerseys' target='_blank' rel='noopener noreferrer'>Measuring and between-size guidance — Nike ↗</a></div>"))
@@ -4837,12 +4860,12 @@ def modals_html():
         '<button class="btn ghost sm" style="margin-top:10px" onclick="gxUseFitSize()">{use}</button></div>'
         '<p class="mnote" style="margin-top:12px;font-size:.72rem">{note}</p>'
         '<div class="gx-fit-sources"><b>{sources_title}</b>'
-        '<a href="https://www.gakits.com/Size-Chartsize-n2086868.html" target="_blank" rel="noopener noreferrer">{source_chart} ↗</a>'
+        '<a href="https://www.gakits.com/2026-27-BA-Third-Player-Version-Soccer-Jersey-p3657900.html" target="_blank" rel="noopener noreferrer">{source_chart} ↗</a>'
         '<a href="https://www.iso.org/standard/61686.html" target="_blank" rel="noopener noreferrer">{source_iso} ↗</a>'
         '<a href="https://www.iso.org/standard/85590.html" target="_blank" rel="noopener noreferrer">ISO 8559-2:2025 ↗</a>'
         '<a href="https://www.nike.com/size-fit/nba-wnba-jerseys" target="_blank" rel="noopener noreferrer">{source_fit} ↗</a></div>'
     ).format(
-        intro=("أدخل وزنك وطولك، وللدقة أضف عرض تيشيرت مناسب لك. سنعرض أقرب مقاس من جدول Fan Version الذي يصفه المورّد بأنه Asian Fit." if not en else "Enter your weight and height; for better accuracy, add the width of a shirt that fits you. We use the supplier's Fan Version chart, described as Asian Fit."),
+        intro=("أدخل وزنك وطولك، وللدقة أضف عرض تيشيرت مناسب لك. سنعرض أقرب مقاس من جدول Players Version، مع الاعتماد على قياسات نسخة اللاعب المباشرة من المورد." if not en else "Enter your weight and height; for better accuracy, add the width of a shirt that fits you. We use the supplier's direct Players Version measurements."),
         weight=("الوزن (كجم)" if not en else "Weight (kg)"), height=("الطول (سم)" if not en else "Height (cm)"),
         chest=("عرض تيشيرت مناسب — اختياري (سم)" if not en else "Well-fitting shirt width — optional (cm)"),
         fit=("كيف تحب يكون التيشيرت؟" if not en else "How do you want it to fit?"),
@@ -4851,7 +4874,7 @@ def modals_html():
         use=("استخدم هذا المقاس" if not en else "Use this size"),
         note=("الاقتراح استرشادي؛ الطول والوزن وحدهما لا يضمنان الملاءمة لأن القصة قد تختلف بين الموديلات." if not en else "This is guidance only; height and weight cannot guarantee fit because cuts can vary by model."),
         sources_title=("مصادر القياس" if not en else "Sizing sources"),
-        source_chart=("جدول Fan Version المستخدم للأرقام" if not en else "Fan Version chart used for the numbers"),
+        source_chart=("جدول Players Version المستخدم للأرقام" if not en else "Players Version chart used for the numbers"),
         source_iso=("ISO 8559-1 — منهج قياسات الجسم للملابس" if not en else "ISO 8559-1 — clothing body-measurement method"),
         source_fit=("Nike — طريقة القياس والاختيار بين مقاسين" if not en else "Nike — measuring and between-size guidance"))
 
@@ -5049,6 +5072,8 @@ def world_map_section(jersey_prods, en=False):
         key = country["id"]
         name = country["en" if en else "ar"]
         flag = country["flag"]
+        country_color = safe_css_hex(country.get("color"), "#18E875")
+        animation_delay = "%.2fs" % (index * 0.22)
         selected = index == 0
         state_class = " on" if selected else ""
         pressed = "true" if selected else "false"
@@ -5057,23 +5082,24 @@ def world_map_section(jersey_prods, en=False):
         label = "%s: %d %s" % (name, count, word)
         markers.append(
             '<button type="button" class="gx-map-marker{state}" data-country="{key}" '
-            'style="--mx:{x}%;--my:{y}%" aria-label="{label}" aria-pressed="{pressed}" '
+            'style="--mx:{x}%;--my:{y}%;--mc:{color};--delay:{delay}" aria-label="{label}" aria-pressed="{pressed}" '
             'onclick="gxWorldSelect(\'{key}\')"><span class="gx-marker-flag">{flag}</span>'
             '<span class="gx-marker-count">{count}</span></button>'.format(
                 state=state_class, key=key, x=country["x"], y=country["y"],
-                label=esc(label), pressed=pressed, flag=flag, count=count))
+                color=country_color, delay=animation_delay, label=esc(label),
+                pressed=pressed, flag=flag, count=count))
         tabs.append(
             '<button type="button" class="gx-country-tab{state}" data-country="{key}" '
-            'aria-pressed="{pressed}" onclick="gxWorldSelect(\'{key}\')">'
+            'style="--mc:{color}" aria-pressed="{pressed}" onclick="gxWorldSelect(\'{key}\')">'
             '<span>{flag} {name}</span><small>{count}</small></button>'.format(
-                state=state_class, key=key, pressed=pressed, flag=flag,
+                state=state_class, key=key, color=country_color, pressed=pressed, flag=flag,
                 name=esc(name), count=count))
         panels.append(
-            '<div class="gx-country-panel" data-country="{key}"{hidden}>'
+            '<div class="gx-country-panel" data-country="{key}" style="--mc:{color}"{hidden}>'
             '<div class="gx-country-panel-head"><b>{flag} {name}</b>'
             '<span>{count} {word}</span></div><div class="gx-map-clubs">{clubs}</div></div>'.format(
-                key=key, hidden=hidden, flag=flag, name=esc(name), count=count,
-                word=word, clubs=club_rows))
+                key=key, color=country_color, hidden=hidden, flag=flag, name=esc(name),
+                count=count, word=word, clubs=club_rows))
 
     title = "Jerseys Around the World 🌍" if en else "تيشيرتات من حول العالم 🌍"
     subtitle = "Pick a country and explore its clubs." if en else "اختر دولة وشوف أنديتها وتشكيلتها."
@@ -5081,6 +5107,9 @@ def world_map_section(jersey_prods, en=False):
     map_label = "Interactive map of countries with available jerseys" if en else "خريطة تفاعلية للدول التي تتوفر منها تيشيرتات"
     world_svg = (
         '<svg viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet" aria-hidden="true">'
+        '<defs><linearGradient id="gxWorldLandGradient" x1="0" y1="0" x2="1" y2="1">'
+        '<stop offset="0" stop-color="#183D2A"/><stop offset=".48" stop-color="#102A1D"/>'
+        '<stop offset="1" stop-color="#0A1B12"/></linearGradient></defs>'
         '<g class="gx-map-grid"><path d="M0 125H1000M0 250H1000M0 375H1000"/>'
         '<path d="M200 0V500M400 0V500M600 0V500M800 0V500"/>'
         '<ellipse cx="500" cy="250" rx="470" ry="205"/></g>'
@@ -5096,7 +5125,8 @@ def world_map_section(jersey_prods, en=False):
     return (
         '<section class="sec rv" id="clubs"><div class="sec-head"><h2><span class="bar"></span>{title}</h2>'
         '<span class="sec-sub">{subtitle}</span></div><div class="gx-world-layout">'
-        '<div class="gx-world-map" role="group" aria-label="{map_label}">{svg}{markers}</div>'
+        '<div class="gx-world-map" role="group" aria-label="{map_label}">'
+        '<div class="gx-world-lights" aria-hidden="true"><span></span><span></span><span></span></div>{svg}{markers}</div>'
         '<div class="gx-world-side"><div class="gx-country-nav-title">{nav_title}</div>'
         '<div class="gx-country-nav">{tabs}</div><div aria-live="polite">{panels}</div></div>'
         '</div></section>').format(title=title, subtitle=subtitle, map_label=map_label,
@@ -5404,7 +5434,7 @@ def listing_page(kind):
 
 
 def size_guide_premium():
-    """Premium size guide for the supplier's Fan Version jersey measurements."""
+    """Premium size guide for the supplier's Players Version jersey measurements."""
     en = lang() == "en"
     d = cfg.L[lang()]
     size_chart_json = json_d(cfg.SIZE_CHART)
@@ -5426,11 +5456,11 @@ def size_guide_premium():
         '<div><b>{t}</b><span>{x}</span></div></div>'.format(ic=ic, t=t, x=x)
         for ic, t, x in trust_items)
 
-    asian_note_ar = ("هذا الجدول مخصص لقمصان Fan Version التي يصفها المورّد بأنها Asian Fit. "
-                     "لا يوجد مقاس آسيوي موحّد لكل الشركات؛ لذلك تم ربط الأرقام بمصدرها المباشر. "
+    asian_note_ar = ("هذا الجدول مخصص لقمصان Players Version. "
+                     "يوضح المورّد أن نسخة اللاعب تكون عادة أصغر من النسخة العادية، لذلك نعتمد قياسات Players Version المباشرة. "
                      "الحاسبة تعرض أقرب مقاس متوفر، والأدق أن تقارن عرض وطول تيشيرت مناسب لك بالجدول.")
-    asian_note_en = ("This chart is for Fan Version jerseys described by the supplier as Asian Fit. "
-                     "There is no single Asian size shared by every manufacturer, so the numbers are linked to their direct source. "
+    asian_note_en = ("This chart is for Players Version jerseys. "
+                     "The supplier notes that player-version shirts usually fit smaller than the normal version, so the direct Players Version measurements are used. "
                      "The calculator shows the closest available size; comparing a well-fitting shirt's width and length is more reliable.")
     disclaimer_ar = "⚠️ توصية استرشادية وليست ضمانًا للملاءمة؛ قد تختلف القصة بين الموديلات."
     disclaimer_en = "⚠️ Guidance only, not a fit guarantee; the cut can vary by model."
@@ -5444,14 +5474,14 @@ def size_guide_premium():
         '<div class="sg-hero-visual"><span class="sg-hero-jersey">👕</span>'
         '<span class="sg-hero-glow"></span></div>'
         '<div class="sg-hero-text">'
-        '<h1><span class="sg-green">{title_word}</span> — Fan Version</h1>'
+        '<h1><span class="sg-green">{title_word}</span> — Players Version</h1>'
         '<p>{sub}</p></div></div></div>'
         '<div class="wrap sg-wrap">'
-        # Asian Fit disclaimer banner
+        # Players Version sizing note banner
         '<div class="sg-asian-note">{asian_note}</div>'
         '<div class="sg-size-sources"><h3>{sources_title}</h3><p>{sources_note}</p>'
         '<div class="sg-source-links">'
-        '<a href="https://www.gakits.com/Size-Chartsize-n2086868.html" target="_blank" rel="noopener noreferrer">{source_chart} ↗</a>'
+        '<a href="https://www.gakits.com/2026-27-BA-Third-Player-Version-Soccer-Jersey-p3657900.html" target="_blank" rel="noopener noreferrer">{source_chart} ↗</a>'
         '<a href="https://www.iso.org/standard/61686.html" target="_blank" rel="noopener noreferrer">ISO 8559-1 ↗</a>'
         '<a href="https://www.iso.org/standard/85590.html" target="_blank" rel="noopener noreferrer">ISO 8559-2:2025 ↗</a>'
         '<a href="https://www.nike.com/size-fit/nba-wnba-jerseys" target="_blank" rel="noopener noreferrer">{source_fit} ↗</a>'
@@ -5495,8 +5525,8 @@ def size_guide_premium():
         sub=d.get("sg_hero_sub", "اعثر على المقاس المثالي لك"),
         asian_note=asian_note_ar if not en else asian_note_en,
         sources_title="مصادر جدول المقاسات" if not en else "Size chart sources",
-        sources_note=("المصدر الأول يطابق أرقام Fan Version من S إلى 3XL، ومراجع ISO توضّح منهج قياسات الجسم وتصنيف مقاسات الملابس." if not en else "The first source matches the Fan Version numbers from S to 3XL; the ISO references cover body measurements and clothing size designation."),
-        source_chart="المصدر المباشر لأرقام Fan Version" if not en else "Direct source for Fan Version numbers",
+        sources_note=("المصدر الأول يطابق أرقام Players Version من S إلى 3XL، ومراجع ISO توضّح منهج قياسات الجسم وتصنيف مقاسات الملابس." if not en else "The first source matches the Players Version numbers from S to 3XL; the ISO references cover body measurements and clothing size designation."),
+        source_chart="المصدر المباشر لأرقام Players Version" if not en else "Direct source for Players Version numbers",
         source_fit="Nike — القياس والاختيار بين مقاسين" if not en else "Nike — measuring and between-size guidance",
         calc_title=d.get("sg_calc_title", "وش مقاسك؟"),
         calc_sub=("أدخل طولك ووزنك، وللدقة أضف عرض تيشيرت مناسب لك" if not en else "Enter your height and weight; for better accuracy, add the width of a shirt that fits you"),
@@ -5510,8 +5540,8 @@ def size_guide_premium():
         result_badge="توصية تقديرية — للمساعدة فقط" if not en else "Estimate — for guidance only",
         disclaimer=disclaimer_ar if not en else disclaimer_en,
         adj_title=d.get("sg_adj_title", "بين مقاسين؟"),
-        table_title="جدول القمصان — Fan Version (وصف المورد: Asian Fit)" if not en else "Jersey Chart — Fan Version (supplier description: Asian Fit)",
-        table_aria="جدول مقاسات Fan Version" if not en else "Fan Version size chart",
+        table_title="جدول القمصان — Players Version" if not en else "Jersey Chart — Players Version",
+        table_aria="جدول مقاسات Players Version" if not en else "Players Version size chart",
         table=size_table_html(cfg.SIZE_CHART),
         prod_title=d.get("sg_prod_title", "منتجات تناسب مقاسك"),
         prod_all=d.get("view_all", "عرض الكل"),
@@ -5851,8 +5881,8 @@ def product_body(pid):
     stock = eff_stock(p)
     avail_total = sum(stock.values())
     description = p.get("desc_en" if en else "desc_ar", "")
-    season = "2025/2026" if "2025/2026" in description else ("Not specified" if en else "غير محدد")
-    version = ("Fan Version" if en else "Fan Version — حسب وصف المنتج") if not is_mug else ("Sports mug" if en else "كوب رياضي")
+    season = "2026/2027" if "2026/2027" in description else ("Not specified" if en else "غير محدد")
+    version = "Players Version" if not is_mug else ("Sports mug" if en else "كوب رياضي")
     material = ("Light sports fabric" if en else "خامة رياضية خفيفة") if not is_mug else ("Ceramic" if en else "سيراميك")
     measurements = ("See the actual length and width in the size guide" if en else "راجع الطول والعرض الفعليين في دليل المقاسات") if not is_mug else ("One size — no clothing size" if en else "مقاس موحد — لا يحتاج مقاس ملابس")
     product_details = (
@@ -8951,11 +8981,11 @@ def admin_page(msg=""):
 
     sec_sizes = (
         '<div class="adm-section" id="adm-sizes" style="display:none">'
-        '<div class="adm-card"><h3>📏 جدول القمصان — Fan Version (وصف المورد: Asian Fit)</h3>'
+        '<div class="adm-card"><h3>📏 جدول القمصان — Players Version</h3>'
         '<div class="adm-tbl-wrap"><table class="adm-tbl"><thead><tr><th>المقاس</th><th>طول التيشيرت (سم)</th><th>عرض التيشيرت (سم)</th><th>الطول المناسب (سم)</th><th>الوزن الاسترشادي (كجم)</th></tr></thead>'
         '<tbody>{size_chart}</tbody></table></div>'
-        '<div class="adm-notice">⚠️ Asian Fit وصف للمورّد وليس معيارًا موحدًا. الأرقام الحالية مأخوذة من جدول Fan Version المرجعي، ويجب تحديثها إذا تغيّرت قياسات المورد.'
-        ' <a href="https://www.gakits.com/Size-Chartsize-n2086868.html" target="_blank" rel="noopener noreferrer">فتح المصدر ↗</a></div></div></div>'
+        '<div class="adm-notice">⚠️ الأرقام الحالية مأخوذة من جدول Players Version المرجعي لدى المورد، ونسخة اللاعب تكون عادة أصغر من النسخة العادية؛ يجب تحديث القياسات إذا تغيّر جدول المورد.'
+        ' <a href="https://www.gakits.com/2026-27-BA-Third-Player-Version-Soccer-Jersey-p3657900.html" target="_blank" rel="noopener noreferrer">فتح المصدر ↗</a></div></div></div>'
     ).format(size_chart=size_chart)
 
     # --- Competitions section ---

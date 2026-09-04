@@ -7,8 +7,17 @@ import json
 import os
 import sqlite3
 import datetime
+import secrets
 
-DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "golazox.db")
+_PROJECT_DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "golazox.db")
+_CONFIGURED_DB_PATH = (os.environ.get("GOLAZOX_DB_PATH") or
+                       os.environ.get("DATABASE_PATH") or "").strip()
+_RAILWAY_VOLUME = (os.environ.get("RAILWAY_VOLUME_MOUNT_PATH") or "").strip()
+if not _RAILWAY_VOLUME and os.path.isdir("/data"):
+    _RAILWAY_VOLUME = "/data"
+DB_PATH = _CONFIGURED_DB_PATH or (
+    os.path.join(_RAILWAY_VOLUME, "golazox.db") if _RAILWAY_VOLUME else _PROJECT_DB_PATH
+)
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS orders(
@@ -71,6 +80,9 @@ CREATE TABLE IF NOT EXISTS user_notifications(
 
 
 def _conn():
+    parent = os.path.dirname(os.path.abspath(DB_PATH))
+    if parent:
+        os.makedirs(parent, exist_ok=True)
     conn = sqlite3.connect(DB_PATH, timeout=15)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA busy_timeout=12000")
@@ -125,6 +137,24 @@ def set_stock(product, size, qty):
     conn.close()
 
 
+def release_order_stock(items):
+    """Return reserved quantities to stock when an order is cancelled."""
+    conn = _conn()
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        for item in items or []:
+            qty = int(item.get("qty", 0))
+            if qty > 0:
+                conn.execute("UPDATE stock SET qty=qty+? WHERE product=? AND size=?",
+                             (qty, item.get("id", ""), item.get("size", "")))
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
 # ---- orders ----
 def order_code():
     prefix = settings_get("order_prefix") or "GOAL"
@@ -144,6 +174,77 @@ def order_create(data):
     conn.commit()
     conn.close()
     return code
+
+
+def order_create_reserved(data, items, discount_points=0, device=""):
+    """Create an order while atomically reserving its stock and points.
+
+    The browser is never trusted for price, stock, quantity, or discount
+    calculations.  The caller must pass already-normalized items and the
+    server-approved points value.
+    """
+    conn = _conn()
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        for item in items:
+            qty = int(item.get("qty", 0))
+            row = conn.execute(
+                "SELECT qty FROM stock WHERE product=? AND size=?",
+                (item["id"], item["size"]),
+            ).fetchone()
+            if qty < 1 or not row or int(row["qty"]) < qty:
+                conn.rollback()
+                return None, "stock"
+
+        if discount_points:
+            device = str(device or "")[:120]
+            points = conn.execute(
+                "SELECT total FROM points WHERE device=?", (device,)
+            ).fetchone()
+            if not points or int(points["total"] or 0) < int(discount_points):
+                conn.rollback()
+                return None, "discount"
+
+        for item in items:
+            conn.execute(
+                "UPDATE stock SET qty=qty-? WHERE product=? AND size=?",
+                (int(item["qty"]), item["id"], item["size"]),
+            )
+
+        if discount_points:
+            conn.execute(
+                "UPDATE points SET total=total-? WHERE device=?",
+                (int(discount_points), device),
+            )
+            conn.execute(
+                "INSERT INTO pts_log(device,delta,label,created) VALUES(?,?,?,?)",
+                (device, -int(discount_points), "order discount",
+                 datetime.datetime.now().strftime("%Y-%m-%d %H:%M")),
+            )
+
+        prefix_row = conn.execute(
+            "SELECT value FROM settings WHERE key='order_prefix'"
+        ).fetchone()
+        prefix = "GOAL"
+        if prefix_row:
+            try:
+                prefix = json.loads(prefix_row["value"])
+            except Exception:
+                prefix = prefix_row["value"] or prefix
+        max_row = conn.execute("SELECT MAX(id) m FROM orders").fetchone()
+        code = "%s-%d" % (prefix, 1000 + ((max_row["m"] or 0) + 1))
+        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+        conn.execute(
+            "INSERT INTO orders(code,data,status,payment,created) VALUES(?,?,?,?,?)",
+            (code, json.dumps(data, ensure_ascii=False), "pending", "pending", now),
+        )
+        conn.commit()
+        return code, None
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
 
 
 def order_get(code):
@@ -697,6 +798,17 @@ def user_by_phone(phone):
     return dict(r) if r else None
 
 
+def user_by_contact(contact):
+    """Find a user by the login contact used by the OTP/password forms."""
+    conn = _conn()
+    value = str(contact or "").strip().lower()
+    r = conn.execute(
+        "SELECT * FROM users WHERE phone=? OR lower(coalesce(email,''))=? "
+        "ORDER BY id ASC LIMIT 1", (contact, value)).fetchone()
+    conn.close()
+    return dict(r) if r else None
+
+
 def user_by_id(uid):
     conn = _conn()
     r = conn.execute("SELECT * FROM users WHERE id=?", (uid,)).fetchone()
@@ -775,9 +887,7 @@ def orders_by_user(uid):
 def otp_new(phone):
     conn = _conn()
     conn.execute("DELETE FROM otps WHERE phone=? AND used=0", (phone,))
-    code = str(100000 + int(__import__("random").random() * 900000))
-    if len(code) != 6:
-        code = code.zfill(6)[-6:]
+    code = str(secrets.randbelow(900000) + 100000)
     exp = (datetime.datetime.now() + datetime.timedelta(minutes=10)).strftime("%Y-%m-%d %H:%M")
     conn.execute("INSERT INTO otps(phone,code,expires,used,created) VALUES(?,?,?,0,?)",
                  (phone, code, exp, datetime.datetime.now().strftime("%Y-%m-%d %H:%M")))

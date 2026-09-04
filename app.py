@@ -8,19 +8,34 @@ NEW DROP countdown, MATCHDAY mode, admin panel.
 """
 import os
 import json
+import re
 import time
 import datetime
 import random
+import base64
+import binascii
+import hashlib
+import hmac
+import secrets
+import gzip
 from flask import Flask, request, redirect, Response, send_file, session, url_for
 
 import cfg
 import db
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "golazox-secret-2026")
+_secret_key = (os.environ.get("SECRET_KEY") or "").strip()
+if not _secret_key:
+    # Never ship a reusable production session key in source code.
+    _secret_key = secrets.token_hex(32)
+    app.logger.warning("SECRET_KEY is not configured; sessions will reset on restart")
+app.secret_key = _secret_key
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+app.config["SESSION_COOKIE_SECURE"] = (os.environ.get("SESSION_COOKIE_SECURE", "1").strip().lower()
+                                         not in ("0", "false", "no"))
 app.config["PERMANENT_SESSION_LIFETIME"] = datetime.timedelta(days=30)
+app.config["MAX_CONTENT_LENGTH"] = 8 * 1024 * 1024
 
 
 # ============================== LOGIN WALL ==============================
@@ -29,7 +44,7 @@ app.config["PERMANENT_SESSION_LIFETIME"] = datetime.timedelta(days=30)
 # and the /admin* routes (they already enforce their own separate admin auth).
 LOGIN_EXEMPT_ENDPOINTS = {
     "index", "enter", "setlang", "login_route", "img", "health", "static",
-    "home", "products_page", "mugs_page", "club_route", "product",
+    "home", "products_page", "mugs_page", "club_route", "product", "cart_route", "favorites_route",
     "size_guide_page", "care_page", "returns_page", "return_policy_page",
     "how_page", "ticket", "track", "order_success", "penalty",
     "api_auth_otp", "api_auth_verify", "api_auth_admin_verify",
@@ -96,6 +111,11 @@ def nearest_color(hexc):
     return best
 
 
+def safe_css_hex(value, fallback="#94A3B8"):
+    value = str(value or "").strip()
+    return value if re.fullmatch(r"#[0-9A-Fa-f]{3,8}", value) else fallback
+
+
 
 # ============================== HELPERS ==============================
 def lang():
@@ -118,6 +138,68 @@ def t(k):
 
 def json_d(o):
     return json.dumps(o, ensure_ascii=False)
+
+
+def api_json(o, status=200):
+    return Response(json_d(o), status=status, content_type="application/json; charset=utf-8")
+
+
+def csrf_token():
+    token = session.get("_csrf_token")
+    if not token:
+        token = secrets.token_urlsafe(32)
+        session["_csrf_token"] = token
+    return token
+
+
+def csrf_valid():
+    supplied = request.headers.get("X-CSRFToken") or request.form.get("csrf_token", "")
+    expected = session.get("_csrf_token", "")
+    return bool(supplied and expected and hmac.compare_digest(str(supplied), str(expected)))
+
+
+@app.before_request
+def protect_state_changes():
+    if request.method in ("GET", "HEAD", "OPTIONS"):
+        return None
+    endpoint = request.endpoint or ""
+    if endpoint.startswith("api") or endpoint.startswith("admin"):
+        if csrf_valid():
+            return None
+        if endpoint.startswith("api"):
+            return api_json({"ok": False, "error": "csrf"}, 403)
+        return Response("Forbidden", status=403)
+    return None
+
+
+@app.after_request
+def add_security_headers(response):
+    """Apply browser protections without breaking the site's inline UI scripts."""
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    response.headers.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+    response.headers.setdefault("Cross-Origin-Opener-Policy", "same-origin")
+    if request.is_secure:
+        response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+    if request.path.startswith(("/admin", "/account")):
+        response.headers.setdefault("Cache-Control", "no-store")
+    accepts_gzip = "gzip" in request.headers.get("Accept-Encoding", "").lower()
+    compressible = (response.mimetype.startswith("text/") or response.mimetype in (
+        "application/json", "application/javascript", "application/xml", "image/svg+xml"))
+    if (accepts_gzip and compressible and request.method != "HEAD" and
+            200 <= response.status_code < 300 and not response.direct_passthrough and
+            not response.headers.get("Content-Encoding")):
+        raw = response.get_data()
+        if len(raw) >= 1024:
+            packed = gzip.compress(raw, compresslevel=5)
+            if len(packed) < len(raw):
+                response.set_data(packed)
+                response.headers["Content-Encoding"] = "gzip"
+                vary = response.headers.get("Vary", "")
+                if "accept-encoding" not in vary.lower():
+                    response.headers["Vary"] = (vary + ", Accept-Encoding").strip(", ")
+    return response
 
 
 def eff_stock(p):
@@ -273,23 +355,36 @@ def fix_phone(ph):
 
 
 def seed_super_admin():
-    phone = fix_phone(os.environ.get("SUPER_ADMIN_PHONE") or os.environ.get("ADMIN_PHONE") or cfg.TELEGRAM)
+    # An admin account is created only when the deployment provides an
+    # explicit password.  There is no source-code fallback credential.
+    if not cfg.ADMIN_PASS or not cfg.ADMIN_EMAIL:
+        app.logger.warning("ADMIN_EMAIL and ADMIN_PASS are required; admin bootstrap skipped")
+        return None
+    # The customer auth flow uses one contact field for email/phone. Keep the
+    # configured admin email as the canonical contact so admin OTP login cannot
+    # accidentally create a separate customer account.
+    contact = (cfg.ADMIN_EMAIL or os.environ.get("SUPER_ADMIN_PHONE") or
+               os.environ.get("ADMIN_PHONE") or cfg.TELEGRAM).strip().lower()
     name = os.environ.get("SUPER_ADMIN_NAME", "Owner")
-    u = db.user_by_phone(phone)
+    u = db.user_by_phone(contact)
     if not u:
-        bare = phone[1:] if phone.startswith("+") else phone
-        legacy = db.user_by_phone(bare)
-        if legacy:
-            db.user_update(legacy["id"], phone=phone)
-            u = legacy
+        for candidate in db.users_list():
+            if (candidate.get("role") in ("admin", "super_admin") or
+                    candidate.get("email", "").strip().lower() == cfg.ADMIN_EMAIL.lower()):
+                db.user_update(candidate["id"], phone=contact, email=cfg.ADMIN_EMAIL)
+                u = db.user_by_id(candidate["id"])
+                break
     if not u:
-        uid = db.user_create(phone, name, "super_admin")
-        db.user_update(uid, password=cfg.ADMIN_PASS)
+        uid = db.user_create(contact, name, "super_admin", email=cfg.ADMIN_EMAIL)
+        db.user_update(uid, password=hash_password(cfg.ADMIN_PASS))
         return uid
     if u.get("role") != "super_admin":
         db.user_update(u["id"], role="super_admin", name=name)
-    if not u.get("password"):
-        db.user_update(u["id"], password=cfg.ADMIN_PASS)
+    if u.get("email", "").strip().lower() != cfg.ADMIN_EMAIL.lower():
+        db.user_update(u["id"], email=cfg.ADMIN_EMAIL)
+    valid, _ = verify_password(u.get("password", ""), cfg.ADMIN_PASS)
+    if not valid or not str(u.get("password", "")).startswith("$scrypt$"):
+        db.user_update(u["id"], password=hash_password(cfg.ADMIN_PASS))
     return u["id"]
 
 
@@ -302,6 +397,37 @@ def order_stage(o):
 
 def normal_phone(ph):
     return "".join(ch for ch in str(ph or "") if ch.isdigit() or ch == "+")
+
+
+# ============================== PASSWORDS ==============================
+def hash_password(password):
+    """Hash a password with the Python standard library's scrypt KDF."""
+    raw = str(password or "").encode("utf-8")
+    salt = secrets.token_bytes(16)
+    digest = hashlib.scrypt(raw, salt=salt, n=2 ** 14, r=8, p=1)
+    return "$scrypt$16384$8$1$%s$%s" % (
+        base64.urlsafe_b64encode(salt).decode("ascii").rstrip("="),
+        base64.urlsafe_b64encode(digest).decode("ascii").rstrip("="),
+    )
+
+
+def verify_password(stored, password):
+    """Return (is_valid, needs_rehash) and support one-time legacy migration."""
+    stored = str(stored or "")
+    if stored.startswith("$scrypt$"):
+        try:
+            _, scheme, n, r, p, salt_text, digest_text = stored.split("$", 6)
+            pad = lambda value: value + "=" * (-len(value) % 4)
+            salt = base64.urlsafe_b64decode(pad(salt_text))
+            expected = base64.urlsafe_b64decode(pad(digest_text))
+            actual = hashlib.scrypt(str(password or "").encode("utf-8"), salt=salt,
+                                    n=int(n), r=int(r), p=int(p))
+            return hmac.compare_digest(actual, expected), False
+        except (ValueError, TypeError, binascii.Error):
+            return False, False
+    if stored and hmac.compare_digest(stored, str(password or "")):
+        return True, True
+    return False, False
 
 
 # ============================== IMAGES ==============================
@@ -330,7 +456,7 @@ def img(name):
         for base_dir in (STATIC_IMG, os.path.dirname(os.path.abspath(__file__))):
             pth = os.path.join(base_dir, name + ext)
             if os.path.exists(pth):
-                return send_file(pth)
+                return send_file(pth, conditional=True, max_age=604800)
     base = name.split("_")[0]
     p = next((x for x in cfg.PRODUCTS if x["id"] == base), None)
     if not p:
@@ -618,7 +744,7 @@ html[data-theme="light"] .sel option { background:#fff; color:#0F172A; }
 /* ============================== GOLAZOX FIT CHECK + CLUB COLOR ============================== */
 .gx-fit-card{background:linear-gradient(145deg,rgba(24,232,117,.07),rgba(255,255,255,.025));border:1px solid rgba(24,232,117,.14);border-radius:22px;padding:20px;margin:20px 0;box-shadow:0 18px 40px rgba(0,0,0,.16)}
 .gx-fit-card .gx-fit-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.gx-fit-card h3{font-size:1.05rem;font-weight:900}.gx-fit-card p{margin-top:4px;color:var(--mut);font-size:.78rem}.fit-check-btn{background:linear-gradient(135deg,var(--ac),var(--ac2));color:#07110c;border:none;border-radius:14px;padding:11px 16px;font-weight:900;box-shadow:0 10px 26px color-mix(in srgb,var(--ac) 18%,transparent)}
-.gx-fit-result{display:none;margin-top:14px;border-radius:16px;padding:14px 16px;background:rgba(24,232,117,.06);border:1px solid rgba(24,232,117,.18);text-align:center}.gx-fit-result.show{display:block;animation:fadeUp .35s ease both}.gx-fit-size{font-size:2.2rem;font-weight:1000;color:var(--ac);letter-spacing:1px}.gx-fit-sub{font-size:.78rem;color:var(--mut);margin-top:4px}
+.gx-fit-result{display:none;margin-top:14px;border-radius:16px;padding:14px 16px;background:rgba(24,232,117,.06);border:1px solid rgba(24,232,117,.18);text-align:center}.gx-fit-result.show{display:block;animation:fadeUp .35s ease both}.gx-fit-size{font-size:2.2rem;font-weight:1000;color:var(--ac);letter-spacing:1px}.gx-fit-sub{font-size:.78rem;color:var(--mut);margin-top:4px}.gx-fit-sources{margin-top:12px;padding:12px;border-radius:13px;background:rgba(255,255,255,.035);border:1px solid var(--line);font-size:.68rem;line-height:1.65}.gx-fit-sources b{display:block;margin-bottom:5px;color:var(--txt)}.gx-fit-sources a{display:block;color:var(--ac);text-decoration:none}.gx-fit-sources a:hover{text-decoration:underline}
 .gx-club-color{position:relative;overflow:hidden;border-radius:24px;padding:22px;background:linear-gradient(135deg,var(--club-a,#18E875),var(--club-b,#0B9F50));color:#fff;box-shadow:0 22px 50px color-mix(in srgb,var(--club-a,#18E875) 20%,transparent)}.gx-club-color:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 80% 20%,rgba(255,255,255,.18),transparent 28%),linear-gradient(135deg,transparent 55%,rgba(255,255,255,.06));pointer-events:none}.gx-club-color-inner{position:relative;z-index:1}.gx-club-color-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}.gx-club-color h3{font-size:1.35rem;font-weight:1000}.gx-club-color small{opacity:.85;font-weight:800}.gx-club-swatches{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.gx-club-swatch{border:1px solid rgba(255,255,255,.22);background:rgba(0,0,0,.18);color:#fff;border-radius:999px;padding:8px 12px;font:inherit;font-size:.74rem;font-weight:900;cursor:pointer;backdrop-filter:blur(8px)}.gx-club-swatch.on{background:#fff;color:#0b1712;border-color:#fff;box-shadow:0 6px 16px rgba(0,0,0,.18)}.gx-club-color-cta{display:inline-flex;margin-top:14px;padding:10px 14px;border-radius:12px;background:rgba(255,255,255,.14);font-size:.76rem;font-weight:900;border:1px solid rgba(255,255,255,.18)}
 @media(max-width:640px){.gx-fit-card{padding:16px}.gx-fit-size{font-size:1.9rem}.gx-club-color{padding:18px;border-radius:20px}}
 
@@ -728,6 +854,11 @@ html[data-theme="light"] .gmain .gmain-ref { background:linear-gradient(180deg, 
   font-weight:700; padding:4px 10px; border-radius:999px; }
 .pinfo h1 { font-size:1.7rem; font-weight:900; line-height:1.3; }
 .pcatline { color:var(--ac); font-weight:800; font-size:.78rem; letter-spacing:.5px; text-transform:uppercase; margin-top:6px; }
+.product-details { margin-top:12px; }
+.pdesc { color:var(--mut); font-size:.9rem; line-height:1.8; margin:0; }
+.product-facts { display:grid; gap:7px; margin-top:10px; color:var(--mut); font-size:.78rem; line-height:1.55; }
+.product-facts span { padding:8px 10px; background:var(--card2); border:1px solid var(--line); border-radius:10px; }
+.product-facts b { color:var(--txt); margin-inline-end:5px; }
 .pprice { margin-top:12px; font-size:1.5rem; font-weight:900; color:var(--ac); }
 .trust { display:flex; gap:6px 10px; flex-wrap:wrap; margin-top:12px; }
 .tbadge { font-size:.72rem; font-weight:800; color:var(--mut); background:var(--card2); border:1px solid var(--line);
@@ -1206,6 +1337,10 @@ html[data-theme="light"] .os-seg { background:var(--line); }
 .ro-item b { font-size:.9rem; } .ro-item span { font-size:.8rem; color:var(--mut); }
 /* auth modal */
 .auth-box { text-align:center; }
+.auth-tabs { display:flex; gap:8px; margin:16px 0 18px; padding:4px; border:1px solid var(--line); border-radius:14px; background:var(--card2); }
+.atab { flex:1; min-width:0; padding:10px 8px; border:0; border-radius:10px; background:transparent; color:var(--mut); font:inherit; font-size:.82rem; font-weight:800; cursor:pointer; white-space:nowrap; }
+.atab.on { background:var(--ac); color:#fff; box-shadow:0 5px 14px rgba(24,232,117,.2); }
+.atab:focus-visible { outline:2px solid var(--ac); outline-offset:2px; }
 .auth-step2 { display:none; }
 .auth-demo { display:none; background:#FEF3C7; border:1px solid #FCD34D; color:#78350F; border-radius:12px; padding:10px 12px; margin-top:10px; font-size:.82rem; }
 .auth-demo b { font-size:1.3rem; letter-spacing:3px; }
@@ -2208,6 +2343,9 @@ html[data-theme="light"] .sg-table-section h3 { color: #0F172A; }
   font-size: 1.4rem; opacity: .2;
 }
 html[data-theme="light"] .sg-asian-note { background: rgba(24,232,117,.04); border-color: rgba(24,232,117,.15); color: #4A5A54; }
+.sg-size-sources{margin:14px 0 20px;padding:16px 18px;border-radius:16px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.09)}
+html[data-theme="light"] .sg-size-sources{background:#F8FAFC;border-color:#E2E8F0}
+.sg-size-sources h3{margin:0 0 6px;font-size:.9rem;color:var(--txt)}.sg-size-sources p{margin:0 0 9px;color:var(--mut);font-size:.74rem;line-height:1.65}.sg-source-links{display:flex;gap:8px;flex-wrap:wrap}.sg-source-links a{display:inline-flex;align-items:center;min-height:36px;padding:7px 10px;border-radius:10px;border:1px solid rgba(24,232,117,.18);background:rgba(24,232,117,.055);color:#18E875;text-decoration:none;font-size:.68rem;font-weight:800}.sg-source-links a:hover{border-color:#18E875;background:rgba(24,232,117,.1)}
 .sg-disclaimer {
   margin-top: 14px; padding-top: 14px; border-top: 1px dashed rgba(24,232,117,.12);
   font-size: .78rem; color: #6B7A73; text-align: center;
@@ -2641,7 +2779,7 @@ html[data-theme="light"] .mtk-jstep.done b, html[data-theme="light"] .mtk-jstep.
   .pen-pitch { height:260px; }
   .pen-goal { width:200px; height:90px; }
 }
-/* ===== GOLAXOX MOBILE EXPERIENCE UPGRADE ===== */
+/* ===== GOLAZOX MOBILE EXPERIENCE UPGRADE ===== */
 .gx-fan-moment{margin:18px 0;padding:14px 16px;border:1px solid rgba(24,232,117,.14);border-radius:18px;background:linear-gradient(135deg,rgba(24,232,117,.07),rgba(255,255,255,.025));display:flex;align-items:center;justify-content:center;gap:10px;text-align:center;min-height:52px}
 .gx-fan-moment .fm-dot{width:8px;height:8px;border-radius:50%;background:#18E875;box-shadow:0 0 12px rgba(24,232,117,.6);animation:fmPulse 1.8s ease-in-out infinite}
 .gx-fan-moment .fm-text{font-weight:800;color:var(--txt);font-size:.86rem}
@@ -2699,17 +2837,108 @@ linear-gradient(180deg,transparent,rgba(255,255,255,.035))}
 .gx-scan-meta{position:absolute;left:14px;right:14px;bottom:16px;z-index:3;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border-radius:16px;background:rgba(0,0,0,.34);border:1px solid rgba(255,255,255,.08);backdrop-filter:blur(12px)}.gx-scan-meta b{font-size:.9rem}.gx-scan-meta span{display:block;color:var(--mut);font-size:.68rem;margin-top:2px}.gx-scan-pill{padding:8px 11px;border-radius:999px;background:rgba(24,232,117,.11);color:#18e875;font-size:.66rem;font-weight:900;white-space:nowrap}
 .gx-scan-btn{position:relative;z-index:3;display:inline-flex;align-items:center;justify-content:center;gap:8px;margin:4px auto 20px;padding:13px 18px;border-radius:14px;background:linear-gradient(135deg,#18e875,#0b9f50);color:#031009;font-weight:900;border:none;box-shadow:0 10px 30px rgba(24,232,117,.18)}
 .gx-reaction{display:inline-flex;align-items:center;gap:8px;margin-top:9px;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);font-size:.66rem;color:rgba(255,255,255,.72)}.gx-reaction-dot{width:7px;height:7px;border-radius:50%;background:#18e875;box-shadow:0 0 12px rgba(24,232,117,.6);animation:gxReact 1s ease-in-out infinite}.gx-reaction.burst{animation:gxBurst .55s ease both}.gx-reaction.burst .gx-reaction-dot{background:#fff;box-shadow:0 0 18px #fff}@keyframes gxReact{50%{transform:scale(1.35);opacity:.75}}@keyframes gxBurst{0%{transform:scale(.95)}45%{transform:scale(1.05)}100%{transform:scale(1)}}
-.gx-quiz{position:relative;margin:24px 0;padding:22px;border-radius:24px;border:1px solid rgba(24,232,117,.14);background:linear-gradient(135deg,rgba(24,232,117,.08),rgba(255,255,255,.025));overflow:hidden}.gx-quiz h2{font-size:1.25rem;font-weight:900}.gx-quiz p{color:var(--mut);font-size:.8rem;margin-top:5px}.gx-quiz-q{margin-top:17px;font-weight:900;font-size:1rem}.gx-quiz-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.gx-qopt{border:1px solid var(--line);background:var(--card);color:var(--txt);border-radius:14px;padding:12px 10px;font-family:inherit;font-weight:800;text-align:start;cursor:pointer}.gx-qopt.on{border-color:var(--ac);box-shadow:0 0 0 1px var(--ac),0 0 22px color-mix(in srgb,var(--ac) 15%,transparent);}.gx-quiz-result{display:none;margin-top:16px;padding:16px;border-radius:16px;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.08)}.gx-quiz-result.show{display:block;animation:fadeUp .35s ease}.gx-match-line{color:var(--mut);font-size:.72rem}.gx-match-name{font-size:1.35rem;font-weight:900;margin-top:4px}.gx-quiz-go{margin-top:12px}
+.gx-quiz{position:relative;margin:24px 0;padding:22px;border-radius:24px;border:1px solid rgba(24,232,117,.14);background:linear-gradient(135deg,rgba(24,232,117,.08),rgba(255,255,255,.025));overflow:hidden}.gx-quiz h2{font-size:1.25rem;font-weight:900}.gx-quiz p{color:var(--mut);font-size:.8rem;margin-top:5px}.gx-quiz-q{margin-top:17px;font-weight:900;font-size:1rem}.gx-quiz-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.gx-qopt{border:1px solid var(--line);background:var(--card);color:var(--txt);border-radius:14px;padding:12px 10px;font-family:inherit;font-weight:800;text-align:start;cursor:pointer}.gx-qopt.on{border-color:var(--ac);box-shadow:0 0 0 1px var(--ac),0 0 22px color-mix(in srgb,var(--ac) 15%,transparent);}.gx-quiz-result{display:none;margin-top:16px;padding:16px;border-radius:16px;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.08)}.gx-quiz-result.show{display:block;animation:fadeUp .35s ease}.gx-match-line{color:var(--mut);font-size:.72rem}.gx-match-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}.gx-match-card{display:flex;min-width:0;align-items:center;gap:10px;padding:10px;border:1px solid rgba(255,255,255,.09);border-radius:14px;background:rgba(255,255,255,.035);color:var(--txt);text-decoration:none;transition:transform .2s ease,border-color .2s ease,background .2s ease}.gx-match-card:hover{transform:translateY(-2px);border-color:var(--ac);background:rgba(24,232,117,.07)}.gx-match-card img{width:58px;height:68px;flex:0 0 58px;object-fit:contain;border-radius:10px;background:rgba(0,0,0,.18)}.gx-match-copy{min-width:0}.gx-match-copy b{display:block;overflow:hidden;text-overflow:ellipsis;font-size:.78rem;line-height:1.45}.gx-match-copy span{display:block;margin-top:4px;color:var(--ac);font-size:.64rem;font-weight:900}.gx-quiz-reset{margin-top:12px;border:0;background:transparent;color:var(--mut);font-family:inherit;font-size:.7rem;font-weight:800;cursor:pointer;text-decoration:underline;text-underline-offset:4px}.gx-quiz-reset:hover{color:var(--txt)}
 .gx-walk{position:relative;min-height:620px;border-radius:30px;overflow:hidden;margin:28px 0;background:linear-gradient(180deg,#020403 0%,#081b10 58%,#020403 100%);border:1px solid rgba(24,232,117,.14)}.gx-walk:before{content:"";position:absolute;left:50%;bottom:-10%;width:115%;height:70%;transform:translateX(-50%) perspective(700px) rotateX(67deg);background:linear-gradient(90deg,transparent 49.7%,rgba(255,255,255,.14) 49.9%,rgba(255,255,255,.14) 50.1%,transparent 50.3%),repeating-linear-gradient(90deg,rgba(255,255,255,.02) 0 44px,transparent 44px 88px),linear-gradient(180deg,#123c24,#06130c)}.gx-walk-side{position:absolute;top:15%;bottom:12%;width:22%;background:repeating-linear-gradient(180deg,rgba(255,255,255,.07) 0 9px,transparent 9px 22px);filter:blur(.3px);opacity:.5}.gx-walk-side.l{left:3%;transform:skewY(-8deg)}.gx-walk-side.r{right:3%;transform:skewY(8deg)}.gx-walk-lights{position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 16% 18%,rgba(255,255,255,.28),transparent 9%),radial-gradient(circle at 84% 18%,rgba(255,255,255,.28),transparent 9%),radial-gradient(circle at 50% 8%,rgba(24,232,117,.12),transparent 26%);mix-blend-mode:screen}.gx-walk-content{position:relative;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:620px;text-align:center;padding:28px}.gx-walk-kicker{font-size:.62rem;letter-spacing:3px;color:#18e875;font-weight:900}.gx-walk h2{font-size:clamp(1.8rem,8vw,3rem);font-weight:900;margin-top:8px}.gx-walk p{max-width:360px;color:var(--mut);font-size:.82rem;line-height:1.7;margin-top:7px}.gx-walk-jersey{width:min(68vw,290px);height:320px;object-fit:contain;filter:drop-shadow(0 22px 40px rgba(0,0,0,.65)) drop-shadow(0 0 40px rgba(24,232,117,.14));animation:gxWalkJersey 3.2s ease-in-out infinite}.gx-walk.unlocked .gx-walk-jersey{animation:gxWalkReveal .8s cubic-bezier(.22,1,.36,1) both}@keyframes gxWalkJersey{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}@keyframes gxWalkReveal{from{transform:translateY(55px) scale(.78);opacity:0;filter:blur(8px) drop-shadow(0 0 0 transparent)}to{transform:none;opacity:1;filter:drop-shadow(0 22px 40px rgba(0,0,0,.65)) drop-shadow(0 0 40px rgba(24,232,117,.18))}}.gx-walk-btn{margin-top:12px;padding:14px 22px;border-radius:15px;border:1px solid rgba(24,232,117,.36);background:rgba(0,0,0,.32);color:#fff;font-family:inherit;font-weight:900;cursor:pointer;backdrop-filter:blur(10px)}.gx-walk-btn:hover{background:rgba(24,232,117,.12)}
 .gx-scan-toast{position:fixed;left:50%;bottom:104px;transform:translate(-50%,15px);opacity:0;z-index:500;padding:11px 15px;border-radius:999px;background:rgba(5,6,7,.9);color:#fff;border:1px solid rgba(24,232,117,.24);backdrop-filter:blur(10px);font-size:.76rem;font-weight:800;pointer-events:none;transition:.28s}.gx-scan-toast.show{opacity:1;transform:translate(-50%,0)}
-@media(max-width:640px){.gx-wow-scan{min-height:560px;border-radius:24px}.gx-scan-stage{height:340px}.gx-scan-jersey{width:min(76vw,280px);height:310px}.gx-quiz-opts{grid-template-columns:1fr}.gx-walk{min-height:580px;border-radius:24px}.gx-walk-content{min-height:580px}.gx-walk-jersey{height:300px}}
+@media(max-width:640px){.gx-wow-scan{min-height:560px;border-radius:24px}.gx-scan-stage{height:340px}.gx-scan-jersey{width:min(76vw,280px);height:310px}.gx-quiz-opts,.gx-match-grid{grid-template-columns:1fr}.gx-match-card img{width:52px;height:60px;flex-basis:52px}.gx-walk{min-height:580px;border-radius:24px}.gx-walk-content{min-height:580px}.gx-walk-jersey{height:300px}}
 @media(prefers-reduced-motion:reduce){.gx-scan-light,.gx-reaction-dot,.gx-walk-jersey{animation:none!important}}
+
+/* ============================== MOBILE-FIRST POLISH ============================== */
+:where(a,button,input,select,textarea,summary):focus-visible{
+  outline:3px solid color-mix(in srgb,var(--ac) 72%,white);outline-offset:3px
+}
+.filters-overlay{display:none}
+.fp-close{display:none}
+.nav-mobile-tools{display:none}
+.sg-table-scroll{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:14px}
+.sg-table-scroll .szt{min-width:620px;margin-bottom:0}
+.sg-calc-inputs.sg-calc-inputs-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:768px){
+  body{padding-bottom:calc(72px + env(safe-area-inset-bottom));overflow-x:hidden}
+  .gx-intro,.gx-football,.mkmode-toggle,.mkmode-pitch,.mkmode-lights{display:none!important}
+  .hd-in{display:grid;grid-template-columns:minmax(0,1fr) 44px 44px;gap:7px;padding:8px 10px}
+  .logo{min-width:0;font-size:1.08rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hmenu,#cartHeader{display:inline-flex!important;width:44px;height:44px;align-items:center;justify-content:center;padding:0!important;border-radius:13px}
+  .hfav,.haccount,.hsettings,.hlang{display:none!important}
+  .logo{grid-column:1;grid-row:1}.hmenu{grid-column:2;grid-row:1}#cartHeader{grid-column:3;grid-row:1}
+  .nav{grid-column:1/-1;grid-row:3;order:initial;padding:6px 0 0}
+  .nav-mobile-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:5px;padding-top:9px;border-top:1px solid var(--line)}
+  .nav-mobile-tools .nv{border:1px solid var(--line);text-align:center}
+  .hd-search{grid-column:1/-1;grid-row:2;order:initial;width:100%;margin:0}
+  .hd-sbox{min-width:0;width:100%;height:44px;border-radius:13px}
+  .hd-sbox input{min-width:0;font-size:.88rem;padding-block:10px}
+  .hd-sbox button{min-width:44px;min-height:36px;padding:8px 12px}
+  .gx-bnav{min-height:64px;padding:5px 4px calc(5px + env(safe-area-inset-bottom));gap:2px}
+  .gx-bnav a{flex:1;min-width:0;min-height:52px;justify-content:center;padding:5px 2px;font-size:.58rem;line-height:1.25}
+  .gx-bnav .bnav-icon{font-size:1.15rem}
+  .wrap{width:100%;padding:12px 10px calc(94px + env(safe-area-inset-bottom))!important}
+  .hero{text-align:center;padding:22px 14px;margin-bottom:16px}
+  .hero p{margin-inline:auto;font-size:.86rem;line-height:1.75}
+  .hero-btns{display:grid;grid-template-columns:1fr;gap:9px}
+  .hero-btns .btn{width:100%;min-height:46px}
+  .hero-ball{display:none!important}
+  .feat-bar{grid-template-columns:1fr 1fr;gap:8px;padding:10px}
+  .feat{align-items:flex-start;gap:8px;padding:7px 3px}
+  .feat .fic{width:36px;height:36px;font-size:16px;border-radius:11px}
+  .feat b{font-size:.75rem;line-height:1.35}.feat span{font-size:.64rem;line-height:1.45}
+  .sec-head{align-items:center}.sec-head h2{font-size:1.08rem}.sec-sub{font-size:.74rem}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .pcard{min-width:0}.pcard-inner{height:100%;display:flex;flex-direction:column}
+  .pimg{height:152px}.pbody{padding:10px 9px 11px;display:flex;flex:1;flex-direction:column}
+  .pcat{font-size:.58rem}.pcard-edition{display:none}.pbody h3{font-size:.79rem;line-height:1.45;min-height:2.9em}
+  .pfoot{margin-top:auto;align-items:flex-end}.pfoot b{font-size:.85rem}.pview{font-size:.68rem}
+  .sz-pill{display:none}.badges{top:7px;inset-inline-start:7px}.badge{font-size:.56rem;padding:3px 6px}
+  .heart{width:40px;height:40px;top:6px;inset-inline-end:6px}
+  .list-search{padding:15px 12px}.list-search .ls-head{margin-bottom:12px}.list-search .ls-box{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .list-search .ls-box input{grid-column:1/-1;width:100%;min-width:0;min-height:46px}
+  .list-search .ls-box .btn{width:100%;min-width:0;justify-content:center;padding:10px 8px;font-size:.76rem}
+  .sort-bar{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;margin-bottom:12px}
+  .sort-bar .sort{width:100%;min-height:44px}.sort-bar .btn{width:100%;min-height:44px;justify-content:center;padding:9px 8px;font-size:.76rem}
+  .filters-overlay.open{display:block;position:fixed;inset:0;z-index:298;background:rgba(0,0,0,.62);backdrop-filter:blur(3px)}
+  #filtersBar{z-index:299;max-height:86dvh;overflow-y:auto;padding:18px 14px calc(20px + env(safe-area-inset-bottom));border-radius:22px 22px 0 0}
+  .fp-close{display:inline-flex;position:absolute;top:12px;inset-inline-end:12px;width:40px;height:40px;align-items:center;justify-content:center;border-radius:12px;background:var(--card2);border:1px solid var(--line);color:var(--txt);font-size:1rem}
+  .fp-title{padding-inline-end:48px;min-height:40px}.club-opt,.cat-opt,.sz-btn{min-height:44px}.col-dot{width:36px;height:36px}
+  .mback{align-items:flex-end;padding:0}
+  .mbox,.mbox.wide{width:100%;max-width:none;max-height:92dvh;border-radius:22px 22px 0 0;animation:sheetUp .22s ease}
+  .mhead{padding:13px 14px}.mhead .mx{width:44px;height:44px}.mbody{padding:14px 12px calc(18px + env(safe-area-inset-bottom))}
+  @keyframes sheetUp{from{transform:translateY(24px);opacity:.7}to{transform:none;opacity:1}}
+  .auth-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.atab{white-space:normal;min-height:44px;font-size:.76rem}
+  .fld input,.fld select,.fld textarea,.sg-input-wrap input{font-size:16px;min-height:46px}
+  .ci{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px 10px}.ci-emoji{grid-row:1/3}.qty2{grid-column:2;justify-self:start}.qty2 button{width:40px;height:40px}.ci>b{grid-column:3;grid-row:1/3;align-self:center;font-size:.78rem}.ci-x{min-width:40px;min-height:40px}
+  .cd{max-height:90dvh}.cd-body{max-height:48dvh}.cd-foot .btn{min-height:46px}
+  .fab{bottom:calc(76px + env(safe-area-inset-bottom));inset-inline-end:12px;width:48px;height:48px}
+  .sg-wrap{margin:-20px auto 0}.sg-asian-note{padding:15px 14px;font-size:.78rem}.sg-size-sources{padding:14px 12px}
+  .sg-source-links{display:grid;grid-template-columns:1fr}.sg-source-links a{min-height:44px;width:100%;justify-content:space-between;font-size:.7rem}
+  .sg-calc-inputs.sg-calc-inputs-3{grid-template-columns:1fr}.sg-calc-btn{min-height:48px}
+  .sg-table-section{overflow:visible}.sg-table-scroll{margin-inline:-2px}.sg-result-details{flex-wrap:wrap;gap:14px 22px}
+  .sg-trust-bar{padding:0;gap:8px}.sg-trust-item{padding:14px 9px}.sg-products{padding:0}
+  .ft{padding-bottom:calc(70px + env(safe-area-inset-bottom))}.ft-in{padding-inline:14px}.ft-grid{grid-template-columns:1fr 1fr;gap:18px 12px}.ft-brand-col{grid-column:1/-1}
+}
+@media(max-width:380px){
+  .feat-bar{grid-template-columns:1fr}.feat{align-items:center}.ft-grid{grid-template-columns:1fr}.ft-brand-col{grid-column:auto}
+  .list-search .ls-box{grid-template-columns:1fr}.list-search .ls-box input{grid-column:auto}.sort-bar{grid-template-columns:1fr}.sort-bar .sort-lbl{display:none}
+}
+@media(max-width:340px){.grid{grid-template-columns:1fr}.pimg{height:220px}.pbody h3{font-size:.9rem;min-height:0}}
 
 </style>
 """
 
 BASE_JS = """<script>
 var GX = __GX__;
+/* Attach the per-session CSRF token to every state-changing API request. */
+(function(){
+  var nativeFetch=window.fetch;
+  window.fetch=function(input,init){
+    init=init||{};
+    var method=(init.method||(input&&input.method)||'GET').toUpperCase();
+    if(method!=='GET'&&method!=='HEAD'&&method!=='OPTIONS'){
+      var headers=new Headers(init.headers||{});
+      if(GX.csrf) headers.set('X-CSRFToken',GX.csrf);
+      init.headers=headers;
+    }
+    return nativeFetch(input,init);
+  };
+})();
 function gxT(k){ return GX.T[k]||k; }
 function $(id){ return document.getElementById(id); }
 function toast(m){ var t=$('toast'); if(!t){ t=document.createElement('div'); t.id='toast'; t.className='toast'; document.body.appendChild(t);} t.textContent=m; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(function(){ t.classList.remove('show'); },2600); }
@@ -2773,6 +3002,9 @@ function applyFilters(){
   var q=((($('sq')||{}).value)||'').trim().toLowerCase();
   var q2=((($('sq2')||{}).value)||'').trim().toLowerCase();
   if(!q) q=q2;
+  if(q && location.pathname!=='/products' && location.pathname!=='/mugs'){
+    location.href='/products?q='+encodeURIComponent(q); return;
+  }
   var cards=document.querySelectorAll('.pcard');
   var shown=0;
   cards.forEach(function(c){
@@ -2840,6 +3072,7 @@ function toggleFilters(force){
   var open=(force===false)?false:(bar.classList.toggle('open'));
   if(force===false) bar.classList.remove('open');
   else if(force===true) bar.classList.add('open');
+  var overlay=$('filtersOverlay'); if(overlay) overlay.classList.toggle('open',bar.classList.contains('open'));
   var fb=document.querySelector('.fbtn'); if(fb){ fb.classList.toggle('on',bar.classList.contains('open')); }
 }
 /* ---------- favorites ---------- */
@@ -2986,7 +3219,7 @@ function selectSize(el){
   el.classList.add('on'); selSize=el.getAttribute('data-sz');
   var omSz=$('omSizeVal'); if(omSz) omSz.textContent=selSize;
 }
-function chgQ(d){ var q=$('qty'); if(!q) return; var v=parseInt(q.textContent,10)+d; if(v<1)v=1; if(v>99)v=99; q.textContent=v; }
+function chgQ(d){ var q=$('qty'); if(!q) return; var v=parseInt(q.textContent,10)+d; if(v<1)v=1; if(v>10){v=10;toast(gxT('qty_limit'));} q.textContent=v; }
 function notifyModal(pid,size){ $('nf_prod').value=pid; $('nf_size').value=size; openModal('m-notify'); }
 function submitNotify(){
   var p=$('nf_prod').value, sz=$('nf_size').value, ph=$('nf_phone').value.trim(), cc=$('nf_cc').value;
@@ -2997,15 +3230,18 @@ function submitNotify(){
   });
 }
 function addCart(id,size,qty){
+  var p=GX.products.find(function(x){return x.id===id;});
+  if(p&&p.kind==='mug'&&!size){ size=Object.keys(p.stock||{})[0]||'OS'; }
   if(!size){ toast(gxT('size_required')); return; }
+  qty=Math.max(1,Math.min(10,parseInt(qty,10)||1));
   if(GX.user) saveSize(id,size);
   var cart=gxGet('gx_cart',[]); var f=cart.find(function(x){return x.id===id&&x.size===size;});
-  if(f){ f.qty+=qty; } else { cart.push({id:id,size:size,qty:qty}); }
+  if(f){ f.qty=Math.min(10,f.qty+qty); } else { cart.push({id:id,size:size,qty:qty}); }
   gxSet('gx_cart',cart); renderCart();
   /* Ball fly goal animation */
   try{
     var btn=document.querySelector('.pcard[data-id="'+id+'"] .pview, .pdetail-add');
-    var cartIcon=document.querySelector('.hicon');
+    var cartIcon=document.getElementById('cartHeader') || document.querySelector('.hicon');
     if(btn && cartIcon){
       var btnR=btn.getBoundingClientRect();
       var cartR=cartIcon.getBoundingClientRect();
@@ -3037,7 +3273,7 @@ function saveSize(pid,sz){
   .catch(function(){});
 }
 function changeCart(id,size,d){ var cart=gxGet('gx_cart',[]); var i=cart.findIndex(function(x){return x.id===id&&x.size===size;});
-  if(i>-1){ cart[i].qty+=d; if(cart[i].qty<=0) cart.splice(i,1); } gxSet('gx_cart',cart); renderCart(); }
+  if(i>-1){ if(d>0 && cart[i].qty>=10){toast(gxT('qty_limit'));return;} cart[i].qty=Math.min(10,cart[i].qty+d); if(cart[i].qty<=0) cart.splice(i,1); } gxSet('gx_cart',cart); renderCart(); }
 function clearCart(){ gxSet('gx_cart',[]); renderCart(); }
 function cartCount(){ return gxGet('gx_cart',[]).reduce(function(a,x){return a+x.qty;},0); }
 function cartTotals(){
@@ -3047,9 +3283,9 @@ function cartTotals(){
 }
 function openCart(){ renderCart(); $('co').classList.add('open'); $('cd').classList.add('open'); }
 function closeCart(){ $('co').classList.remove('open'); $('cd').classList.remove('open'); }
-function pname(p,sz){ return p.name_ar||p.name_en; }
+function pname(p,sz){ return p[GX.lang==='en'?'name_en':'name_ar']||p.name_en||p.name_ar; }
 function renderCart(){
-  var n=cartCount(); var b=$('cbadge'); if(b){ b.textContent=n; b.style.display=n?'flex':'none'; }
+  var n=cartCount(); var b=$('cbadge2'); if(b){ b.textContent=n; b.style.display=n?'flex':'none'; }
   var box=$('cdb'); if(!box) return;
   var cart=gxGet('gx_cart',[]);
   if(!cart.length){ box.innerHTML='<div class="cd-empty">🛒<br>'+gxT('cart_empty')+'</div>'; fillFoot(); return; }
@@ -3094,19 +3330,14 @@ var rewardSel=null;
 function fillFoot(){
   var cart=gxGet('gx_cart',[]); var ft=$('cdf'); if(!ft) return;
   var tot=cartTotals(); var disc=rewardSel?rewardSel.discount:0; var fin=Math.max(0,tot.total-disc);
-  var pts=gxGet('gx_points',0);
+  /* Local points are informational only; discounts must be validated server-side. */
+  var pts=0; rewardSel=null;
   var html='';
   if(cart.length){
     html+='<div class="row-t"><span>'+gxT('cart_subtotal')+'</span><b>'+pmoney(tot.sub)+' '+GX.cur+'</b></div>'
       +'<div class="row-t"><span>'+gxT('cart_delivery')+'</span><b>'+pmoney(tot.delivery)+' '+GX.cur+'</b></div>';
     if(disc>0) html+='<div class="row-t"><span>'+gxT('pts_discount')+'</span><b style="color:var(--ok)">−'+pmoney(disc)+' '+GX.cur+'</b></div>';
     html+='<div class="row-t total"><span>'+gxT('cart_total')+'</span><b>'+pmoney(fin)+' '+GX.cur+'</b></div>';
-    if(pts>=GX.rewards[0].points){
-      html+='<div class="pts-row">'+gxT('pts_avail').replace('{n}',pts)
-        +'<select onchange="pickReward(this)"><option value="">'+gxT('pts_use')+'</option>';
-      GX.rewards.forEach(function(r){ if(pts>=r.points){ html+='<option value="'+r.points+'">'+r.points+' '+gxT('points')+' — '+r[GX.lang==='ar'?'ar':'en']+'</option>'; } });
-      html+='</select></div>';
-    }
   }
   html+='<button class="btn wa block" '+(cart.length?'':'disabled style="opacity:.5"')+' onclick="openCheckout()">'+gxT('cart_checkout')+'</button>'
     +'<button class="btn wa2 block" '+(cart.length?'':'disabled style="opacity:.5"')+' onclick="orderCartTG()" style="margin-top:8px">💬 '+gxT('order_wa')+'</button>'
@@ -3134,12 +3365,11 @@ function submitOrder(){
     device:gxDev()
   })}).then(function(r){return r.json();}).then(function(d){
     if(d.code){
-      var earned=Math.floor(fin*GX.points_per); addPoints(earned, gxT('pts_earn'));
       var msg=tgOrderMsg(d.code, items, name, phone, area, addr, tot.delivery, disc, fin);
       clearCart(); closeModal('m-checkout');
       window.open('https://wa.me/message/KZFSQ7ONXMY2M1?text='+encodeURIComponent(msg),'_blank');
       location.href='/order/success?code='+d.code;
-    } else { toast('Error'); }
+    } else { toast(d.error==='stock'?gxT('stock_error'):gxT('order_error')); }
   });
 }
 function tgOrderMsg(code,items,name,phone,area,addr,del,disc,total){
@@ -3177,7 +3407,7 @@ function orderCartTG(){
       msg+='\\n'+gxT('cart_total')+': '+pmoney(fin)+' '+GX.cur;
       window.open('https://wa.me/message/KZFSQ7ONXMY2M1?text='+encodeURIComponent(msg),'_blank');
       location.href='/order/success?code='+d.code;
-    } else { toast('Error'); }
+    } else { toast(d.error==='stock'?gxT('stock_error'):gxT('order_error')); }
   });
 }
 /* ---------- points ---------- */
@@ -3415,7 +3645,7 @@ function authTab(P,t){
 }
 function authContact(P){ var e=ap(P,'au_email'); return ((e&&e.value)||'').trim(); }
 function isEmail(v){
-  var r=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  var r=/^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$/;
   return r.test(v);
 }
 function maskEmail(em){
@@ -3443,15 +3673,15 @@ function authTimer(P,secs){
 }
 function authSendCode(P){
   var full=authContact(P);
-  if(!isEmail(full)){ toast(gxT('auth_bad_phone')); return; }
+  if(!isEmail(full)){ toast(gxT('auth_bad_email')); return; }
   var btn=ap(P,'au_sendbtn');
   if(btn){ btn.disabled=true; btn.textContent=gxT('auth_loading'); }
   console.log('[LOGIN] OTP request started');
   fetch('/api/auth/otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:full})})
   .then(function(r){ console.log('[LOGIN] OTP request completed status='+r.status); return r.json(); }).then(function(d){
     if(d.ok===false){
-      var em = d.error==='sms_notcfg'?gxT('auth_sms_notcfg') :
-               (d.error==='rate_limit'||d.error==='rate_gap')?gxT('auth_rate_limit') : gxT('auth_sms_fail');
+      var em = d.error==='sms_notcfg'?gxT('auth_email_notcfg') :
+               (d.error==='rate_limit'||d.error==='rate_gap')?gxT('auth_rate_limit') : gxT('auth_email_fail');
       toast(em);
       return;
     }
@@ -3480,7 +3710,7 @@ document.addEventListener('keydown', function(ev){
   ev.preventDefault();
   authSendCode(t.id.replace('au_email',''));
 });
-function authChangePhone(P){
+function authChangeEmail(P){
   var s2=ap(P,'au_step2'); if(s2){ s2.style.display='none'; }
   var s1=ap(P,'au_step1'); if(s1){ s1.style.display='block'; }
   var ac=ap(P,'au_code'); if(ac) ac.value='';
@@ -3493,7 +3723,6 @@ function authVerify(P){
   if(btn){ btn.disabled=true; btn.textContent=gxT('auth_verifying'); }
   fetch('/api/auth/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:em,code:code,name:name})})
   .then(function(r){return r.json();}).then(function(d){
-    if(d.ok && d.admin_pending){ showAdminStep(P); return; }
     if(d.ok){ afterLogin(); return; }
     var rm = d.reason==='blocked'?gxT('auth_blocked') :
              d.reason==='expired'?gxT('auth_expired') :
@@ -3505,40 +3734,10 @@ function authVerify(P){
     if(btn){ btn.disabled=false; btn.textContent=gxT('auth_verify'); }
   });
 }
-function showAdminStep(P){
-  var s2=ap(P,'au_step2'); if(s2) s2.style.display='none';
-  var s3=ap(P,'au_step3'); if(s3) s3.style.display='block';
-  var ans=ap(P,'au_ans'); if(ans) ans.focus();
-}
-function authCancelAdmin(P){
-  var s3=ap(P,'au_step3'); if(s3) s3.style.display='none';
-  var s2=ap(P,'au_step2'); if(s2) s2.style.display='block';
-  var an=ap(P,'au_ans'); if(an) an.value='';
-}
-function authAdminCheck(P){
-  var ans=(ap(P,'au_ans').value||'').trim();
-  if(!ans){ toast(gxT('adm_q_wrong')); return; }
-  var btn=ap(P,'au_abtn');
-  if(btn){ btn.disabled=true; btn.textContent=gxT('adm_q_loading'); }
-  fetch('/api/auth/admin_verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({answer:ans})})
-  .then(function(r){return r.json();}).then(function(d){
-    if(btn){ btn.disabled=false; btn.textContent=gxT('adm_q_btn'); }
-    if(d.ok){
-      closeModal('m-login');
-      location.href='/admin';
-    } else {
-      toast(d.reason==='noauth'?gxT('auth_blocked'):gxT('adm_q_wrong'));
-      var an=ap(P,'au_ans'); if(an) an.value='';
-    }
-  }).catch(function(){
-    if(btn){ btn.disabled=false; btn.textContent=gxT('adm_q_btn'); }
-    toast(gxT('adm_q_wrong'));
-  });
-}
 function authPwLogin(P){
   var ee=ap(P,'pw_email'), pp=ap(P,'pw_pass');
   var em=((ee&&ee.value)||'').trim(), pw=((pp&&pp.value)||'').trim();
-  if(!isEmail(em)||!pw){ toast(gxT('auth_bad_phone')); return; }
+  if(!isEmail(em)||!pw){ toast(gxT('auth_bad_email')); return; }
   fetch('/api/auth/password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:em,password:pw})})
   .then(function(r){return r.json();}).then(function(d){
     if(d.ok){ afterLogin(); } else { toast(gxT('auth_pw_wrong')); }
@@ -3894,7 +4093,38 @@ window._gxFitPref='regular';window._gxFitResult=null;
 function gxFitPick(el){var w=el.parentElement;if(!w)return;w.querySelectorAll('.radio').forEach(function(x){x.classList.remove('on');});el.classList.add('on');window._gxFitPref=el.getAttribute('data-v')||'regular';}
 function gxParseRange(v){var s=String(v||'').replace(/[–—]/g,'-').trim();if(!s)return[0,0];var p=s.split('-').map(Number);return p.length===1?[p[0],p[0]]:[p[0],p[1]];}
 function gxRangePenalty(v,lo,hi){if(v>=lo&&v<=hi)return 0;var span=Math.max(1,hi-lo);return v<lo?(lo-v)/span:(v-hi)/span;}
-function gxRunFitCheck(){var w=parseFloat($('fit_weight')&&$('fit_weight').value),h=parseFloat($('fit_height')&&$('fit_height').value);if(!isFinite(w)||!isFinite(h)||w<30||w>180||h<120||h>220){toast(GX.lang==='en'?'Enter a valid weight and height.':'اكتبي وزنًا وطولًا صحيحين.');return;}var chart=GX.chart||{},keys=GX.sizes||Object.keys(chart),matches=[];keys.forEach(function(sz,i){var r=chart[sz]||{},hr=gxParseRange(r.height),wr=gxParseRange(r.weight);if(h>=hr[0]&&h<=hr[1]&&w>=wr[0]&&w<=wr[1])matches.push({size:sz,index:i});});var best=null;if(matches.length){if(window._gxFitPref==='tight')best=matches[0];else if(window._gxFitPref==='loose')best=matches[matches.length-1];else best=matches[Math.floor((matches.length-1)/2)];}window._gxFitResult=best;if($('fitResult'))$('fitResult').classList.add('show');if($('fitSize'))$('fitSize').textContent=best?best.size:(GX.lang==='en'?'NO EXACT SIZE':'لا يوجد مقاس مطابق');if($('fitExplain'))$('fitExplain').textContent=best?(GX.lang==='en'?'Exact match from the Asian Fit height and weight ranges.':'المقاس مطابق تمامًا لنطاق الطول والوزن في جدول الـAsian Fit.'):(GX.lang==='en'?'Your height and weight do not fall within the same Asian Fit size range. Please check the size chart.':'الطول والوزن لا يقعان معًا ضمن نفس نطاق في جدول الـAsian Fit، لذلك لن نختار مقاسًا من عندنا. راجعي جدول المقاسات.');var useBtn=$('fitResult')&&$('fitResult').querySelector('button');if(useBtn)useBtn.style.display=best?'inline-flex':'none';}
+function gxRunFitCheck(){
+  var w=parseFloat($('fit_weight')&&$('fit_weight').value),h=parseFloat($('fit_height')&&$('fit_height').value),cw=parseFloat($('fit_chest')&&$('fit_chest').value);
+  var hasHW=isFinite(w)&&isFinite(h)&&w>=30&&w<=180&&h>=120&&h<=220;
+  var hasCW=isFinite(cw)&&cw>=35&&cw<=80;
+  if(!hasHW&&!hasCW){toast(GX.lang==='en'?'Enter a valid weight and height, or a well-fitting shirt width.':'أدخل وزنًا وطولًا صحيحين، أو عرض تيشيرت مناسب لك.');return;}
+  var chart=GX.chart||{},keys=GX.sizes||Object.keys(chart),ranked=[];
+  keys.forEach(function(sz,i){
+    var r=chart[sz]||{},hr=gxParseRange(r.height),wr=gxParseRange(r.weight),cr=gxParseRange(r.width);
+    if(!hr[0]||!wr[0]||!cr[0])return;
+    var hGap=hasHW?gxRangePenalty(h,hr[0],hr[1]):0,wGap=hasHW?gxRangePenalty(w,wr[0],wr[1]):0,cGap=hasCW?gxRangePenalty(cw,cr[0],cr[1]):0;
+    var hSpan=Math.max(1,hr[1]-hr[0]),wSpan=Math.max(1,wr[1]-wr[0]),cSpan=Math.max(1,cr[1]-cr[0]);
+    var centreHW=hasHW?(Math.abs(h-(hr[0]+hr[1])/2)/hSpan)+(Math.abs(w-(wr[0]+wr[1])/2)/wSpan):0;
+    var centreC=hasCW?Math.abs(cw-(cr[0]+cr[1])/2)/cSpan:0;
+    var score=hasCW?(cGap*.82+hGap*.10+wGap*.08)+(centreC*.012+centreHW*.002):(hGap*.55+wGap*.45)+(centreHW*.01);
+    var exact=hasCW?(cGap===0&&(!hasHW||(hGap===0&&wGap===0))):(hGap===0&&wGap===0);
+    ranked.push({size:sz,index:i,exact:exact,score:score});
+  });
+  ranked.sort(function(a,b){return a.score-b.score||a.index-b.index;});
+  var base=ranked[0]||null,best=base;
+  if(base&&base.exact&&window._gxFitPref==='tight'&&base.index>0)best={size:keys[base.index-1],index:base.index-1,adjusted:true};
+  if(base&&base.exact&&window._gxFitPref==='loose'&&base.index<keys.length-1)best={size:keys[base.index+1],index:base.index+1,adjusted:true};
+  window._gxFitResult=best;
+  if($('fitResult'))$('fitResult').classList.add('show');
+  if($('fitSize'))$('fitSize').textContent=best?best.size:'—';
+  if($('fitExplain')){
+    if(!best){$('fitExplain').textContent=GX.lang==='en'?'The size chart is currently unavailable.':'جدول المقاسات غير متاح حاليًا.';}
+    else if(best.adjusted){$('fitExplain').textContent=GX.lang==='en'?'Adjusted from '+base.size+' to '+best.size+' for your preferred fit. Compare jersey width and length before ordering.':'تم تعديل الاقتراح من '+base.size+' إلى '+best.size+' حسب طريقة اللبس التي اخترتها. قارن عرض وطول التيشيرت قبل الطلب.';}
+    else if(base.exact){$('fitExplain').textContent=hasCW?(GX.lang==='en'?'Your reference shirt width falls within this Fan Version range. Compare the listed length before ordering.':'يقع عرض تيشيرتك المرجعي داخل نطاق هذا المقاس في جدول Fan Version. قارن الطول المدرج قبل الطلب.'):(GX.lang==='en'?'Your height and weight fall within this Fan Version reference range. Confirm with jersey width and length.':'يقع طولك ووزنك داخل النطاق الاسترشادي لهذا المقاس في جدول Fan Version. أكّد الاختيار بمقارنة عرض وطول التيشيرت.');}
+    else{$('fitExplain').textContent=GX.lang==='en'?'This is the closest available size, but one or both values are outside its published range. Compare jersey width and length before ordering.':'هذا أقرب مقاس متوفر، لكن الطول أو الوزن خارج نطاقه المنشور. قارن عرض وطول تيشيرت مناسب لك قبل الطلب.';}
+  }
+  var useBtn=$('fitResult')&&$('fitResult').querySelector('button');if(useBtn)useBtn.style.display=best?'inline-flex':'none';
+}
 function gxUseFitSize(){var r=window._gxFitResult;if(!r)return;var c=document.querySelector('.size-chip[data-sz="'+r.size+'"]');if(c&&!c.classList.contains('oos')){selectSize(c);closeModal('m-fitcheck');toast(GX.lang==='en'?'Size '+r.size+' selected.':'تم اختيار المقاس '+r.size+'.');}else{closeModal('m-fitcheck');toast(GX.lang==='en'?'That size is currently unavailable.':'هذا المقاس غير متوفر حاليًا.');}}
 function gxPickClubColor(btn){var box=$('gxClubColor');if(!box)return;document.querySelectorAll('.gx-club-swatch').forEach(function(x){x.classList.remove('on');});btn.classList.add('on');var a=btn.getAttribute('data-a')||'#18E875',b=btn.getAttribute('data-b')||'#0B9F50',cid=btn.getAttribute('data-cid')||'';box.style.setProperty('--club-a',a);box.style.setProperty('--club-b',b);var n=$('gxClubColorName');if(n)n.textContent=GX.lang==='en'?btn.getAttribute('data-name')+' • YOUR COLOR':btn.getAttribute('data-name')+' • ألوانك';var e=$('gxClubColorEmoji');if(e)e.textContent=btn.getAttribute('data-emoji')||'⚽';var l=$('gxClubColorLink');if(l)l.href='/club/'+encodeURIComponent(cid);setMyClub(cid);}
 
@@ -3936,10 +4166,28 @@ window._gxQuiz={q1:'',q2:''};
 function gxQuizPick(el){var wrap=el.parentElement,q=wrap.getAttribute('data-q');wrap.querySelectorAll('.gx-qopt').forEach(function(x){x.classList.remove('on');});el.classList.add('on');window._gxQuiz['q'+q]=el.getAttribute('data-v');if(window._gxQuiz.q1&&window._gxQuiz.q2)gxQuizResult();}
 function gxQuizResult(){
   var c=window._gxClubSwipeData||[]; if(!c.length)return;
-  var red=c.filter(function(x){return /red|arsenal|liverpool|united|al.nassr/i.test(x.name);});
-  var pick=(window._gxQuiz.q1==='aggressive'&&red.length)?red[0]:(c[(window._gxQuiz.q2==='dark'?Math.min(2,c.length-1):0)]||c[0]);
-  var res=document.getElementById('gxQuizResult'),nm=document.getElementById('gxQuizMatch'),go=document.getElementById('gxQuizGo');if(nm)nm.textContent=pick.name;if(go)go.href='/club/'+encodeURIComponent(pick.cid);if(res)res.classList.add('show');
+  var key=window._gxQuiz.q1+'|'+window._gxQuiz.q2;
+  var pools={
+    'aggressive|red':['arsenal','bayern','united','psg','liver'],
+    'classic|red':['liver','psg','arsenal','bayern','united'],
+    'aggressive|dark':['barca','liver','psg','city','real'],
+    'classic|dark':['juve','real','city','nassr','barca']
+  };
+  var byClub={};c.forEach(function(x){if(x.cid&&!byClub[x.cid])byClub[x.cid]=x;});
+  var ordered=(pools[key]||[]).map(function(cid){return byClub[cid];}).filter(Boolean);
+  c.forEach(function(x){if(x.cid&&ordered.indexOf(x)<0)ordered.push(x);});
+  var last=gxGet('gx_quiz_last_club','');
+  if(ordered.length>1&&ordered[0].cid===last)ordered.push(ordered.shift());
+  var picks=ordered.slice(0,3);if(!picks.length)return;
+  gxSet('gx_quiz_last_club',picks[0].cid);
+  var res=document.getElementById('gxQuizResult'),grid=document.getElementById('gxQuizMatches');
+  if(grid){grid.textContent='';picks.forEach(function(p){
+    var a=document.createElement('a'),img=document.createElement('img'),copy=document.createElement('span'),name=document.createElement('b'),cta=document.createElement('span');
+    a.className='gx-match-card';a.href='/club/'+encodeURIComponent(p.cid);img.src=p.img;img.alt=p.name;img.loading='lazy';copy.className='gx-match-copy';name.textContent=p.name;cta.textContent=GX.lang==='en'?'VIEW JERSEY →':'شوف التيشيرت ←';copy.appendChild(name);copy.appendChild(cta);a.appendChild(img);a.appendChild(copy);grid.appendChild(a);
+  });}
+  if(res)res.classList.add('show');
 }
+function gxQuizReset(){window._gxQuiz={q1:'',q2:''};document.querySelectorAll('#clubQuiz .gx-qopt').forEach(function(x){x.classList.remove('on');});var res=document.getElementById('gxQuizResult');if(res)res.classList.remove('show');var q=document.querySelector('#clubQuiz .gx-quiz-q');if(q)q.scrollIntoView({behavior:'smooth',block:'center'});}
 /* ---------- Walk Into The Jersey ---------- */
 function gxWalkEnter(){var el=document.getElementById('walkIntoJersey');if(el){el.classList.add('unlocked');el.scrollIntoView({behavior:'smooth',block:'center'});setTimeout(function(){var img=document.getElementById('gxWalkJersey');if(img)img.style.transform='scale(1.05)';},650);gxMaybeCrowd();}}
 document.addEventListener('DOMContentLoaded',function(){try{var cid=gxGet('gx_club',null);if(cid){var b=document.querySelector('.gx-club-swatch[data-cid=\"'+cid+'\"]');if(b)gxPickClubColor(b);}}catch(e){}setTimeout(gxInitWow,80);});
@@ -4022,10 +4270,22 @@ def atmos_html(mode="full"):
             + lights + balls + dots + '<span class="atm-pitch"></span>' + '</div>')
 
 
-def base_page(body, active="", page_js="", extra_club=None):
+def base_page(body, active="", page_js="", extra_club=None,
+              page_title=None, page_description=None):
     en = lang() == "en"
     d = cfg.L[lang()]
+    title_defaults = {
+        "home": ("GOLAZOX | Football jerseys and sports mugs" if en else "GOLAZOX | تيشيرتات الأندية والأكواب الرياضية"),
+        "products": ("Club jerseys | GOLAZOX" if en else "تيشيرتات الأندية | GOLAZOX"),
+        "mugs": ("Sports mugs | GOLAZOX" if en else "الأكواب الرياضية | GOLAZOX"),
+        "sizes": ("Jersey size guide | GOLAZOX" if en else "دليل مقاسات التيشيرتات | GOLAZOX"),
+        "cart": ("Shopping cart | GOLAZOX" if en else "سلة التسوق | GOLAZOX"),
+        "login": ("Sign in | GOLAZOX" if en else "تسجيل الدخول | GOLAZOX"),
+    }
+    page_title = page_title or title_defaults.get(active, "GOLAZOX | Football store")
+    page_description = page_description or (d["hero_sub"] if en else d["hero_sub"])
     gx = gx_data()
+    gx["csrf"] = csrf_token()
     if extra_club:
         gx["club_page"] = extra_club
     gx_json = json_d(gx)
@@ -4070,8 +4330,11 @@ def base_page(body, active="", page_js="", extra_club=None):
 <html lang="LANG" dir="DIR">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>GOLAZOX — Football Universe</title>
-<meta name="description" content="GOLAZOX — premium football club jerseys & sports mugs">
+<title>PAGE_TITLE</title>
+<meta name="description" content="PAGE_DESCRIPTION">
+<meta property="og:title" content="PAGE_TITLE">
+<meta property="og:description" content="PAGE_DESCRIPTION">
+<meta property="og:type" content="website">
 <meta name="theme-color" content="#0A0D0C">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -4088,16 +4351,16 @@ HEADER
 PRE
 BODY
 FOOTER
-<nav class="gx-bnav" id="gxBnav" aria-label="Navigation">
-<a href="/home" class="BNAV_HOME"><span class="bnav-icon">🏠</span><span>HOME</span></a>
-<a href="/products" class="BNAV_SHOP"><span class="bnav-icon">👕</span><span>SHOP</span></a>
-<a href="/cart" class="BNAV_CART"><span class="bnav-icon">🛒</span><span>CART</span><span class="bnav-badge" id="bnavBadge" style="display:none"></span></a>
-<a href="/favorites" class="BNAV_FAV"><span class="bnav-icon">❤</span><span>WISHLIST</span></a>
-<a href="/account" class="BNAV_ACC"><span class="bnav-icon">👤</span><span>ACCOUNT</span></a>
+<nav class="gx-bnav" id="gxBnav" aria-label="BNL_NAV">
+<a href="/home" class="BNAV_HOME"><span class="bnav-icon">🏠</span><span>BNL_HOME</span></a>
+<a href="/products" class="BNAV_SHOP"><span class="bnav-icon">👕</span><span>BNL_SHOP</span></a>
+<a href="/cart" class="BNAV_CART"><span class="bnav-icon">🛒</span><span>BNL_CART</span><span class="bnav-badge" id="bnavBadge" style="display:none"></span></a>
+<a href="/favorites" class="BNAV_FAV"><span class="bnav-icon">❤</span><span>BNL_FAV</span></a>
+<a href="/account" class="BNAV_ACC"><span class="bnav-icon">👤</span><span>BNL_ACC</span></a>
 </nav>
 MODALS
 <div class="co" id="co" onclick="closeCart()"></div>
-<div class="cd" id="cd"><div class="cd-head"><b>🛒 T_CART</b><button class="mx" onclick="closeCart()">✕</button></div>
+<div class="cd" id="cd"><div class="cd-head"><b>🛒 T_CART</b><button class="mx" onclick="closeCart()" aria-label="BNL_CLOSE">✕</button></div>
 <div class="cd-body" id="cdb"></div><div class="cd-foot" id="cdf"></div></div>
 <div class="lb" id="lb">
   <div class="lb-count" id="lbCount" style="display:none"></div>
@@ -4128,7 +4391,7 @@ MODALS
     var box=document.getElementById('recentTunnelTrack'); if(!box)return;
     var ids=safeGet('gx_recent_views',[]);
     if(!Array.isArray(ids)||!ids.length){
-      box.innerHTML='<div class="gx-recent-empty">⚽ '+(window.GX&&GX.lang==='en'?'Browse a jersey and your recent picks will appear here.':'شاهدي تيشرتًا وسيظهر هنا آخر ما شاهدته.')+'</div>';
+      box.innerHTML='<div class="gx-recent-empty">⚽ '+(window.GX&&GX.lang==='en'?'Browse a jersey and your recent picks will appear here.':'تصفّح تيشيرتًا وسيظهر هنا آخر ما شاهدته.')+'</div>';
       return;
     }
     var seen={}; ids=ids.filter(function(id){if(seen[id])return false;seen[id]=1;return true;}).slice(0,8);
@@ -4156,12 +4419,12 @@ MODALS
     var arr=en?[
       '⚡ MATCHDAY IS LIVE',
       '🔥 READY FOR YOUR NEXT JERSEY?',
-      '💚 POWERED BY GOLAXOX',
+      '💚 POWERED BY GOLAZOX',
       '👕 WEAR YOUR PASSION'
     ]:[
       '⚡ أجواء المباراة بدأت',
       '🔥 جاهز لتيشرتك القادم؟',
-      '💚 شغفك مع GOLAXOX',
+      '💚 شغفك مع GOLAZOX',
       '👕 البس شغفك'
     ];
     var i=0;
@@ -4184,6 +4447,8 @@ __BASEJS_SLOT__
 </html>""".replace("LANG", "en" if en else "ar") \
         .replace("DIR", "ltr" if en else "rtl") \
         .replace("FONT", "Poppins" if en else "Cairo") \
+        .replace("PAGE_TITLE", esc(page_title)) \
+        .replace("PAGE_DESCRIPTION", esc(page_description)) \
         .replace("CSS", CSS) \
         .replace("HEADEXTRA", head_extra) \
         .replace("HEADER", header_html(active)) \
@@ -4192,6 +4457,13 @@ __BASEJS_SLOT__
         .replace("FOOTER", footer_html()) \
         .replace("MODALS", ads_html("banner") + modals_html()) \
         .replace("T_CART", d["cart_title"]) \
+        .replace("BNL_NAV", "التنقل الرئيسي" if not en else "Primary navigation") \
+        .replace("BNL_HOME", d["nav_home"]) \
+        .replace("BNL_SHOP", d["nav_jerseys"]) \
+        .replace("BNL_CART", d["cart_title"]) \
+        .replace("BNL_FAV", d["fav_filter"]) \
+        .replace("BNL_ACC", d["ac_account"]) \
+        .replace("BNL_CLOSE", "إغلاق" if not en else "Close") \
         .replace("BNAV_HOME", " on" if active == "home" else "") \
         .replace("BNAV_SHOP", " on" if active in ("products", "mugs", "clubs") else "") \
         .replace("BNAV_CART", " on" if active == "cart" else "") \
@@ -4217,26 +4489,29 @@ def header_html(active=""):
     me = current_user()
     if me:
         if me.get("role") in ("admin", "super_admin"):
-            acc_btn = '<a href="/admin" class="hbtn admin-btn">👑 ' + d["admin_dash_short"] + '</a>'
+            acc_btn = '<a href="/admin" class="hbtn haccount admin-btn">👑 ' + d["admin_dash_short"] + '</a>'
         else:
-            acc_btn = '<a href="/account" class="hbtn">👤 ' + esc(me.get("name") or d["ac_account"]) + '</a>'
+            acc_btn = '<a href="/account" class="hbtn haccount">👤 ' + esc(me.get("name") or d["ac_account"]) + '</a>'
     else:
-        acc_btn = '<a href="/login" class="hbtn">👤 ' + d["ac_login"] + '</a>'
+        acc_btn = '<a href="/login" class="hbtn haccount">👤 ' + d["ac_login"] + '</a>'
     cheer = ""
-    fav_btn = '<button class="hbtn hicon" onclick="openFavs()" title="' + d["fav_filter"] + '">❤️<span class="hcount" id="favcount">0</span></button>'
+    fav_btn = '<button class="hbtn hicon hfav" onclick="openFavs()" title="' + d["fav_filter"] + '" aria-label="' + d["fav_filter"] + '">❤️<span class="hcount" id="favcount">0</span></button>'
+    mobile_tools = ('<div class="nav-mobile-tools">'
+                    '<button class="nv" onclick="openModal(\'m-settings\');toggleMenu()">⚙️ %s</button>'
+                    '<button class="nv" onclick="setLang(\'%s\')">🌐 %s</button></div>') % (d["settings_btn"], other, d["lang_name"])
     return ('<div class="hd"><div class="hd-in">'
             '<a href="/home" class="logo"><span class="ball">⚽</span>golazox</a>'
-            '<nav class="nav" id="topnav">%s'
+            '<nav class="nav" id="topnav">%s%s'
             '<button class="nv nv-close" onclick="toggleMenu()">✕</button></nav>'
             '<button class="hbtn hmenu" onclick="toggleMenu()">☰</button>'
             '%s'
-            '<button class="hbtn hicon" onclick="openModal(\'m-settings\')">⚙️<span class="hcount" id="cbadge">0</span></button>'
-            '<a class="hbtn hicon" href="/cart">🛒<span class="hcount" id="cbadge2">0</span></a>'
-            '<button class="hbtn" onclick="setLang(\'%s\')">%s</button>'
+            '<button class="hbtn hicon hsettings" onclick="openModal(\'m-settings\')" aria-label="%s">⚙️</button>'
+            '<a id="cartHeader" class="hbtn hicon" href="/cart" aria-label="%s">🛒<span class="hcount" id="cbadge2">0</span></a>'
+            '<button class="hbtn hlang" onclick="setLang(\'%s\')">%s</button>'
             '<div class="hd-search"><div class="sbox hd-sbox">'
             '<input id="sq" placeholder="%s" onkeydown="if(event.key===\'Enter\')applyFilters()">'
             '<button onclick="applyFilters()">🔍</button></div></div>'
-            '</div></div>') % (links, fav_btn + cheer + acc_btn, other, d["lang_name"], d["search_ph"])
+            '</div></div>') % (links, mobile_tools, fav_btn + cheer + acc_btn, d["settings_btn"], d["cart_title"], other, d["lang_name"], d["search_ph"])
 
 
 def footer_html():
@@ -4285,7 +4560,7 @@ def size_table_html(chart):
             continue
         r = chart[sz]
         rows += ("<tr><td class='sz'>{sz}</td><td>{l} {cm}</td><td>{w} {cm}</td>"
-                 "<td>{h}</td><td>{wg} {kg}</td></tr>").format(
+                 "<td>{h} {cm}</td><td>{wg} {kg}</td></tr>").format(
             sz=sz, l=r["length"], w=r["width"], h=r["height"], wg=r["weight"],
             cm=d["szt_cm"], kg=d["szt_kg"])
     return "<table class='szt'>" + head + rows + "</table>"
@@ -4331,13 +4606,7 @@ def auth_box_html(prefix=""):
             '<button class="btn pri big" id="{p}au_vbtn" onclick="authVerify(\'{p}\')">{v}</button>'
             '<div class="auth-actions">'
             '<button class="hbtn" id="{p}au_resendbtn" onclick="authResend(\'{p}\')">🔄 {resend}</button>'
-            '<button class="hbtn" onclick="authChangePhone(\'{p}\')">↩ {chg}</button></div></div>'
-            '<div class="auth-step3" id="{p}au_step3" style="display:none">'
-            '<p class="auth-sent">🔐 {aqt}</p>'
-            '<p class="mnote">{aqsub}</p>'
-            '<div class="fld"><label>{aqq}</label><input id="{p}au_ans" autocomplete="off"></div>'
-            '<button class="btn pri big" id="{p}au_abtn" onclick="authAdminCheck(\'{p}\')">{aqb}</button>'
-            '<div class="auth-actions"><button class="hbtn" onclick="authCancelAdmin(\'{p}\')">↩ {chg}</button></div></div>'
+            '<button class="hbtn" onclick="authChangeEmail(\'{p}\')">↩ {chg}</button></div></div>'
             '</div>'
             '<div class="auth-pane" id="{p}auth_pane_pw" style="display:none">'
             '<div class="fld"><label>{em}</label>'
@@ -4349,9 +4618,7 @@ def auth_box_html(prefix=""):
                      em=d["auth_email"], emph=d["auth_email_ph"], ct=d["auth_continue"], sent=d["auth_sent_to"],
                      otp=d["auth_otp_ph"], nm=d["auth_name_ph"], new=d["auth_new"], demo=d["auth_demo_note"],
                      fill=d["auth_demo_fill"], v=d["auth_verify"], resend=d["auth_resend"], chg=d["auth_change_num"],
-                     pw=d["auth_pw_ph"], pb=d["auth_pw_btn"],
-                     aqt=d["adm_q_title"], aqsub=d["adm_q_sub"], aqq=d["adm_q_q"],
-                     aqb=d["adm_q_btn"])
+                     pw=d["auth_pw_ph"], pb=d["auth_pw_btn"])
 
 
 def modals_html():
@@ -4360,19 +4627,25 @@ def modals_html():
     def modal(mid, title, body, wide=False):
         return ('<div class="mback" id="{id}" onclick="closeModal(\'{id}\')">'
                 '<div class="mbox {w}" onclick="event.stopPropagation()">'
-                '<div class="mhead"><h3>{t}</h3><button class="mx" onclick="closeModal(\'{id}\')">✕</button></div>'
-                '<div class="mbody">{b}</div></div></div>').format(id=mid, w="wide" if wide else "", t=title, b=body)
+                '<div class="mhead"><h3>{t}</h3><button class="mx" onclick="closeModal(\'{id}\')" aria-label="{close}">✕</button></div>'
+                '<div class="mbody">{b}</div></div></div>').format(id=mid, w="wide" if wide else "", t=title, b=body,
+                                                                  close="Close" if en else "إغلاق")
 
     wash_steps = "".join("<li><b>{n}</b> {txt}</li>".format(n=i + 1, txt=d["wash_" + str(i + 1)]) for i in range(8))
     ret_items = "".join("<li><b>{t}</b> — {x}</li>".format(t=d["ret_" + str(i) + "t"], x=d["ret_" + str(i) + "d"]) for i in range(1, 5))
 
-    size_body = ("<p class='mnote'>{note}</p>".format(note=d["szt_note"]) + size_table_html(cfg.SIZE_CHART)
+    size_body = ("<p class='mnote'>{note}</p>".format(note=d["szt_note"]) + "<div class='sg-table-scroll' role='region' tabindex='0'>" + size_table_html(cfg.SIZE_CHART) + "</div>"
                  + "<h4 class='msec'>{m}</h4>".format(m=d["szt_measure"]) + "<div class='szill-wrap'>" + size_diagram() + "</div>"
                  + "<ol class='steps'><li>{a}</li><li>{b}</li></ol>".format(a=d["szt_measure_1"], b=d["szt_measure_2"])
-                 + "<div class='mwarning'>💡 {t}<br>{x}</div>".format(t=d["szt_between"], x=d["szt_between_txt"]))
+                 + "<div class='mwarning'>💡 {t}<br>{x}</div>".format(t=d["szt_between"], x=d["szt_between_txt"])
+                 + ("<div class='gx-fit-sources'><b>مصادر القياس</b>" if not en else "<div class='gx-fit-sources'><b>Sizing sources</b>")
+                 + ("<a href='https://www.gakits.com/Size-Chartsize-n2086868.html' target='_blank' rel='noopener noreferrer'>جدول Fan Version المستخدم للأرقام ↗</a>" if not en else "<a href='https://www.gakits.com/Size-Chartsize-n2086868.html' target='_blank' rel='noopener noreferrer'>Fan Version chart used for the numbers ↗</a>")
+                 + "<a href='https://www.iso.org/standard/61686.html' target='_blank' rel='noopener noreferrer'>ISO 8559-1 ↗</a>"
+                 + "<a href='https://www.iso.org/standard/85590.html' target='_blank' rel='noopener noreferrer'>ISO 8559-2:2025 ↗</a>"
+                 + ("<a href='https://www.nike.com/size-fit/nba-wnba-jerseys' target='_blank' rel='noopener noreferrer'>طريقة القياس والاختيار بين مقاسين — Nike ↗</a></div>" if not en else "<a href='https://www.nike.com/size-fit/nba-wnba-jerseys' target='_blank' rel='noopener noreferrer'>Measuring and between-size guidance — Nike ↗</a></div>"))
     wash_body = "<ol class='steps'>" + wash_steps + "</ol>" + "<div class='mwarning'>⚠️ {w}</div>".format(w=d["wash_warn"])
     ret_body = "<ul class='ret'>" + ret_items + "</ul>" + "<div class='mwarning'>⚠️ {w}</div>".format(w=d["ret_warn"])
-    how_body = ("<ol class='steps'>" + "".join("<li>{x}</li>".format(x=d["how_" + str(i + 1)]) for i in range(4)) + "</ol>")
+    how_body = ("<ol class='steps'>" + "".join("<li>{x}</li>".format(x=d["how_" + str(i + 1)]) for i in range(6)) + "</ol>")
     contact_body = ("<p class='mnote'>{sub}</p>".format(sub=d["contact_sub"])
                     + "<a class='btn wa2 big' target='_blank' rel='noopener' href='https://wa.me/{num}'>💬 {wa}</a>".format(num=cfg.WHATSAPP, wa=d["contact_wa"])
                     + "<p class='cnum'>{n}</p>".format(n=d["contact_num"]))
@@ -4459,8 +4732,9 @@ def modals_html():
 
     fit_body = (
         '<div class="mnote" style="margin-bottom:14px">{intro}</div>'
-        '<div class="frow"><div class="fld"><label>{weight}</label><input id="fit_weight" type="number" min="30" max="180" step="0.1" inputmode="decimal" placeholder="70"></div>'
-        '<div class="fld"><label>{height}</label><input id="fit_height" type="number" min="120" max="220" step="1" inputmode="numeric" placeholder="175"></div></div>'
+        '<div class="frow"><div class="fld"><label for="fit_weight">{weight}</label><input id="fit_weight" type="number" min="30" max="180" step="0.1" inputmode="decimal" placeholder="70"></div>'
+        '<div class="fld"><label for="fit_height">{height}</label><input id="fit_height" type="number" min="120" max="220" step="1" inputmode="numeric" placeholder="175"></div>'
+        '<div class="fld"><label for="fit_chest">{chest}</label><input id="fit_chest" type="number" min="35" max="80" step="0.5" inputmode="decimal" placeholder="52"></div></div>'
         '<div class="fld"><label>{fit}</label><div class="radios">'
         '<button class="radio" data-g="fitpref" data-v="tight" onclick="gxFitPick(this)">🧩 {tight}</button>'
         '<button class="radio on" data-g="fitpref" data-v="regular" onclick="gxFitPick(this)">👌 {regular}</button>'
@@ -4470,15 +4744,26 @@ def modals_html():
         '<div id="fitResult" class="gx-fit-result"><div class="gx-fit-sub">{result}</div><div id="fitSize" class="gx-fit-size">—</div><div id="fitExplain" class="gx-fit-sub"></div>'
         '<button class="btn ghost sm" style="margin-top:10px" onclick="gxUseFitSize()">{use}</button></div>'
         '<p class="mnote" style="margin-top:12px;font-size:.72rem">{note}</p>'
+        '<div class="gx-fit-sources"><b>{sources_title}</b>'
+        '<a href="https://www.gakits.com/Size-Chartsize-n2086868.html" target="_blank" rel="noopener noreferrer">{source_chart} ↗</a>'
+        '<a href="https://www.iso.org/standard/61686.html" target="_blank" rel="noopener noreferrer">{source_iso} ↗</a>'
+        '<a href="https://www.iso.org/standard/85590.html" target="_blank" rel="noopener noreferrer">ISO 8559-2:2025 ↗</a>'
+        '<a href="https://www.nike.com/size-fit/nba-wnba-jerseys" target="_blank" rel="noopener noreferrer">{source_fit} ↗</a></div>'
     ).format(
-        intro=("أدخل وزنك وطولك واختر شكل اللبسة. المقاس سيُطابق نطاقات الطول والوزن في جدول الـAsian Fit فقط." if not en else "Enter your weight and height, then choose your preferred fit. We only return a size when both values fit the Asian Fit chart ranges."),
+        intro=("أدخل وزنك وطولك، وللدقة أضف عرض تيشيرت مناسب لك. سنعرض أقرب مقاس من جدول Fan Version الذي يصفه المورّد بأنه Asian Fit." if not en else "Enter your weight and height; for better accuracy, add the width of a shirt that fits you. We use the supplier's Fan Version chart, described as Asian Fit."),
         weight=("الوزن (كجم)" if not en else "Weight (kg)"), height=("الطول (سم)" if not en else "Height (cm)"),
+        chest=("عرض تيشيرت مناسب — اختياري (سم)" if not en else "Well-fitting shirt width — optional (cm)"),
         fit=("كيف تحب يكون التيشيرت؟" if not en else "How do you want it to fit?"),
         tight=("ضيق" if not en else "Slim"), regular=("معتدل" if not en else "Regular"), loose=("واسع" if not en else "Loose"),
         btn=("احسب مقاسي" if not en else "Find my size"), result=("المقاس المقترح" if not en else "Suggested size"),
-        use=("استخدم هذا المقاس" if not en else "Use this size"), note=("المقاس تقديري وقد يختلف حسب القصة وطريقة القياس." if not en else "This is a guide estimate; fit can vary by cut and measurement method."))
+        use=("استخدم هذا المقاس" if not en else "Use this size"),
+        note=("الاقتراح استرشادي؛ الطول والوزن وحدهما لا يضمنان الملاءمة لأن القصة قد تختلف بين الموديلات." if not en else "This is guidance only; height and weight cannot guarantee fit because cuts can vary by model."),
+        sources_title=("مصادر القياس" if not en else "Sizing sources"),
+        source_chart=("جدول Fan Version المستخدم للأرقام" if not en else "Fan Version chart used for the numbers"),
+        source_iso=("ISO 8559-1 — منهج قياسات الجسم للملابس" if not en else "ISO 8559-1 — clothing body-measurement method"),
+        source_fit=("Nike — طريقة القياس والاختيار بين مقاسين" if not en else "Nike — measuring and between-size guidance"))
 
-    return (modal("m-fitcheck", "GOLAZOX FIT CHECK", fit_body, True)
+    return (modal("m-fitcheck", "GOLAZOX FIT CHECK" if en else "تحقق من مقاسك", fit_body, True)
             + modal("m-sizes", d["szt_head"], size_body, True)
             + modal("m-wash", d["wash_title"], wash_body, True)
             + modal("m-ret", d["ret_title"], ret_body, True)
@@ -4497,14 +4782,20 @@ def modals_html():
 
 
 # ============================== PAGES ==============================
-def filters_panel_html():
+def filters_panel_html(kind="jersey"):
     en = lang() == "en"
     d = cfg.L[lang()]
     dots = ""
+    color_names = {
+        "white": ("أبيض", "White"), "black": ("أسود", "Black"),
+        "red": ("أحمر", "Red"), "blue": ("أزرق", "Blue"),
+        "yellow": ("أصفر", "Yellow"), "green": ("أخضر", "Green"),
+    }
     for i, (_, label, hexc) in enumerate(COLOR_FILTERS):
         cls = " hide" if i >= 6 else ""
+        color_label = color_names.get(COLOR_FILTERS[i][0], (label, label))[1 if en else 0]
         dots += ('<button class="col-dot%s" data-col="%s" title="%s" onclick="setColorFilter(this)" '
-                 'style="background:%s"></button>' % (cls, hexc, label, hexc))
+                 'style="background:%s"></button>' % (cls, hexc, color_label, hexc))
     if len(COLOR_FILTERS) > 6:
         dots += '<button class="col-more" id="colMore" onclick="moreColors()">%s</button>' % d["fp_more"]
     cats = "".join(
@@ -4514,20 +4805,25 @@ def filters_panel_html():
     clubs = "".join(
         '<button class="club-opt" data-v="%s" onclick="setFilter(\'club\',this.getAttribute(\'data-v\'),this)">%s %s</button>'
         % (cid, c.get("emoji", "⚽"), c.get(en and "en" or "ar")) for cid, c in cfg.CLUBS.items())
-    sizes = "".join(
+    sizes = "" if kind == "mug" else "".join(
         '<button class="sz-btn" onclick="setFilter(\'size\',\'%s\',this)">%s</button>' % (s, s)
         for s in cfg.SIZE_ORDER[:5])
+    size_section = "" if kind == "mug" else (
+        '<div class="fp-sec" style="margin-top:14px"><div class="fp-lbl">📏 {size}</div>'
+        '<div class="fp-sizes">{sizes}</div></div>'
+    ).format(size=d["fp_size"], sizes=sizes)
     return ('<aside class="filters-panel" id="filtersBar">'
+            '<button class="fp-close" onclick="toggleFilters(false)" aria-label="{close}">✕</button>'
             '<div class="fp-title">⚙️ {t}</div>'
             '<div class="fp-sec"><div class="fp-lbl">🎨 {cols}</div><div class="fp-colors">{dots}</div></div>'
             '<div class="fp-sec"><div class="fp-lbl">🔥 {cat}</div><div class="fp-cats">{cats}</div></div>'
             '<details class="fp-acc"><summary>🛡️ {club}</summary>'
             '<div class="fp-clubs" style="margin-top:8px">{clubs}</div></details>'
-            '<div class="fp-sec" style="margin-top:14px"><div class="fp-lbl">📏 {size}</div>'
-            '<div class="fp-sizes">{sizes}</div></div>'
+            '{size_section}'
             '<button class="btn dark block fp-apply" onclick="applyFilters();toggleFilters(false)">{res}</button>'
             '</aside>').format(t=d["fp_title"], cols=d["fp_colors"], dots=dots, cat=d["fp_cat"], cats=cats,
-                               club=d["fp_club"], clubs=clubs, size=d["fp_size"], sizes=sizes, res=d["show_results"])
+                               club=d["fp_club"], clubs=clubs, size_section=size_section, res=d["show_results"],
+                               close="Close" if en else "إغلاق")
 
 
 def sort_bar_html():
@@ -4543,10 +4839,11 @@ def sort_bar_html():
                              lo=d["sort_lo"], hi=d["sort_hi"], fb=d["filters_btn"], clr=d["clear_filters"])
 
 
-def shop_section_html(grid, grid_id):
+def shop_section_html(grid, grid_id, kind="jersey"):
     d = cfg.L[lang()]
     return ('<div class="shop-wrap">'
-            + filters_panel_html()
+            + '<div class="filters-overlay" id="filtersOverlay" onclick="toggleFilters(false)"></div>'
+            + filters_panel_html(kind)
             + '<div class="shop-main">'
             + sort_bar_html()
             + '<div class="grid" id="{gid}">{grid}</div>'
@@ -4628,7 +4925,9 @@ def home_body():
     d = cfg.L[lang()]
 
     prods = [p for p in cfg.PRODUCTS if not p.get("hidden")]
-    jgrid = "".join(product_card(p) for p in prods if p["kind"] == "jersey")
+    jersey_prods = [p for p in prods if p["kind"] == "jersey"]
+    jgrid = "".join(product_card(p) for p in jersey_prods)
+    home_jgrid = "".join(product_card(p) for p in jersey_prods[:6])
     mgrid = "".join(product_card(p) for p in prods if p["kind"] == "mug")
 
     best_html = "".join(product_card(p) for p in prods if "best" in p.get("badges", []))
@@ -4668,10 +4967,10 @@ def home_body():
             '<div class="hero-price">{pj} · {pm}</div>'
             '<div class="hero-ball"><span class="ring"></span>⚽</div></div>'
             ).format(tag=d["home_section_hero_tag"], t1=d["home_hero_t1"], t2=d["home_hero_t2"],
-                     sub=("تيشيرت رياضي بجودة عالية بخامة الأبطال، يلبسك حماس الملعب من أول لحظة. اختار فريقك وعيش الأجواء ⚽🔥" if not en else "High-quality sports jerseys with a premium feel. Pick your team and live the matchday atmosphere ⚽🔥"), cj=d["home_cta_shop"], ct=d["home_cta_team"],
+                     sub=d["home_hero_sub"], cj=d["home_cta_shop"], ct=d["home_cta_team"],
                      pj=fmt_cur(cfg.PRICE_JERSEY), pm=fmt_cur(cfg.PRICE_MUG))
 
-    fit_home = ("<div class='sec rv'><div class='gx-fit-card'><div class='gx-fit-head'><div><h3>✨ {title}</h3><p>{sub}</p></div><button class='fit-check-btn' onclick=\"openModal('m-fitcheck')\">{btn}</button></div></div></div>").format(title=("اعرف مقاسك قبل الطلب" if not en else "KNOW YOUR SIZE BEFORE YOU ORDER"),sub=("وزن + طول + طريقة اللبس = مقاس أقرب لك." if not en else "Weight + height + fit preference = a closer size recommendation."),btn=("ابدأ Fit Check" if not en else "Start Fit Check"))
+    fit_home = ("<div class='sec rv'><div class='gx-fit-card'><div class='gx-fit-head'><div><h3>✨ {title}</h3><p>{sub}</p></div><button class='fit-check-btn' onclick=\"openModal('m-fitcheck')\">{btn}</button></div></div></div>").format(title=("اعرف مقاسك قبل الطلب" if not en else "KNOW YOUR SIZE BEFORE YOU ORDER"),sub=("الطول والوزن، ومعهما عرض تيشيرت مناسب لك للدقة." if not en else "Height and weight, plus a well-fitting shirt width for better accuracy."),btn=("ابدأ Fit Check" if not en else "Start Fit Check"))
 
     club_swatches=[]
     for cid,c in cfg.CLUBS.items():
@@ -4821,7 +5120,7 @@ def home_body():
     fan_moment = (
         '<div class="gx-fan-moment" id="fanMoment">'
         '<span class="fm-dot"></span><div class="fm-text" id="fanMomentText"></div>'
-        '<div class="fm-sub">GOLAXOX MATCHDAY</div></div>'
+        '<div class="fm-sub">GOLAZOX MATCHDAY</div></div>'
     )
 
     final_pitch = (
@@ -4846,11 +5145,11 @@ def home_body():
         swipe_cards.append((cid,th.get("ac","#E11D48"),th.get("ac2","#F97316"),c.get("en" if en else "ar",cid),c.get("emoji","⚽"),fp["imgs"][0],len(club_prods)))
     swipe_items=[]
     for i,(cid,ac,ac2,nm,em,img,count) in enumerate(swipe_cards):
-        swipe_items.append(('<article class="gx-club-swipe-card" data-index="%d" style="--sw-ac:%s;--sw-ac2:%s">'
+        swipe_items.append(('<article class="gx-club-swipe-card" data-index="%d" data-cid="%s" style="--sw-ac:%s;--sw-ac2:%s">'
                             '<div class="gx-swipe-bg"></div><div class="gx-swipe-top"><span>%s %s</span><small>%s</small></div>'
                             '<div class="gx-swipe-stage"><div class="gx-swipe-glow"></div><img src="/img/%s" alt="%s" loading="lazy"></div>'
                             '<div class="gx-swipe-bottom"><div><b>%s</b><span>%s</span></div><a class="gx-swipe-cta" href="/club/%s">%s →</a></div></article>')
-                           % (i,cid and ac,ac2,em,esc(nm),("JERSEY COLLECTION" if en else "تشكيلة قمصان النادي"),esc(img),esc(nm),esc(nm),("SWIPE TO EXPLORE" if en else "اسحب لاكتشاف الأندية"),cid,("VIEW CLUB" if en else "شوف النادي")))
+                           % (i,cid,ac,ac2,em,esc(nm),("JERSEY COLLECTION" if en else "تشكيلة قمصان النادي"),esc(img),esc(nm),esc(nm),("SWIPE TO EXPLORE" if en else "اسحب لاكتشاف الأندية"),cid,("VIEW CLUB" if en else "شوف النادي")))
     club_swipe_sec=('<div class="sec rv gx-club-swipe-wrap" id="clubSwipeSection"><div class="sec-head"><h2><span class="bar"></span>%s</h2><span class="sec-sub">%s</span></div><div class="gx-club-swipe" id="gxClubSwipe">%s</div><div class="gx-swipe-controls"><button type="button" class="gx-swipe-arrow" onclick="gxClubSwipe(-1)">‹</button><div class="gx-swipe-dots" id="gxSwipeDots"></div><button type="button" class="gx-swipe-arrow" onclick="gxClubSwipe(1)">›</button></div><div class="gx-swipe-note" id="gxSwipeNote">%s</div></div>') % (("EXPLORE BY CLUB" if en else "اكتشف الأندية"),("Swipe the jerseys. Pick your club." if en else "اسحب بين الأندية وشوف القميص مباشرة"),"".join(swipe_items),("Swipe ← →" if en else "اسحب يمين ويسار"))
 
     # WOW scan and walk-through removed per request.
@@ -4862,46 +5161,30 @@ def home_body():
                 '<div class="gx-quiz-q">2. {q2}</div><div class="gx-quiz-opts" data-q="2">'
                 '<button class="gx-qopt" data-v="red" onclick="gxQuizPick(this)">🔴 {o21}</button>'
                 '<button class="gx-qopt" data-v="dark" onclick="gxQuizPick(this)">⚫ {o22}</button></div>'
-                '<div class="gx-quiz-result" id="gxQuizResult"><div class="gx-match-line">{resultLabel}</div><div class="gx-match-name" id="gxQuizMatch">—</div><a id="gxQuizGo" class="btn pri gx-quiz-go" href="#">{go}</a></div>'
-                '</section>').format(title=("FIND YOUR CLUB" if en else "أي تيشيرت يناسبك؟"),sub=("Two taps. One match." if en else "اختار بسرعة ونحدد لك القميص المناسب."),q1=("What energy are you?" if en else "وش أجواءك؟"),o11=("Bold & loud" if en else "جريء وحماسي"),o12=("Classic & clean" if en else "كلاسيكي ومرتب"),q2=("Pick a color mood" if en else "اختار ألوانك"),o21=("Red / fiery" if en else "أحمر وحماسي"),o22=("Dark / elite" if en else "داكن وفخم"),resultLabel=("YOUR MATCH" if en else "اختيارك"),go=("SHOP THIS JERSEY" if en else "شوف التيشيرت"))
+                '<div class="gx-quiz-result" id="gxQuizResult" aria-live="polite"><div class="gx-match-line">{resultLabel}</div><div class="gx-match-grid" id="gxQuizMatches"></div><button type="button" class="gx-quiz-reset" onclick="gxQuizReset()">{retry}</button></div>'
+                '</section>').format(title=("FIND YOUR JERSEY" if en else "أي تيشيرت يناسبك؟"),sub=("Two taps, three jerseys picked for your style." if en else "اختياران ونرشح لك ثلاثة قمصان تناسب ذوقك."),q1=("What energy are you?" if en else "وش أجواءك؟"),o11=("Bold & loud" if en else "جريء ولافت"),o12=("Classic & clean" if en else "كلاسيكي ومرتب"),q2=("Pick a color mood" if en else "اختار ألوانك"),o21=("Red / vibrant" if en else "أحمر وحيوي"),o22=("Dark / elite" if en else "داكن وفخم"),resultLabel=("JERSEYS FOR YOUR STYLE" if en else "قمصان تناسب ذوقك"),retry=("TRY DIFFERENT PICKS" if en else "جرّب اختيارات مختلفة"))
 
-    # Insert new experiences near the top for maximum impact
+    # Keep the main GOLAZOX hero as the first visible home-page section.
     return (atmos_html("full")
-            + '<div class="wrap">' 
-            + quiz_sec
-
-
+            + '<div class="wrap">'
             + hero
-            + fit_home
-            + club_color_section
-            + fan_moment
-            + pc_sec
-            + md_ticker
-            + club_swipe_sec
-            + clubs_sec
             + ads_html("home")
             + features_html()
-            + spotlight_html(prods)
+            + clubs_sec
             + '<div class="sec rv" id="jerseys"><div class="sec-head"><h2><span class="bar"></span>{sj}</h2><span class="sec-sub">{sj_sub}</span></div>'
-            + shop_section_html(jgrid, "gridJ")
-            + best_sec
-            + new_sec
-            + recent_sec
-            + loyal_sec
+            + shop_section_html(home_jgrid, "gridJ", "jersey")
+            + '<div style="text-align:center;margin-top:14px"><a class="btn ghost" href="/products">{va} ←</a></div>'
+            + size_sec
+            + fit_home
+            + steps_sec
             + '<div class="sec rv" id="mugs"><div class="sec-head"><h2><span class="bar"></span>{sm}</h2><span class="sec-sub">{sm_sub}</span></div>'
             + '<div class="grid" id="gridM">{mgrid}</div></div>'
-            + size_sec
-            + steps_sec
-            + pitch_sec
-            + match_html
-            + poll_html
-            + final_pitch
             + '<div class="sec rv" id="info"><div class="sec-head"><h2><span class="bar"></span>{qt}</h2></div>'
             + '<div class="quick">{quick}</div></div>'
             + '</div>'
-            ).format(sj=d["sec_jerseys"], sj_sub=d["sec_jerseys_sub"],
+            ).format(sj=d["sec_jerseys"], sj_sub=d["sec_jerseys_sub"], va=d["view_all"],
                      sm=d["sec_mugs"], sm_sub=d["sec_mugs_sub"], qt=d["quick_title"],
-                     jgrid=jgrid, mgrid=mgrid, quick=quick)
+                     mgrid=mgrid, quick=quick)
 
 
 def listing_page(kind):
@@ -4915,29 +5198,33 @@ def listing_page(kind):
         head_ic = "👕"
     prods = [p for p in cfg.PRODUCTS if not p.get("hidden") and p["kind"] == kind]
     grid = "".join(product_card(p) for p in prods)
+    query = request.args.get("q", "").strip()
     search_bar = (
         '<div class="list-search rv">'
         '<div class="ls-head"><span class="ls-ic">{ic}</span><div><h1>{t}</h1><p>{s}</p></div></div>'
         '<div class="ls-box">'
-        '<input id="sq2" placeholder="{ph}" onkeydown="if(event.key===\'Enter\')applyFilters()">'
+        '<input id="sq2" value="{q}" placeholder="{ph}" onkeydown="if(event.key===\'Enter\')applyFilters()">'
         '<button class="btn pri" onclick="applyFilters()">🔍 {go}</button>'
         '<button class="btn ghost" onclick="openModal(\'m-imgsearch\')">🖼️ {is_}</button>'
         '</div>'
         '</div>'
-        ).format(ic=head_ic, t=title, s=sub, ph=d["search_ph"], go=d["search_ph"], is_=d["is_title"])
+        ).format(ic=head_ic, t=title, s=sub, q=esc(query), ph=d["search_ph"], go=d["search_ph"], is_=d["is_title"])
     body = (atmos_html("light")
             + '<div class="wrap">'
             + ads_html("products")
             + search_bar
-            + shop_section_html(grid, "gridL")
+            + shop_section_html(grid, "gridL", kind)
             + '<div style="text-align:center;margin-top:26px"><a class="back" href="/home">← {b}</a></div>'
             '</div>'
             ).format(b=d["back"])
-    return base_page(body, active=("mugs" if kind == "mug" else "products"))
+    active = "mugs" if kind == "mug" else "products"
+    page_js = "<script>document.addEventListener('DOMContentLoaded',function(){%s});</script>" % ("applyFilters();" if query else "")
+    return base_page(body, active=active, page_js=page_js,
+                     page_title=(title + " | GOLAZOX"), page_description=sub)
 
 
 def size_guide_premium():
-    """Premium dark stadium size guide with calculator — Asian Fit."""
+    """Premium size guide for the supplier's Fan Version jersey measurements."""
     en = lang() == "en"
     d = cfg.L[lang()]
     size_chart_json = json_d(cfg.SIZE_CHART)
@@ -4949,28 +5236,26 @@ def size_guide_premium():
                           "club": p.get("club_id", ""), "badges": p.get("badges", [])} for p in prods[:12]])
 
     trust_items = [
-        ("💬", d.get("sg_trust_support_t", "دعم 24/7"), d.get("sg_trust_support_d", "خدمتك في أي وقت")),
-        ("🔄", d.get("sg_trust_exchange_t", "سهولة الاستبدال"), d.get("sg_trust_exchange_d", "استبدال سهل في حال عدم المقاس")),
-        ("✅", d.get("sg_trust_quality_t", "راحة وجودة"), d.get("sg_trust_quality_d", "جودة عالية وخامات مريحة")),
-        ("📐", d.get("sg_trust_sizes_t", "جميع المقاسات أصلية"), d.get("sg_trust_sizes_d", "منتجات بمقاسات واضحة ومعتمدة")),
+        ("💬", "تواصل عبر واتساب" if not en else "WhatsApp contact", "للاستفسارات والطلبات" if not en else "For questions and orders"),
+        ("↔️", "اختيار القصة" if not en else "Fit preference", "اختر الأضيق أو الأوسع عند التردد" if not en else "Choose tighter or looser when between sizes"),
+        ("📏", "قياسات القطعة" if not en else "Garment measurements", "العرض والطول بالسنتيمتر" if not en else "Width and length in centimetres"),
+        ("📚", "جدول بمراجع" if not en else "Referenced chart", "الأرقام مرتبطة بمصدرها المباشر" if not en else "Numbers linked to their direct source"),
     ]
     trust_html = "".join(
         '<div class="sg-trust-item"><span class="sg-trust-ic">{ic}</span>'
         '<div><b>{t}</b><span>{x}</span></div></div>'.format(ic=ic, t=t, x=x)
         for ic, t, x in trust_items)
 
-    asian_note_ar = ("ملاحظة: مقاسات GOLAZOX تعتمد على الـ Asian Fit، وقد تكون أصغر من المقاسات المعتادة في بعض الدول. "
-                     "استخدم الجدول والحاسبة كمرجع مساعد لاختيار المقاس الأقرب لك. "
-                     "وللاحتياط، إذا كنت مترددًا بين مقاسين، ننصح باختيار المقاس الأكبر، "
-                     "خصوصًا إذا كنت تفضل لبسًا أكثر راحة واتساعًا.")
-    asian_note_en = ("Note: GOLAZOX sizes are based on Asian Fit and may run smaller than standard sizes in some regions. "
-                     "Use the chart and calculator as a guide to find your closest size. "
-                     "If you're between sizes, we recommend sizing up, "
-                     "especially if you prefer a more relaxed or looser fit.")
-    disclaimer_ar = "⚠️ المقاس المقترح تقديری وقد يختلف حسب شكل الجسم وطريقة اللبس."
-    disclaimer_en = "⚠️ The suggested size is an estimate and may vary depending on body shape and fit preference."
-    between_ar = "أنت بين مقاسين. للاحتياط، ننصح باختيار المقاس الأكبر {sz}، خصوصًا إذا كنت تفضل لبسًا مريحًا أو أوسع."
-    between_en = "You're between sizes. We recommend sizing up to {sz} for a more comfortable fit."
+    asian_note_ar = ("هذا الجدول مخصص لقمصان Fan Version التي يصفها المورّد بأنها Asian Fit. "
+                     "لا يوجد مقاس آسيوي موحّد لكل الشركات؛ لذلك تم ربط الأرقام بمصدرها المباشر. "
+                     "الحاسبة تعرض أقرب مقاس متوفر، والأدق أن تقارن عرض وطول تيشيرت مناسب لك بالجدول.")
+    asian_note_en = ("This chart is for Fan Version jerseys described by the supplier as Asian Fit. "
+                     "There is no single Asian size shared by every manufacturer, so the numbers are linked to their direct source. "
+                     "The calculator shows the closest available size; comparing a well-fitting shirt's width and length is more reliable.")
+    disclaimer_ar = "⚠️ توصية استرشادية وليست ضمانًا للملاءمة؛ قد تختلف القصة بين الموديلات."
+    disclaimer_en = "⚠️ Guidance only, not a fit guarantee; the cut can vary by model."
+    between_ar = "أنت قريب من مقاسين. اختر {sz} لقصة أوسع، أو المقاس الأصغر لقصة أضيق."
+    between_en = "You're close to two sizes. Choose {sz} for a looser fit, or the smaller size for a tighter fit."
 
     body = (
         '<div class="sg-page">'
@@ -4979,27 +5264,38 @@ def size_guide_premium():
         '<div class="sg-hero-visual"><span class="sg-hero-jersey">👕</span>'
         '<span class="sg-hero-glow"></span></div>'
         '<div class="sg-hero-text">'
-        '<h1><span class="sg-green">{title_word}</span> — Asian Fit</h1>'
+        '<h1><span class="sg-green">{title_word}</span> — Fan Version</h1>'
         '<p>{sub}</p></div></div></div>'
         '<div class="wrap sg-wrap">'
         # Asian Fit disclaimer banner
         '<div class="sg-asian-note">{asian_note}</div>'
+        '<div class="sg-size-sources"><h3>{sources_title}</h3><p>{sources_note}</p>'
+        '<div class="sg-source-links">'
+        '<a href="https://www.gakits.com/Size-Chartsize-n2086868.html" target="_blank" rel="noopener noreferrer">{source_chart} ↗</a>'
+        '<a href="https://www.iso.org/standard/61686.html" target="_blank" rel="noopener noreferrer">ISO 8559-1 ↗</a>'
+        '<a href="https://www.iso.org/standard/85590.html" target="_blank" rel="noopener noreferrer">ISO 8559-2:2025 ↗</a>'
+        '<a href="https://www.nike.com/size-fit/nba-wnba-jerseys" target="_blank" rel="noopener noreferrer">{source_fit} ↗</a>'
+        '</div></div>'
         '<div class="sg-calc-card" id="sgCalcCard">'
         '<div class="sg-calc-header"><h2>{calc_title} 👕</h2><p>{calc_sub}</p></div>'
-        '<div class="sg-calc-inputs">'
-        '<div class="sg-field"><label>{height_lbl}</label>'
-        '<div class="sg-input-wrap"><input type="number" id="sgHeight" placeholder="170" min="140" max="220">'
+        '<div class="sg-calc-inputs sg-calc-inputs-3">'
+        '<div class="sg-field"><label for="sgHeight">{height_lbl}</label>'
+        '<div class="sg-input-wrap"><input type="number" id="sgHeight" placeholder="170" min="140" max="220" inputmode="decimal">'
         '<span class="sg-unit">{cm}</span></div></div>'
-        '<div class="sg-field"><label>{weight_lbl}</label>'
-        '<div class="sg-input-wrap"><input type="number" id="sgWeight" placeholder="70" min="30" max="200">'
-        '<span class="sg-unit">{kg}</span></div></div></div>'
+        '<div class="sg-field"><label for="sgWeight">{weight_lbl}</label>'
+        '<div class="sg-input-wrap"><input type="number" id="sgWeight" placeholder="70" min="30" max="200" inputmode="decimal">'
+        '<span class="sg-unit">{kg}</span></div></div>'
+        '<div class="sg-field"><label for="sgChest">{chest_lbl}</label>'
+        '<div class="sg-input-wrap"><input type="number" id="sgChest" placeholder="52" min="35" max="80" inputmode="decimal">'
+        '<span class="sg-unit">{cm}</span></div></div></div>'
         '<button class="btn pri big sg-calc-btn" onclick="sgCalc()">{calc_btn} ⚽</button>'
         '<div class="sg-result" id="sgResult" style="display:none">'
         '<div class="sg-result-size" id="sgResultSize">M</div>'
         '<div class="sg-result-label">{result_label}</div>'
         '<div class="sg-result-details">'
         '<div class="sg-rdetail"><span>{weight_lbl}</span><b id="sgRWeight">70 {kg}</b></div>'
-        '<div class="sg-rdetail"><span>{height_lbl}</span><b id="sgRHeight">170 {cm}</b></div></div>'
+        '<div class="sg-rdetail"><span>{height_lbl}</span><b id="sgRHeight">170 {cm}</b></div>'
+        '<div class="sg-rdetail" id="sgRChestWrap" style="display:none"><span>{chest_result_lbl}</span><b id="sgRChest">52 {cm}</b></div></div>'
         '<div class="sg-result-badge">✓ {result_badge}</div>'
         '<div class="sg-disclaimer">{disclaimer}</div></div>'
         '<div class="sg-adjacent" id="sgAdjacent" style="display:none">'
@@ -5007,7 +5303,7 @@ def size_guide_premium():
         '<div class="sg-adj-cards" id="sgAdjCards"></div></div>'
         '<div class="sg-table-section">'
         '<h3>{table_title}</h3>'
-        '{table}</div></div>'
+        '<div class="sg-table-scroll" role="region" aria-label="{table_aria}" tabindex="0">{table}</div></div></div>'
         '<div class="sg-products" id="sgProducts" style="display:none">'
         '<div class="sec-head"><h2><span class="bar"></span>{prod_title} <span id="sgProdSize"></span></h2></div>'
         '<div class="grid" id="sgProdGrid"></div>'
@@ -5018,78 +5314,93 @@ def size_guide_premium():
         title_word=d.get("sg_hero_t2", "المقاسات"),
         sub=d.get("sg_hero_sub", "اعثر على المقاس المثالي لك"),
         asian_note=asian_note_ar if not en else asian_note_en,
+        sources_title="مصادر جدول المقاسات" if not en else "Size chart sources",
+        sources_note=("المصدر الأول يطابق أرقام Fan Version من S إلى 3XL، ومراجع ISO توضّح منهج قياسات الجسم وتصنيف مقاسات الملابس." if not en else "The first source matches the Fan Version numbers from S to 3XL; the ISO references cover body measurements and clothing size designation."),
+        source_chart="المصدر المباشر لأرقام Fan Version" if not en else "Direct source for Fan Version numbers",
+        source_fit="Nike — القياس والاختيار بين مقاسين" if not en else "Nike — measuring and between-size guidance",
         calc_title=d.get("sg_calc_title", "وش مقاسك؟"),
-        calc_sub="أدخل طولك ووزنك، ونقترح لك المقاس الأقرب لك",
+        calc_sub=("أدخل طولك ووزنك، وللدقة أضف عرض تيشيرت مناسب لك" if not en else "Enter your height and weight; for better accuracy, add the width of a shirt that fits you"),
         height_lbl=d.get("sg_height", "الطول"),
         weight_lbl=d.get("sg_weight", "الوزن"),
+        chest_lbl="عرض تيشيرت مناسب (اختياري)" if not en else "Well-fitting shirt width (optional)",
+        chest_result_lbl="عرض التيشيرت المرجعي" if not en else "Reference shirt width",
         cm=d.get("szt_cm", "سم"), kg=d.get("szt_kg", "كجم"),
         calc_btn=d.get("sg_calc_btn", "اعرف مقاسي"),
         result_label="المقاس المقترح لك" if not en else "Suggested Size",
         result_badge="توصية تقديرية — للمساعدة فقط" if not en else "Estimate — for guidance only",
         disclaimer=disclaimer_ar if not en else disclaimer_en,
         adj_title=d.get("sg_adj_title", "بين مقاسين؟"),
-        table_title="جدول المقاسات — Asian Fit" if not en else "Size Chart — Asian Fit",
+        table_title="جدول القمصان — Fan Version (وصف المورد: Asian Fit)" if not en else "Jersey Chart — Fan Version (supplier description: Asian Fit)",
+        table_aria="جدول مقاسات Fan Version" if not en else "Fan Version size chart",
         table=size_table_html(cfg.SIZE_CHART),
         prod_title=d.get("sg_prod_title", "منتجات تناسب مقاسك"),
         prod_all=d.get("view_all", "عرض الكل"),
         trust=trust_html,
     )
     page_js = '<script>\nvar SG_CHART=' + size_chart_json + ';\nvar SG_ORDER=' + size_order_json + ';\nvar SG_PRODS=' + prods_json + ';\nvar SG_CM=\'' + d.get("szt_cm", "سم") + '\';\nvar SG_KG=\'' + d.get("szt_kg", "كجم") + '\';\nvar SG_CUR=\'' + cur() + '\';\nvar SG_BETWEEN=' + json_d({"ar": between_ar, "en": between_en}) + ';\nvar SG_LANG=\'' + ("en" if en else "ar") + '\';\n' + r"""
-function sgSizeFromHW(h,w){
-  if(!h||!w) return null;
-  var best=null,bestDist=9999,bestSz=null;
-  SG_ORDER.forEach(function(sz){
-    var c=SG_CHART[sz]; if(!c) return;
-    var hw=c.height.split('\u2013');
-    var ww=c.weight.split('\u2013');
-    var hMin=parseFloat(hw[0])||0,hMax=parseFloat(hw[1])||999;
-    var wMin=parseFloat(ww[0])||0,wMax=parseFloat(ww[1])||999;
-    var hMid=(hMin+hMax)/2, wMid=(wMin+wMax)/2;
-    var dist=Math.abs(h-hMid)*0.6+Math.abs(w-wMid)*0.4;
-    if(dist<bestDist){bestDist=dist;best=sz;}
+function sgParseRange(v){
+  var p=String(v||'').trim().split(/[\u2013\u2014-]/).map(Number);
+  return p.length>1?[p[0],p[1]]:[p[0],p[0]];
+}
+function sgRangeGap(v,lo,hi){
+  if(v>=lo&&v<=hi)return 0;
+  return v<lo?(lo-v)/Math.max(1,hi-lo):(v-hi)/Math.max(1,hi-lo);
+}
+function sgSizeFromHW(h,w,cw){
+  if(!cw&&(!h||!w))return null;
+  var ranked=[];
+  SG_ORDER.forEach(function(sz,idx){
+    var c=SG_CHART[sz];if(!c)return;
+    var hr=sgParseRange(c.height),wr=sgParseRange(c.weight),cr=sgParseRange(c.width);
+    if(!hr[0]||!wr[0]||!cr[0])return;
+    var hGap=h?sgRangeGap(h,hr[0],hr[1]):0;
+    var wGap=w?sgRangeGap(w,wr[0],wr[1]):0;
+    var cGap=cw?sgRangeGap(cw,cr[0],cr[1]):0;
+    var centreHW=(h?Math.abs(h-(hr[0]+hr[1])/2)/Math.max(1,hr[1]-hr[0]):0)
+      +(w?Math.abs(w-(wr[0]+wr[1])/2)/Math.max(1,wr[1]-wr[0]):0);
+    var centreC=cw?Math.abs(cw-(cr[0]+cr[1])/2)/Math.max(1,cr[1]-cr[0]):0;
+    var score=cw?(cGap*.82+hGap*.10+wGap*.08)+(centreC*.012+centreHW*.002)
+                :(hGap*.55+wGap*.45)+(centreHW*.01);
+    var exact=cw?(cGap===0&&(!h||hGap===0)&&(!w||wGap===0)):(hGap===0&&wGap===0);
+    ranked.push({size:sz,index:idx,exact:exact,score:score});
   });
-  var idx=SG_ORDER.indexOf(best);
-  var prev=(idx>0)?SG_ORDER[idx-1]:null;
-  var prevDist=9999;
-  if(prev){
-    var c2=SG_CHART[prev];if(c2){
-      var hw2=c2.height.split('\u2013');var ww2=c2.weight.split('\u2013');
-      var hMid2=(parseFloat(hw2[0])+parseFloat(hw2[1]))/2;
-      var wMid2=(parseFloat(ww2[0])+parseFloat(ww2[1]))/2;
-      prevDist=Math.abs(h-hMid2)*0.6+Math.abs(w-wMid2)*0.4;
-    }
-  }
-  var between=(prev && bestDist-prevDist<1.2 && prevDist<bestDist*1.1);
-  return {size:best, between:between, lower:prev};
+  ranked.sort(function(a,b){return a.score-b.score||a.index-b.index;});
+  if(!ranked.length)return null;
+  return {size:ranked[0].size,exact:ranked[0].exact,between:!!(ranked[1]&&Math.abs(ranked[1].score-ranked[0].score)<.12)};
 }
 function sgCalc(){
   var h=parseFloat(($('sgHeight')||{}).value)||0;
   var w=parseFloat(($('sgWeight')||{}).value)||0;
-  if(!h||!w){toast('\u0623\u062f\u062e\u0644 \u0627\u0644\u0637\u0648\u0644 \u0648\u0627\u0644\u0648\u0632\u0646');return;}
-  var result=sgSizeFromHW(h,w);
-  if(!result||!result.size){toast('\u062a\u062d\u0642\u0642 \u0645\u0646 \u0627\u0644\u0642\u064a\u0645');return;}
+  var cw=parseFloat(($('sgChest')||{}).value)||0;
+  if(!cw&&(!h||!w)){toast(SG_LANG==='ar'?'\u0623\u062f\u062e\u0644 \u0627\u0644\u0637\u0648\u0644 \u0648\u0627\u0644\u0648\u0632\u0646\u060c \u0623\u0648 \u0623\u0636\u0641 \u0639\u0631\u0636 \u062a\u064a\u0634\u064a\u0631\u062a \u0645\u0646\u0627\u0633\u0628':'Enter height and weight, or add a well-fitting shirt width');return;}
+  var result=sgSizeFromHW(h,w,cw);
+  if(!result||!result.size){toast(SG_LANG==='ar'?'\u062a\u062d\u0642\u0642 \u0645\u0646 \u0627\u0644\u0642\u064a\u0645':'Check the entered values');return;}
   var sz=result.size;
   var res=$('sgResult');if(res) res.style.display='block';
   var szEl=$('sgResultSize');if(szEl){szEl.textContent=sz;szEl.className='sg-result-size sg-pop';}
-  var wEl=$('sgRWeight');if(wEl) wEl.textContent=w+' '+SG_KG;
-  var hEl=$('sgRHeight');if(hEl) hEl.textContent=h+' '+SG_CM;
+  var wEl=$('sgRWeight');if(wEl) wEl.textContent=w?w+' '+SG_KG:'\u2014';
+  var hEl=$('sgRHeight');if(hEl) hEl.textContent=h?h+' '+SG_CM:'\u2014';
+  var cWrap=$('sgRChestWrap'),cEl=$('sgRChest');
+  if(cWrap)cWrap.style.display=cw?'flex':'none';if(cEl&&cw)cEl.textContent=cw+' '+SG_CM;
   var idx=SG_ORDER.indexOf(sz);
   var adj=[];
-  if(idx>0) adj.push({sz:SG_ORDER[idx-1],label:SG_LANG==='ar'?'\u0623\u0648\u0633\u0639 \u0642\u0644\u064a\u0644\u064b\u0627':'Smaller'});
-  if(idx<SG_ORDER.length-1) adj.push({sz:SG_ORDER[idx+1],label:SG_LANG==='ar'?'\u0627\u0644\u0645\u0642\u0627\u0633 \u0627\u0644\u0623\u0642\u0631\u0628':'Larger'});
+  if(idx>0) adj.push({sz:SG_ORDER[idx-1],label:SG_LANG==='ar'?'\u0623\u0635\u063a\u0631 \u0642\u0644\u064a\u0644\u064b\u0627':'Smaller'});
+  if(idx<SG_ORDER.length-1) adj.push({sz:SG_ORDER[idx+1],label:SG_LANG==='ar'?'\u0623\u0643\u0628\u0631 \u0642\u0644\u064a\u0644\u064b\u0627':'Larger'});
   var adjBox=$('sgAdjacent');var adjCards=$('sgAdjCards');
   var adjAdvice=$('sgAdjAdvice');
   if(adjBox&&adjCards&&adj.length){
     adjBox.style.display='block';
     if(adjAdvice){
-      if(result.between){
-        adjAdvice.textContent=SG_BETWEEN[SG_LANG].replace('{sz}',adj[adj.length-1].sz);
+      if(result.between&&idx<SG_ORDER.length-1){
+        adjAdvice.textContent=SG_BETWEEN[SG_LANG].replace('{sz}',SG_ORDER[idx+1]);
+      } else if(!result.exact){
+        adjAdvice.textContent=SG_LANG==='ar'?'هذا أقرب مقاس متوفر، لكن بعض قياساتك خارج نطاقه؛ قارن عرض وطول التيشيرت قبل الطلب.':'This is the closest available size, but some measurements are outside its range; compare jersey width and length before ordering.';
       } else {
-        adjAdvice.textContent=SG_LANG==='ar'?'أنت بين مقاسين، اختر الأنسب لك':'Choose the size that fits you best';
+        adjAdvice.textContent=SG_LANG==='ar'?'قارن عرض وطول التيشيرت لتأكيد الاختيار.':'Compare jersey width and length to confirm your choice.';
       }
     }
     adjCards.innerHTML=adj.map(function(a){
-      return '<div class="sg-adj-card'+(a.label.indexOf('\u0627\u0644\u0623\u0642\u0631\u0628')>-1||a.label==='Larger'?' on':'')+'">'
+      return '<div class="sg-adj-card'+(a.label.indexOf('\u0623\u0643\u0628\u0631')>-1||a.label==='Larger'?' on':'')+'">'
         +'<div class="sg-adj-sz">'+a.sz+'</div>'
         +'<div class="sg-adj-lbl">'+a.label+'</div></div>';
     }).join('');
@@ -5111,7 +5422,8 @@ function sgCalc(){
   if(res) res.scrollIntoView({behavior:'smooth',block:'center'});
 }
 </script>"""
-    return base_page(body, page_js=page_js, active="sizes")
+    return base_page(body, page_js=page_js, active="sizes",
+                     page_title=d["szp_title"] + " | GOLAZOX", page_description=d["szp_sub"])
 
 
 def info_page(kind):
@@ -5171,7 +5483,8 @@ def info_page(kind):
             '<div class="content-card">{inner}</div>'
             '<div style="text-align:center;margin-top:26px"><a class="back" href="/home">← {b}</a></div>'
             '</div>').format(t=title, s=sub, inner=inner, b=d["back"])
-    return base_page(body, active=("sizes" if kind == "size" else ""))
+    active = "sizes" if kind == "size" else ""
+    return base_page(body, active=active, page_title=title + " | GOLAZOX", page_description=sub)
 
 
 def cart_page():
@@ -5181,7 +5494,8 @@ def cart_page():
             '<div style="text-align:center;margin-top:26px"><a class="back" href="/home">← {b}</a></div>'
             '</div>').format(t=d["cart_page_title"], s=d["cart_page_sub"], b=d["back"])
     js = "<script>document.addEventListener('DOMContentLoaded',function(){ renderCartPage(); });</script>"
-    return base_page(body, page_js=js, active="")
+    return base_page(body, page_js=js, active="cart",
+                     page_title=d["cart_page_title"] + " | GOLAZOX", page_description=d["cart_page_sub"])
 
 
 def fav_page():
@@ -5201,8 +5515,10 @@ def fav_page():
              '</div>').format(b=d["back"])
     if not me:
         js = "<script>document.addEventListener('DOMContentLoaded',function(){ renderFavPageGuest(); });</script>"
-        return base_page(body, page_js=js)
-    return base_page(body)
+        return base_page(body, page_js=js, page_title=d["fav_page_title"] + " | GOLAZOX",
+                         page_description=d["fav_page_sub"])
+    return base_page(body, page_title=d["fav_page_title"] + " | GOLAZOX",
+                     page_description=d["fav_page_sub"])
 
 
 def club_page(cid):
@@ -5239,7 +5555,8 @@ def club_page(cid):
             + '</div>').format(ac=ac, ac2=ac2, em=c.get("emoji", "⚽"), name=name,
                                shop=d["club_shop"], b=d["back"], pt=d["club_products"],
                                n=len(prods), p=d["club_items_label"], grid=grid)
-    return base_page(body, extra_club=cid)
+    return base_page(body, active="clubs", extra_club=cid,
+                     page_title=name + " | GOLAZOX", page_description=d["club_shop"] + " — " + name)
 
 
 def blocked_page():
@@ -5278,11 +5595,17 @@ def product_card(p):
     clubn_ar = (club and club.get("ar")) or ""
     clubn_en = (club and club.get("en")) or ""
     th = club_themes().get(club_id, {}) if club_id else {}
-    pc = th.get("ac", "#E11D48"); pc2 = th.get("ac2", "#F97316")
-    first = p["imgs"][0]
+    pc = safe_css_hex(th.get("ac", "#E11D48"), "#E11D48")
+    pc2 = safe_css_hex(th.get("ac2", "#F97316"), "#F97316")
+    color_values = [safe_css_hex(c, "#94A3B8") for c in (p.get("colors") or [])[:2]]
+    if not color_values:
+        color_values = ["#E2E8F0", "#94A3B8"]
+    elif len(color_values) == 1:
+        color_values.append(color_values[0])
+    first = str((p.get("imgs") or [""])[0])
     order = next((i for i, x in enumerate(cfg.PRODUCTS) if x["id"] == p["id"]), 0)
     b_csv = ",".join(p.get("badges", []))
-    ncol = nearest_color(p["colors"][0])
+    ncol = nearest_color(color_values[0])
     if p["kind"] == "mug":
         sizes_row = ""
     else:
@@ -5290,7 +5613,7 @@ def product_card(p):
             ('<span class="sz-pill%s">%s</span>' % (" oos" if stock.get(sz, 0) <= 0 else "", sz))
             for sz in cfg.SIZE_ORDER[:5])
         sizes_row = '<div class="sizes-row">{pills}</div>'.format(pills=pills)
-    pdots = "".join('<span class="pdot" style="background:%s"></span>' % c for c in p["colors"])
+    pdots = "".join('<span class="pdot" style="background:%s"></span>' % c for c in color_values)
     searchable = " ".join(filter(None, [
         p.get("name_ar", ""), p.get("name_en", ""),
         clubn_ar, clubn_en,
@@ -5313,10 +5636,10 @@ def product_card(p):
         '{sizes_row}'
         '<div class="pcols">{pdots}</div>'
         '<div class="pfoot"><b>{pr}</b><a class="pview" href="/product/{id}">{view} ←</a></div></div></div></div>'
-    ).format(id=p["id"], kind=p["kind"], cid=club_id, cn=clubn.replace('"', "&quot;"), search=searchable,
-             csv=stock_csv, price=eff_price(p), name=name.replace('"', "&quot;"), badges=badges_html,
+    ).format(id=esc(p["id"]), kind=esc(p["kind"]), cid=esc(club_id), cn=esc(clubn), search=esc(searchable),
+             csv=esc(stock_csv), price=eff_price(p), name=esc(name), badges=badges_html,
              on="on" if fav else "", h="❤" if fav else "🤍",
-             c1=p["colors"][0], c2=p["colors"][1], first=first, cat=cat, pr=pr, view=d["view"], low=low,
+             c1=color_values[0], c2=color_values[1], first=esc(first), cat=cat, pr=pr, view=d["view"], low=low,
              order=order, bcsv=b_csv, ncol=ncol, sizes_row=sizes_row, pdots=pdots,
              pc=pc, pc2=pc2, edition=edition_html)
 
@@ -5329,7 +5652,8 @@ def gx_fav_marker(pid):
 
 
 def esc(s):
-    return (s or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    return (str(s or "").replace("&", "&amp;").replace("<", "&lt;")
+            .replace(">", "&gt;").replace('"', "&quot;").replace("'", "&#39;"))
 
 
 def product_body(pid):
@@ -5346,6 +5670,26 @@ def product_body(pid):
     club_id = (p.get("club_id") or "")
     stock = eff_stock(p)
     avail_total = sum(stock.values())
+    description = p.get("desc_en" if en else "desc_ar", "")
+    season = "2025/2026" if "2025/2026" in description else ("Not specified" if en else "غير محدد")
+    version = ("Fan Version" if en else "Fan Version — حسب وصف المنتج") if not is_mug else ("Sports mug" if en else "كوب رياضي")
+    material = ("Light sports fabric" if en else "خامة رياضية خفيفة") if not is_mug else ("Ceramic" if en else "سيراميك")
+    measurements = ("See the actual length and width in the size guide" if en else "راجع الطول والعرض الفعليين في دليل المقاسات") if not is_mug else ("One size — no clothing size" if en else "مقاس موحد — لا يحتاج مقاس ملابس")
+    product_details = (
+        '<div class="product-details"><p class="pdesc">{desc}</p>'
+        '<div class="product-facts">'
+        '<span><b>{version_lbl}</b>{version}</span>'
+        '<span><b>{material_lbl}</b>{material}</span>'
+        '<span><b>{season_lbl}</b>{season}</span>'
+        '<span><b>{measure_lbl}</b>{measurements}</span>'
+        '<span><b>{included_lbl}</b>{included}</span>'
+        '</div></div>'
+    ).format(desc=esc(description), version_lbl=("Version: " if en else "النسخة: "), version=esc(version),
+             material_lbl=("Material: " if en else "الخامة: "), material=esc(material),
+             season_lbl=("Season: " if en else "الموسم: "), season=esc(season),
+             measure_lbl=("Measurements: " if en else "القياسات: "), measurements=esc(measurements),
+             included_lbl=("Includes: " if en else "يشمل الطلب: "),
+             included=("Selected item and size; delivery is confirmed before ordering" if en else "القطعة والمقاس المختاران؛ يتم تأكيد التوصيل قبل الطلب"))
 
     arr = json_d(p["imgs"])
     gthumbs = "".join("<img src='/img/{s}' class='{c}' onclick='setGal({i},GARR)' alt=''>".format(
@@ -5374,9 +5718,9 @@ def product_body(pid):
                       "{x}</button>").format(s=(" oos" if oos else ""), o=on, sz=sz,
                                              x="<span class='xs'>×</span>" if oos else "")
         sizes = ('<div class="szsec"><div class="lbl"><span>{sl}</span>'
-                 '<span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="szlink" onclick="openModal(\'m-sizes\')">📏 {sg}</span><span class="szlink" onclick="openModal(\'m-fitcheck\')">✨ Fit Check</span></span></div>'
+                 '<span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="szlink" onclick="openModal(\'m-sizes\')">📏 {sg}</span><span class="szlink" onclick="openModal(\'m-fitcheck\')">✨ {fitcheck}</span></span></div>'
                  '<div class="sizes">{chips}</div>{note}</div>').format(
-            sl=d["size_label"], sg=d["size_guide"], chips=chips,
+            sl=d["size_label"], sg=d["size_guide"], fitcheck=("Size check" if en else "تحقق من مقاسك"), chips=chips,
             note=('<p class="mnote sz-note">' + (prev_note or d["saved_size"].format(sz=my_sz)) + '</p>') if (prev_note or my_sz) else "")
 
     trust = ""
@@ -5403,6 +5747,7 @@ def product_body(pid):
                   '<button class="nb-btn" onclick="notifyModal(\'{id}\',\'{sz}\')">{btn}</button></p></div>'
                   ).format(id=p["id"], sz=first_oos, btn=d["notify_me"])
 
+    approved_reviews = db.reviews_list(p["id"], "approved")
     ratings = ""
     dim_rows = "".join(
         ('<div class="rv2-row"><span class="rv2-lbl">{lbl}</span><div class="stars-in" data-dim="{dm}">'
@@ -5431,11 +5776,15 @@ def product_body(pid):
                '<label style="display:flex;gap:8px;align-items:flex-start;font-size:.82rem;color:var(--mut);margin-bottom:12px">'
                '<input id="rat_consent" type="checkbox" style="margin-top:3px"> {consent}</label>'
                '<button class="btn pri" onclick="submitReview(\'{id}\')">{btn}</button></div>'
-               '<div class="photos-sec"><div class="sec-head"><h2><span class="bar"></span>{p}</h2></div>'
-               '<div id="custPhotos"></div></div></div>'
+               '{photos_block}</div>'
                ).format(t=d["rat_title"], w=d["rat_write"], n=d["rat_name"], fq=d["rv2_fit_q"],
                         c=d["rat_comment"], exp=d["rv2_exp"], ph=d["rat_photo"], consent=d["rv2_photo_ok"],
-                        btn=d["rat_submit"], p=d["customers_photos"], id=p["id"])
+                        btn=d["rat_submit"], id=p["id"], photos_block=(
+                            '<div class="photos-sec"><div class="sec-head"><h2><span class="bar"></span>{p}</h2></div>'
+                            '<div id="custPhotos"></div></div>'.format(p=d["customers_photos"])
+                            if any(r.get("photo") for r in approved_reviews) else ""))
+    if not approved_reviews:
+        ratings = ""
 
     yml = ""
     others = [x for x in cfg.PRODUCTS if x["id"] != p["id"]]
@@ -5565,7 +5914,7 @@ def product_body(pid):
             reveal_btn=d.get("je_reveal_btn", "REVEAL") if en else "كشف",
             club_tag=cfg.club_name(p, en).upper(),
             locker_t=d.get("je_locker_t", "Locker Room") if en else "غرفة تبديل الملابس",
-            locker_sub=d.get("je_locker_sub", "Your jersey, your spot") if en else "قمصك، مكانك",
+            locker_sub=d.get("je_locker_sub", "Your jersey, your spot") if en else "قميصك، مكانك",
             t_shelf1=d.get("je_shelf1", "Match Ball") if en else "كرة المباراة",
             t_shelf2=d.get("je_shelf2", "Boots") if en else "الحذاء",
             t_shelf3=d.get("je_shelf3", "Gloves") if en else "القفازات",
@@ -5588,13 +5937,13 @@ def product_body(pid):
         '{gal_nav}</div>'
         '{thumbs_block}'
         '<p class="zoom-hint">🔍 {zh}</p></div>'
-        '<div class="pinfo">{team_label}<h1>{name}</h1><p class="pcatline">{cat}</p>'
+        '<div class="pinfo">{team_label}<h1>{name}</h1><p class="pcatline">{cat}</p>{details}'
         '<div class="pprice">{pr}</div>{trust}{trust_info}'
         '{sizes}'
         '<div class="qtysec"><div class="lbl">{ql}</div>'
         '<div class="qty"><button onclick="chgQ(-1)">−</button><span class="qn" id="qty">1</span><button onclick="chgQ(1)">+</button></div></div>'
-        '{matchday_btn}'
         '<button class="btn pri orderbtn" onclick="var q=parseInt(document.getElementById(\'qty\').textContent,10);addCart(\'{id}\',selSize||\'\',q)">🛒 {add}</button>'
+        '{matchday_btn}'
         '<button class="btn wa orderbtn" style="margin-top:10px" onclick="orderDirect(\'{id}\')">💬 {ow}</button>'
         '<button class="btn ghost orderbtn" style="margin-top:10px" onclick="openPriceDrop(\'{id}\')">🔔 {pd}</button>'
         '{notify}'
@@ -5608,7 +5957,7 @@ def product_body(pid):
         '{ratings}{yml}'
         '</div>'
     ).format(back=d["back"], first=p["imgs"][0], name=name, gal_nav=gal_nav, thumbs_block=thumbs_block,
-             gthumbs=gthumbs, zh=d["zoom_hint"], cat=cat, pr=pr, trust=trust, trust_info=trust_info,
+             gthumbs=gthumbs, zh=d["zoom_hint"], cat=cat, details=product_details, pr=pr, trust=trust, trust_info=trust_info,
              sizes=sizes, ql=d["qty_label"], id=p["id"], add=d["add"], ow=d["order_wa"],
              pd=d["pd_title"],
              notify=notify, a=d["prod_links_sz"], b=d["prod_links_wash"], c=d["prod_links_ret"],
@@ -5639,7 +5988,7 @@ function orderDirect(pid){
       msg+='\\n'+gxT('qty_w')+q+' · '+pmoney(p.price*q)+' '+GX.cur+'\\n\\n'+gxT('code_w')+dd.code;
       window.open('https://wa.me/message/KZFSQ7ONXMY2M1?text='+encodeURIComponent(msg),'_blank');
       location.href='/order/success?code='+dd.code;
-    }
+    } else { toast(dd.error==='stock'?gxT('stock_error'):gxT('order_error')); }
   });
 }
 </script>"""
@@ -5677,7 +6026,8 @@ def login_page():
             '<p style="text-align:center;margin-top:20px"><a class="back" href="/home">← {b}</a></p>'
             '</div>'
             ).format(t=d["auth_title"], g=d["acc_guest"], b=d["back"])
-    return base_page(body)
+    return base_page(body, active="login", page_title=d["login_page_title"] + " | GOLAZOX",
+                     page_description=d["login_page_sub"])
 
 
 def account_page():
@@ -6017,7 +6367,8 @@ def account_page():
         sizes=sizes_html, data=data_html, notifs=n_html,
         logout=d.get("ac_logout", "Logout")
     )
-    return base_page(body)
+    return base_page(body, page_title=d["acc_title"] + " | GOLAZOX",
+                     page_description=d["acc_welcome"])
 
 
 def enter_page():
@@ -6183,7 +6534,9 @@ def penalty_page(code):
     if not practice:
         o = db.order_get(code)
         if not o:
-            return base_page('<div class="wrap"><h2>404</h2></div>')
+            return base_page('<div class="wrap"><h2>404</h2></div>',
+                             page_title=d["pen_title"] + " | GOLAZOX",
+                             page_description=d["pen_sub"])
     zones = "".join(
         ("<button class='pen-zone' data-z='{z}' style='left:calc(50% {dx});top:{dy}px' onclick='penShoot(this)'>{lb}</button>"
          ).format(z=z, dx=("+ 110px" if x > 0 else ("- 110px" if x < 0 else "")), dy=y, lb=d["pen_" + z])
@@ -6262,7 +6615,8 @@ document.addEventListener('DOMContentLoaded',function(){
   }
 });
 </script>""".replace("__PEN_CODE_JSON__", json.dumps(code)).replace("__PEN_PRACTICE_JS__", "true" if practice else "false")
-    return base_page(body, page_js=page_js)
+    return base_page(body, page_js=page_js,
+                     page_title=head_title + " | GOLAZOX", page_description=note)
 
 
 def success_page(code):
@@ -6270,7 +6624,9 @@ def success_page(code):
     d = cfg.L[lang()]
     o = db.order_get(code)
     if not o:
-        return base_page('<div class="wrap"><h2>404</h2></div>')
+        return base_page('<div class="wrap"><h2>404</h2></div>',
+                         page_title=d["ok_title"] + " | GOLAZOX",
+                         page_description=d["ok_wa"])
     banner = ""
     u = current_user()
     if u:
@@ -6308,7 +6664,8 @@ def success_page(code):
         '</div>'
     ).format(t=d["ok_title"], w=d["ok_wa"], c=code, tk=d["ok_ticket"], tr=d["tr_title"],
              b=d["back"], ps=d["pen_sub"])
-    return base_page(body)
+    return base_page(body, page_title=d["ok_title"] + " | GOLAZOX",
+                     page_description=d["ok_wa"])
 
 
 def my_alerts_page():
@@ -6318,7 +6675,9 @@ def my_alerts_page():
             '<h2 style="margin-bottom:14px">{t}</h2><div id="alertsBox"></div>'
             '<div style="text-align:center;margin-top:16px"><a class="back" href="/account">← {b}</a></div>'
             '</div></div>').format(t=d["acc_alerts"], b=d["back"])
-    return base_page(body, page_js="<script>document.addEventListener('DOMContentLoaded',loadAlerts);</script>")
+    return base_page(body, page_js="<script>document.addEventListener('DOMContentLoaded',loadAlerts);</script>",
+                     page_title=d["acc_alerts"] + " | GOLAZOX",
+                     page_description=d["acc_title"])
 
 
 def admin_order_page(code):
@@ -6455,7 +6814,9 @@ def ticket_page(code):
     d = cfg.L[lang()]
     o = db.order_get(code)
     if not o:
-        return base_page('<div class="wrap"><h2>404</h2></div>')
+        return base_page('<div class="wrap"><h2>404</h2></div>',
+                         page_title=d["tk_title"] + " | GOLAZOX",
+                         page_description=d["tk_store"])
     data = o["data"]
     items = data.get("items", [])
     status = o["status"]
@@ -6565,7 +6926,9 @@ document.addEventListener('DOMContentLoaded',function(){
   if(goal){ setTimeout(function(){ goal.classList.add('show'); confetti(20); },600); setTimeout(function(){ goal.classList.remove('show'); },3000); }
 });
 </script>"""
-    return base_page(body, page_js=page_js)
+    return base_page(body, page_js=page_js,
+                     page_title=d["tk_title"] + " | GOLAZOX",
+                     page_description=d["tk_store"])
 
 
 def track_page(code=""):
@@ -6578,7 +6941,8 @@ def track_page(code=""):
                 '<form method="get" action="/track" style="display:flex;gap:10px;margin-top:12px">'
                 '<input class="sel" style="flex:1" name="code" placeholder="' + d["tr_code_ph"] + '">'
                 '<button class="btn pri">' + d["tr_submit"] + '</button></form></div></div>')
-        return base_page(body)
+        return base_page(body, page_title=d["tr_title"] + " | GOLAZOX",
+                         page_description=d["tr_code"])
     data = o["data"]
     status = o["status"]
     order = ["pending", "confirmed", "preparing", "delivering", "delivered"]
@@ -6640,21 +7004,29 @@ def track_page(code=""):
         page_js = ("<script>document.addEventListener('DOMContentLoaded',function(){"
                    "var g=document.getElementById('osGoal');var r=document.getElementById('osRate');"
                    "if(g)g.style.display='block';if(r)r.style.display='block';confetti(40);});</script>")
-    return base_page(body, page_js=page_js)
+    return base_page(body, page_js=page_js,
+                     page_title=d["ok_title"] + " | GOLAZOX",
+                     page_description=d["ok_wa"])
 
 
 # ============================== ROUTES ==============================
 @app.route("/")
 def index():
-    # Always show the entrance screen first.
+    if has_lang() and request.cookies.get("gx_entry_completed") == "1":
+        return redirect("/home")
     return welcome_page()
 
 
 @app.route("/home")
 def home():
-    if request.cookies.get("gx_entry_completed") != "1" or not has_lang():
+    if not has_lang():
         return redirect("/")
-    return base_page(home_body(), active="home")
+    response = Response(base_page(
+        home_body(), active="home",
+        page_title=("GOLAZOX | Football jerseys and sports mugs" if lang() == "en" else "GOLAZOX | تيشيرتات الأندية والأكواب الرياضية"),
+        page_description=cfg.L[lang()]["hero_sub"]), content_type="text/html")
+    response.set_cookie("gx_entry_completed", "1", max_age=31536000, samesite="Lax")
+    return response
 
 
 @app.route("/products")
@@ -6737,7 +7109,11 @@ def product(pid):
     if not p:
         return redirect("/home")
     body, page_js, club = product_body(pid)
-    return base_page(body, page_js=page_js + order_direct_js(), extra_club=club)
+    en = lang() == "en"
+    name = p.get("name_en" if en else "name_ar", pid)
+    description = p.get("desc_en" if en else "desc_ar", "")
+    return base_page(body, page_js=page_js + order_direct_js(), extra_club=club,
+                     page_title=name + " | GOLAZOX", page_description=description)
 
 
 @app.route("/ticket")
@@ -6756,7 +7132,9 @@ def track():
 
 @app.route("/lang/<l>")
 def setlang(l):
-    r = redirect("/home" if request.cookies.get("lang") else "/")
+    if l not in ("ar", "en"):
+        return redirect("/")
+    r = redirect("/home" if request.cookies.get("gx_entry_completed") == "1" else "/")
     r.set_cookie("lang", l, max_age=31536000)
     return r
 
@@ -6765,8 +7143,9 @@ def setlang(l):
 def enter(l):
     if l not in ("ar", "en"):
         return redirect("/")
-    r = Response(jersey_tunnel_page(l), content_type="text/html")
+    r = redirect("/home")
     r.set_cookie("lang", l, max_age=31536000)
+    r.set_cookie("gx_entry_completed", "1", max_age=31536000, samesite="Lax")
     return r
 
 
@@ -6790,8 +7169,8 @@ def jersey_tunnel_page(selected_lang):
     font = "Poppins" if en else "Cairo"
     sub = "YOUR TEAM. YOUR JERSEY. YOUR GAME." if en else "فريقك. قميصك. لعبتك."
     copy = (
-        "Walk through the tunnel and enter the GOLAXOX matchday experience."
-        if en else "اعبر النفق وادخل تجربة GOLAXOX في أجواء المباراة."
+        "Walk through the tunnel and enter the GOLAZOX matchday experience."
+        if en else "اعبر النفق وادخل تجربة GOLAZOX في أجواء المباراة."
     )
     enter = "ENTER THE STADIUM" if en else "ادخل الملعب"
 
@@ -6800,7 +7179,7 @@ def jersey_tunnel_page(selected_lang):
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>GOLAXOX — Jersey Tunnel</title>
+<title>GOLAZOX — Jersey Tunnel</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@500;700;800;900&family=Poppins:wght@600;700;800;900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden}
@@ -6870,11 +7249,11 @@ box-shadow:0 0 34px rgba(24,232,117,.25);transition:.25s transform,.25s box-shad
 <div class="jt">
   <div class="jt-floor"></div><div class="jt-light a"></div><div class="jt-light b"></div>
   <div class="jt-fog"></div><div class="jt-crowd"></div>
-  <div class="jt-meta"><span>GOLAXOX • MATCHDAY</span><span class="jt-live">● STADIUM LIVE</span></div>
+  <div class="jt-meta"><span>GOLAZOX • MATCHDAY</span><span class="jt-live">● STADIUM LIVE</span></div>
   <div class="jt-side jt-left">__CARDS__</div><div class="jt-side jt-right">__CARDS__</div>
   <section class="jt-center">
     <div class="jt-kicker">JERSEY TUNNEL</div>
-    <div class="jt-title">GOLAXOX</div>
+    <div class="jt-title">GOLAZOX</div>
     <div class="jt-sub">__SUB__</div>
     <div class="jt-copy">__COPY__</div>
     <div class="jt-ball">⚽</div>
@@ -6986,36 +7365,92 @@ def health():
 # ---------- APIs ----------
 @app.route("/api/order", methods=["POST"])
 def api_order():
-    data = request.get_json(force=True)
-    now = datetime.datetime.now()
-    data["date"] = now.strftime("%Y-%m-%d")
-    data["time"] = now.strftime("%H:%M")
-    items = []
-    for it in data.get("items", []):
-        p = next((x for x in cfg.PRODUCTS if x["id"] == it.get("id")), None)
+    global STOCK
+    data = request.get_json(silent=True) or {}
+    if not isinstance(data, dict):
+        return api_json({"ok": False, "error": "invalid_request"}, 400)
+
+    raw_items = data.get("items")
+    if not isinstance(raw_items, list) or not raw_items or len(raw_items) > 50:
+        return api_json({"ok": False, "error": "empty_order"}, 400)
+
+    products = {p["id"]: p for p in cfg.PRODUCTS if not p.get("hidden")}
+    merged = {}
+    for raw in raw_items:
+        if not isinstance(raw, dict):
+            return api_json({"ok": False, "error": "invalid_item"}, 400)
+        pid = str(raw.get("id", "")).strip()
+        p = products.get(pid)
         if not p:
-            continue
-        qty = max(1, int(it.get("qty", 1)))
+            return api_json({"ok": False, "error": "invalid_product"}, 400)
+        try:
+            qty = int(raw.get("qty", 0))
+        except (TypeError, ValueError):
+            return api_json({"ok": False, "error": "invalid_quantity"}, 400)
+        if qty < 1 or qty > 10:
+            return api_json({"ok": False, "error": "qty_limit", "max": 10}, 400)
+        size = cfg.MUG_SIZE if p["kind"] == "mug" else str(raw.get("size", "")).strip().upper()
+        if p["kind"] != "mug" and size not in cfg.SIZE_ORDER:
+            return api_json({"ok": False, "error": "invalid_size"}, 400)
+        key = (pid, size)
+        merged[key] = merged.get(key, 0) + qty
+        if merged[key] > 10:
+            return api_json({"ok": False, "error": "qty_limit", "max": 10}, 400)
+
+    en = lang() == "en"
+    now = datetime.datetime.now()
+    items = []
+    for (pid, size), qty in merged.items():
+        p = products[pid]
         items.append({
-            "id": p["id"], "size": it.get("size", "OS"), "qty": qty,
-            "name": it.get("name", p.get("name_ar", p["id"])),
+            "id": p["id"], "size": size, "qty": qty,
+            "name": p.get("name_en" if en else "name_ar", p["id"]),
             "price": eff_price(p), "emoji": p.get("emoji", "⚽"), "kind": p["kind"]})
-    data["items"] = items
+
     sub = sum(i["price"] * i["qty"] for i in items)
     deliv = cfg.DELIVERY_FEE if items else 0
-    disc = min(max(0, float(data.get("discount", 0))), sub)
+    try:
+        reward_points = int(data.get("reward", 0) or 0)
+    except (TypeError, ValueError):
+        return api_json({"ok": False, "error": "invalid_discount"}, 400)
+    if reward_points < 0:
+        return api_json({"ok": False, "error": "invalid_discount"}, 400)
+    reward = next((r for r in cfg.REWARDS if int(r["points"]) == reward_points), None) if reward_points else None
+    if reward_points and not reward:
+        return api_json({"ok": False, "error": "invalid_discount"}, 400)
+    disc = min(float(reward["discount"]) if reward else 0.0, float(sub))
+
+    device = str(data.get("device", "") or "")[:120]
+    clean = {}
+    for field, limit in (("name", 120), ("phone", 40), ("area", 120), ("address", 500), ("notes", 1000)):
+        clean[field] = str(data.get(field, "") or "").strip()[:limit]
+    if not data.get("fast") and any(not clean[k] for k in ("name", "phone", "area", "address")):
+        return api_json({"ok": False, "error": "contact_required"}, 400)
+
+    data = clean
+    data["items"] = items
+    data["date"] = now.strftime("%Y-%m-%d")
+    data["time"] = now.strftime("%H:%M")
     data["delivery"] = deliv
+    data["discount"] = disc
+    data["reward"] = reward_points
+    data["device"] = device
     data["total"] = max(0, sub + deliv - disc)
     u = current_user()
     if u:
         data["user_id"] = u["id"]
-    code = db.order_create(data)
+    code, order_error = db.order_create_reserved(data, items, reward_points, device)
+    if not code:
+        status = 409 if order_error == "stock" else 400
+        return api_json({"ok": False, "error": order_error}, status)
+    STOCK = db.get_stock()
     try:
         nm = data.get("name", "")
         db.admin_notif_add("order", "🛒 طلب جديد %s — %s" % (code, nm))
     except Exception:
         pass
-    return json_d({"code": code})
+    return api_json({"ok": True, "code": code, "items": items, "subtotal": sub,
+                     "delivery": deliv, "discount": disc, "total": data["total"]}, 201)
 
 
 @app.route("/api/notify", methods=["POST"])
@@ -7294,7 +7729,7 @@ def api_auth_otp():
         return json_d({"ok": False, "error": "rate_gap"})
     code = db.otp_new(contact)
     sms_log("[EMAIL OTP] OTP generated and saved")
-    registered = db.user_by_phone(contact) is not None
+    registered = db.user_by_contact(contact) is not None
     demo = os.environ.get("DEMO_OTP", "0") == "1"
     if mode == "email":
         if not (os.environ.get("RESEND_API_KEY", "") or "").strip():
@@ -7338,45 +7773,36 @@ def api_auth_verify():
         reason = "expired" if state == "expired" else "code"
         return json_d({"ok": False, "reason": reason})
     db.otp_consume(oid)
-    u = db.user_by_phone(contact)
+    u = db.user_by_contact(contact)
     if not u:
-        uid = db.user_create(contact, str(data.get("name", "") or "").strip(), "customer", lang())
+        uid = db.user_create(contact, str(data.get("name", "") or "").strip(), "customer", lang(),
+                              email=contact if mode == "email" else "")
         u = db.user_by_id(uid)
     if not u or u["status"] != "active":
         return json_d({"ok": False, "reason": "blocked"})
     pw = str(data.get("password", "") or "").strip()
-    if pw:
-        db.user_update(u["id"], password=pw)
+    if pw and len(pw) >= 8:
+        db.user_update(u["id"], password=hash_password(pw))
     session["user_id"] = u["id"]
     session.permanent = True
     db.user_touch(u["id"])
     otp_rate_reset(contact)
-    is_admin_mail = (contact.lower() == cfg.ADMIN_EMAIL.lower())
-    if is_admin_mail:
-        session.pop("admin_ok", None)
-        return json_d({"ok": True, "admin_pending": True, "role": u["role"]})
+    if u.get("role") in ("admin", "super_admin") and contact.lower() == cfg.ADMIN_EMAIL.lower():
+        session["admin_ok"] = True
     return json_d({"ok": True, "role": u["role"]})
 
 
 @app.route("/api/auth/admin_verify", methods=["POST"])
 def api_auth_admin_verify():
+    # Kept as a compatibility endpoint for older clients. Admin access is now
+    # granted only by the configured admin email plus a valid OTP/password;
+    # there is no hard-coded security question.
     u = current_user()
-    if not u:
-        return json_d({"ok": False, "reason": "noauth"})
-    if u.get("phone", "").lower() != cfg.ADMIN_EMAIL.lower():
-        return json_d({"ok": False, "reason": "noauth"})
-    answer = str(request.get_json(force=True).get("answer", "") or "").strip()
-    expected = cfg.ADMIN_ANSWER.strip()
-    norm = lambda s: "".join(ch for ch in s
-                             .replace("أ", "ا").replace("إ", "ا").replace("آ", "ا")
-                             .replace("ى", "ي").replace("ة", "ه")
-                             .replace("ؤ", "و").replace("ئ", "ي")
-                             if not (ch.isspace() or ch.isdigit()))
-    if norm(answer).lower() == norm(expected).lower():
+    if u and u.get("role") in ("admin", "super_admin") and cfg.ADMIN_EMAIL:
         session["admin_ok"] = True
         session.permanent = True
         return json_d({"ok": True})
-    return json_d({"ok": False, "reason": "wrong"})
+    return json_d({"ok": False, "reason": "noauth"})
 
 
 @app.route("/api/auth/password", methods=["POST"])
@@ -7384,9 +7810,12 @@ def api_auth_password():
     data = request.get_json(force=True)
     contact, mode = auth_contact(data)
     pw = str(data.get("password", "") or "")
-    u = db.user_by_phone(contact) if contact else None
-    if not u or u.get("status") != "active" or not u.get("password") or u["password"] != pw:
+    u = db.user_by_contact(contact) if contact else None
+    valid, needs_rehash = verify_password(u.get("password", "") if u else "", pw) if u else (False, False)
+    if not u or u.get("status") != "active" or not valid:
         return json_d({"ok": False})
+    if needs_rehash:
+        db.user_update(u["id"], password=hash_password(pw))
     session["user_id"] = u["id"]
     session.permanent = True
     db.user_touch(u["id"])
@@ -7411,11 +7840,13 @@ def api_me():
 
 @app.route("/api/diag")
 def api_diag():
+    if not admin_auth():
+        return api_json({"ok": False, "error": "forbidden"}, 403)
     return json_d({
         "resend_key": bool((os.environ.get("RESEND_API_KEY", "") or "").strip()),
         "resend_from": bool((os.environ.get("RESEND_FROM", "") or "").strip()),
-        "sms_provider": (os.environ.get("SMS_PROVIDER", "") or "").strip(),
-        "demo_otp": (os.environ.get("DEMO_OTP", "") or "").strip(),
+        "sms_provider": bool((os.environ.get("SMS_PROVIDER", "") or "").strip()),
+        "demo_mode": os.environ.get("DEMO_OTP", "0") == "1",
     })
 
 
@@ -7681,6 +8112,7 @@ def admin_login_page(msg=""):
         '<p class="adm-login-sub">أدخل بيانات المدير للمتابعة</p>'
         + msg +
         '<form method="post" action="/admin/login" style="display:grid;gap:12px;margin-top:20px">'
+        '<input type="hidden" name="csrf_token" value="' + esc(csrf_token()) + '">'
         '<div class="adm-field">'
         '<label class="adm-label">البريد الإلكتروني</label>'
         '<input class="adm-input" type="email" name="email" placeholder="admin@golazox.com" autofocus required>'
@@ -7701,9 +8133,11 @@ def admin_login():
     if request.method == "POST":
         email = request.form.get("email", "").strip().lower()
         pw = request.form.get("pw", "")
-        if email != cfg.ADMIN_EMAIL.lower() or pw != cfg.ADMIN_PASS:
+        if (not cfg.ADMIN_PASS or email != cfg.ADMIN_EMAIL.lower() or
+                not hmac.compare_digest(pw, cfg.ADMIN_PASS)):
             return admin_login_page("<div class='adm-msg err'>البريد الإلكتروني أو كلمة المرور غير صحيحة</div>")
         session["admin_ok"] = True
+        session.permanent = True
         return redirect("/admin")
     if admin_auth():
         return redirect("/admin")
@@ -7731,7 +8165,14 @@ def admin():
             code = request.form.get("code", "")
             new_st = request.form.get("status", "pending")
             o = db.order_get(code)
-            db.order_update(code, status=new_st,
+            update_data = None
+            if o and new_st == "cancelled" and o["status"] != "cancelled":
+                update_data = dict(o["data"])
+                if not update_data.get("stock_released"):
+                    db.release_order_stock(update_data.get("items", []))
+                    update_data["stock_released"] = True
+                    reload_stock()
+            db.order_update(code, status=new_st, data=update_data,
                             payment=request.form.get("payment", "pending"))
             notify_order_status(o, code, new_st)
             return admin_page("<div class='msg'>تم الحفظ</div>")
@@ -7763,6 +8204,10 @@ def admin():
                 dta["items"] = items
                 dta["total"] = total
                 new_st = request.form.get("status", o["status"])
+                if new_st == "cancelled" and o["status"] != "cancelled" and not dta.get("stock_released"):
+                    db.release_order_stock(dta.get("items", []))
+                    dta["stock_released"] = True
+                    reload_stock()
                 db.order_update(code, data=dta, status=new_st,
                                 payment=request.form.get("payment", o["payment"]))
                 notify_order_status(o, code, new_st)
@@ -7836,6 +8281,8 @@ def admin():
         if act == "product_save":
             overrides = db.products_overrides()
             pid = str(request.form.get("pid", "")).strip()
+            if not re.fullmatch(r"[A-Za-z0-9_-]{1,40}", pid):
+                return admin_page("<div class='msg'>⚠️ معرّف المنتج غير صالح</div>")
             base = next((x for x in cfg.PRODUCTS if x["id"] == pid), None)
             is_new = base is None
             rec = dict(base) if base else {
@@ -8208,11 +8655,11 @@ def admin_page(msg=""):
                         '<td><form method="post" onsubmit="return confirm(\'هل تريد حذف المنتج؟\')" class="inline-form">'
                         '<input type="hidden" name="act" value="product_del"><input type="hidden" name="pid" value="{id}">'
                         '<button class="adm-btn-sm adm-btn-danger">حذف</button></form></td></tr>'
-                        ).format(id=p["id"], em=p.get("emoji", "👕"), name=p.get("name_ar", ""),
-                                 club=club_name, price=fmt_cur(eff_price(p)), cu=cur(),
-                                 hid=" · مخفي" if p.get("hidden") else "",
-                                 na=p.get("name_ar", ""), ne=p.get("name_en", ""),
-                                 bad=bad, st_txt=st_txt, stock=st_txt,
+                        ).format(id=esc(p["id"]), em=esc(p.get("emoji", "👕")), name=esc(p.get("name_ar", "")),
+                                 club=esc(club_name), price=fmt_cur(eff_price(p)), cu=cur(),
+                                 hid=esc(" · مخفي" if p.get("hidden") else ""),
+                                 na=esc(p.get("name_ar", "")), ne=esc(p.get("name_en", "")),
+                                 bad=esc(bad), st_txt=esc(st_txt), stock=esc(st_txt),
                                  total=total_q, hc=" checked" if p.get("hidden") else "",
                                  bnew=" checked" if "new" in p.get("badges", []) else "",
                                  bbest=" checked" if "best" in p.get("badges", []) else "")
@@ -8244,11 +8691,11 @@ def admin_page(msg=""):
                      '<td><form method="post" onsubmit="return confirm(\'هل تريد حذف المنتج؟\')" class="inline-form">'
                      '<input type="hidden" name="act" value="product_del"><input type="hidden" name="pid" value="{id}">'
                      '<button class="adm-btn-sm adm-btn-danger">حذف</button></form></td></tr>'
-                     ).format(id=p["id"], em=p.get("emoji", "☕"), name=p.get("name_ar", ""),
-                              club=club_name, price=fmt_cur(eff_price(p)), cu=cur(),
-                              hid=" · مخفي" if p.get("hidden") else "",
-                              na=p.get("name_ar", ""), ne=p.get("name_en", ""),
-                              bad=bad, st_txt=st_txt, stock=st_txt,
+                     ).format(id=esc(p["id"]), em=esc(p.get("emoji", "☕")), name=esc(p.get("name_ar", "")),
+                              club=esc(club_name), price=fmt_cur(eff_price(p)), cu=cur(),
+                              hid=esc(" · مخفي" if p.get("hidden") else ""),
+                              na=esc(p.get("name_ar", "")), ne=esc(p.get("name_en", "")),
+                              bad=esc(bad), st_txt=esc(st_txt), stock=esc(st_txt),
                               total=total_q, hc=" checked" if p.get("hidden") else "",
                               bnew=" checked" if "new" in p.get("badges", []) else "",
                               bbest=" checked" if "best" in p.get("badges", []) else "")
@@ -8259,7 +8706,7 @@ def admin_page(msg=""):
         '<input type="hidden" name="act" value="product_save">'
         '<div style="display:flex;gap:8px;flex-wrap:wrap">'
         '<input name="pid" placeholder="المعرّف (مثال: j7)" required class="adm-input-sm">'
-        '<select name="kind" class="adm-sel-sm"><option value="jersey">تيشيرت</option><option value="mug">مق</option></select>'
+        '<select name="kind" class="adm-sel-sm"><option value="jersey">تيشيرت</option><option value="mug">كوب رياضي</option></select>'
         '<select name="club" class="adm-sel-sm"><option value="">بدون نادي</option>' + club_opts + '</select></div>'
         '<div style="display:flex;gap:8px;flex-wrap:wrap"><input name="name_ar" placeholder="الاسم (عربي)" required class="adm-input-sm">'
         '<input name="name_en" placeholder="الاسم (إنجليزي)" class="adm-input-sm"></div>'
@@ -8279,7 +8726,7 @@ def admin_page(msg=""):
         '<div class="adm-card"><h3>👕 التيشرتات</h3>'
         '<div class="adm-tbl-wrap"><table class="adm-tbl"><thead><tr><th>المنتج</th><th>تعديل</th><th>المخزون</th><th></th></tr></thead>'
         '<tbody>{jersey_rows}</tbody></table></div></div>'
-        '<div class="adm-card"><h3>☕ المقّات</h3>'
+        '<div class="adm-card"><h3>☕ الأكواب الرياضية</h3>'
         '<div class="adm-tbl-wrap"><table class="adm-tbl"><thead><tr><th>المنتج</th><th>تعديل</th><th>المخزون</th><th></th></tr></thead>'
         '<tbody>{cap_rows}</tbody></table></div></div>'
         '{prod_add_form}'
@@ -8323,10 +8770,11 @@ def admin_page(msg=""):
 
     sec_sizes = (
         '<div class="adm-section" id="adm-sizes" style="display:none">'
-        '<div class="adm-card"><h3>📏 دليل المقاسات الآسيوي</h3>'
-        '<div class="adm-tbl-wrap"><table class="adm-tbl"><thead><tr><th>المقاس</th><th>الطول (سم)</th><th>العرض (سم)</th><th>الطول (سم)</th><th>الوزن (كجم)</th></tr></thead>'
+        '<div class="adm-card"><h3>📏 جدول القمصان — Fan Version (وصف المورد: Asian Fit)</h3>'
+        '<div class="adm-tbl-wrap"><table class="adm-tbl"><thead><tr><th>المقاس</th><th>طول التيشيرت (سم)</th><th>عرض التيشيرت (سم)</th><th>الطول المناسب (سم)</th><th>الوزن الاسترشادي (كجم)</th></tr></thead>'
         '<tbody>{size_chart}</tbody></table></div>'
-        '<div class="adm-notice">⚠️ هذا الدليل تقريبي — الأطوال والعرض بالسنتيمتر، والأوزان بالكيلوجرام.</div></div></div>'
+        '<div class="adm-notice">⚠️ Asian Fit وصف للمورّد وليس معيارًا موحدًا. الأرقام الحالية مأخوذة من جدول Fan Version المرجعي، ويجب تحديثها إذا تغيّرت قياسات المورد.'
+        ' <a href="https://www.gakits.com/Size-Chartsize-n2086868.html" target="_blank" rel="noopener noreferrer">فتح المصدر ↗</a></div></div></div>'
     ).format(size_chart=size_chart)
 
     # --- Competitions section ---
@@ -8593,6 +9041,9 @@ def admin_page(msg=""):
 
 
 def admin_template(body, title="Dashboard"):
+    csrf_html = '<input type="hidden" name="csrf_token" value="%s">' % esc(csrf_token())
+    body = re.sub(r'<form\b([^>]*\bmethod\s*=\s*["\']post["\'][^>]*)>',
+                  lambda m: m.group(0) + csrf_html, body, flags=re.I)
     return """<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8754,8 +9205,13 @@ window.scrollTo(0,0);
 </body></html>""".replace("BODY", body)
 
 
-if __name__ == "__main__":
+try:
     seed_super_admin()
+except Exception:
+    app.logger.exception("admin bootstrap failed")
+
+
+if __name__ == "__main__":
     sms_log("[EMAIL OTP] startup resend_key=%s resend_from=%s"
             % (bool((os.environ.get("RESEND_API_KEY", "") or "").strip()),
                bool((os.environ.get("RESEND_FROM", "") or "").strip())))

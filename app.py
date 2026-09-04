@@ -2864,13 +2864,15 @@ linear-gradient(180deg,transparent,rgba(255,255,255,.035))}
   .logo{grid-column:1;grid-row:1}.hmenu{grid-column:2;grid-row:1}#cartHeader{grid-column:3;grid-row:1}
   .nav{grid-column:1/-1;grid-row:3;order:initial;padding:6px 0 0}
   .nav-mobile-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:5px;padding-top:9px;border-top:1px solid var(--line)}
-  .nav-mobile-tools .nv{border:1px solid var(--line);text-align:center}
+  .nav-mobile-tools .nv{border:1px solid var(--line);text-align:center;min-height:44px}
   .hd-search{grid-column:1/-1;grid-row:2;order:initial;width:100%;margin:0}
   .hd-sbox{min-width:0;width:100%;height:44px;border-radius:13px}
-  .hd-sbox input{min-width:0;font-size:.88rem;padding-block:10px}
+  .hd-sbox input{min-width:0;font-size:16px;padding-block:10px}
   .hd-sbox button{min-width:44px;min-height:36px;padding:8px 12px}
+  .hd-search{max-height:44px;overflow:hidden;opacity:1;transition:max-height .2s ease,opacity .2s ease}
+  .hd.scrolled .hd-search{max-height:0;opacity:0;pointer-events:none}
   .gx-bnav{min-height:64px;padding:5px 4px calc(5px + env(safe-area-inset-bottom));gap:2px}
-  .gx-bnav a{flex:1;min-width:0;min-height:52px;justify-content:center;padding:5px 2px;font-size:.58rem;line-height:1.25}
+  .gx-bnav a{flex:1;min-width:0;min-height:52px;justify-content:center;padding:5px 2px;font-size:.7rem;line-height:1.25}
   .gx-bnav .bnav-icon{font-size:1.15rem}
   .wrap{width:100%;padding:12px 10px calc(94px + env(safe-area-inset-bottom))!important}
   .hero{text-align:center;padding:22px 14px;margin-bottom:16px}
@@ -2881,23 +2883,23 @@ linear-gradient(180deg,transparent,rgba(255,255,255,.035))}
   .feat-bar{grid-template-columns:1fr 1fr;gap:8px;padding:10px}
   .feat{align-items:flex-start;gap:8px;padding:7px 3px}
   .feat .fic{width:36px;height:36px;font-size:16px;border-radius:11px}
-  .feat b{font-size:.75rem;line-height:1.35}.feat span{font-size:.64rem;line-height:1.45}
+  .feat b{font-size:.82rem;line-height:1.4}.feat span{font-size:.75rem;line-height:1.55}
   .sec-head{align-items:center}.sec-head h2{font-size:1.08rem}.sec-sub{font-size:.74rem}
   .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
   .pcard{min-width:0}.pcard-inner{height:100%;display:flex;flex-direction:column}
   .pimg{height:152px}.pbody{padding:10px 9px 11px;display:flex;flex:1;flex-direction:column}
-  .pcat{font-size:.58rem}.pcard-edition{display:none}.pbody h3{font-size:.79rem;line-height:1.45;min-height:2.9em}
-  .pfoot{margin-top:auto;align-items:flex-end}.pfoot b{font-size:.85rem}.pview{font-size:.68rem}
-  .sz-pill{display:none}.badges{top:7px;inset-inline-start:7px}.badge{font-size:.56rem;padding:3px 6px}
-  .heart{width:40px;height:40px;top:6px;inset-inline-end:6px}
+  .pcat{font-size:.7rem}.pcard-edition{display:none}.pbody h3{font-size:.85rem;line-height:1.45;min-height:2.9em}
+  .pfoot{margin-top:auto;align-items:flex-end}.pfoot b{font-size:.9rem}.pview{font-size:.75rem}
+  .sz-pill{display:none}.badges{top:7px;inset-inline-start:7px}.badge{font-size:.66rem;padding:4px 7px}
+  .heart{width:44px;height:44px;top:6px;inset-inline-end:6px}
   .list-search{padding:15px 12px}.list-search .ls-head{margin-bottom:12px}.list-search .ls-box{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .list-search .ls-box input{grid-column:1/-1;width:100%;min-width:0;min-height:46px}
-  .list-search .ls-box .btn{width:100%;min-width:0;justify-content:center;padding:10px 8px;font-size:.76rem}
+  .list-search .ls-box input{grid-column:1/-1;width:100%;min-width:0;min-height:46px;font-size:16px}
+  .list-search .ls-box .btn{width:100%;min-width:0;min-height:44px;justify-content:center;padding:10px 8px;font-size:.8rem}
   .sort-bar{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;margin-bottom:12px}
-  .sort-bar .sort{width:100%;min-height:44px}.sort-bar .btn{width:100%;min-height:44px;justify-content:center;padding:9px 8px;font-size:.76rem}
+  .sort-bar .sort{width:100%;min-height:44px;font-size:16px}.sort-bar .btn{width:100%;min-height:44px;justify-content:center;padding:9px 8px;font-size:.8rem}
   .filters-overlay.open{display:block;position:fixed;inset:0;z-index:298;background:rgba(0,0,0,.62);backdrop-filter:blur(3px)}
   #filtersBar{z-index:299;max-height:86dvh;overflow-y:auto;padding:18px 14px calc(20px + env(safe-area-inset-bottom));border-radius:22px 22px 0 0}
-  .fp-close{display:inline-flex;position:absolute;top:12px;inset-inline-end:12px;width:40px;height:40px;align-items:center;justify-content:center;border-radius:12px;background:var(--card2);border:1px solid var(--line);color:var(--txt);font-size:1rem}
+  .fp-close{display:inline-flex;position:absolute;top:12px;inset-inline-end:12px;width:44px;height:44px;align-items:center;justify-content:center;border-radius:12px;background:var(--card2);border:1px solid var(--line);color:var(--txt);font-size:1rem}
   .fp-title{padding-inline-end:48px;min-height:40px}.club-opt,.cat-opt,.sz-btn{min-height:44px}.col-dot{width:36px;height:36px}
   .mback{align-items:flex-end;padding:0}
   .mbox,.mbox.wide{width:100%;max-width:none;max-height:92dvh;border-radius:22px 22px 0 0;animation:sheetUp .22s ease}
@@ -2905,7 +2907,7 @@ linear-gradient(180deg,transparent,rgba(255,255,255,.035))}
   @keyframes sheetUp{from{transform:translateY(24px);opacity:.7}to{transform:none;opacity:1}}
   .auth-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.atab{white-space:normal;min-height:44px;font-size:.76rem}
   .fld input,.fld select,.fld textarea,.sg-input-wrap input{font-size:16px;min-height:46px}
-  .ci{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px 10px}.ci-emoji{grid-row:1/3}.qty2{grid-column:2;justify-self:start}.qty2 button{width:40px;height:40px}.ci>b{grid-column:3;grid-row:1/3;align-self:center;font-size:.78rem}.ci-x{min-width:40px;min-height:40px}
+  .ci{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px 10px}.ci-emoji{grid-row:1/3}.qty2{grid-column:2;justify-self:start}.qty2 button{width:44px;height:44px}.ci>b{grid-column:3;grid-row:1/3;align-self:center;font-size:.78rem}.ci-x{min-width:44px;min-height:44px}
   .cd{max-height:90dvh}.cd-body{max-height:48dvh}.cd-foot .btn{min-height:46px}
   .fab{bottom:calc(76px + env(safe-area-inset-bottom));inset-inline-end:12px;width:48px;height:48px}
   .sg-wrap{margin:-20px auto 0}.sg-asian-note{padding:15px 14px;font-size:.78rem}.sg-size-sources{padding:14px 12px}
@@ -3780,7 +3782,7 @@ function openReorder(code){
         +optsHtml
         +'</select></div>';
     });
-    var body='<div id="ro_body">'+html+'</div>'
+    var body=html;
       +'<button class="btn pri big" onclick="doReorder(\\''+code+'\\')">'+gxT('ro_add')+'</button>';
     openModal('m-reorder'); $('ro_body').innerHTML=body;
   });
@@ -4459,11 +4461,11 @@ __BASEJS_SLOT__
         .replace("MODALS", ads_html("banner") + modals_html()) \
         .replace("T_CART", d["cart_title"]) \
         .replace("BNL_NAV", "التنقل الرئيسي" if not en else "Primary navigation") \
-        .replace("BNL_HOME", d["nav_home"]) \
-        .replace("BNL_SHOP", d["nav_jerseys"]) \
-        .replace("BNL_CART", d["cart_title"]) \
-        .replace("BNL_FAV", d["fav_filter"]) \
-        .replace("BNL_ACC", d["ac_account"]) \
+        .replace("BNL_HOME", "Home" if en else "الرئيسية") \
+        .replace("BNL_SHOP", "Shop" if en else "المتجر") \
+        .replace("BNL_CART", "Cart" if en else "السلة") \
+        .replace("BNL_FAV", "Favorites" if en else "المفضلة") \
+        .replace("BNL_ACC", "Account" if en else "حسابي") \
         .replace("BNL_CLOSE", "إغلاق" if not en else "Close") \
         .replace("BNAV_HOME", " on" if active == "home" else "") \
         .replace("BNAV_SHOP", " on" if active in ("products", "mugs", "clubs") else "") \
@@ -4477,6 +4479,9 @@ __BASEJS_SLOT__
 def header_html(active=""):
     en = lang() == "en"
     d = cfg.L[lang()]
+    menu_label = "Menu" if en else "القائمة"
+    close_label = "Close" if en else "إغلاق"
+    search_label = "Search" if en else "بحث"
     def nv(id_, key, href):
         cls = " on" if id_ == active else ""
         return '<button class="nv%s" onclick="location.href=\'%s\'">%s</button>' % (cls, href, d[key])
@@ -4503,16 +4508,18 @@ def header_html(active=""):
     return ('<div class="hd"><div class="hd-in">'
             '<a href="/home" class="logo"><span class="ball">⚽</span>golazox</a>'
             '<nav class="nav" id="topnav">%s%s'
-            '<button class="nv nv-close" onclick="toggleMenu()">✕</button></nav>'
-            '<button class="hbtn hmenu" onclick="toggleMenu()">☰</button>'
+            '<button class="nv nv-close" onclick="toggleMenu()" aria-label="%s">✕</button></nav>'
+            '<button class="hbtn hmenu" onclick="toggleMenu()" aria-label="%s">☰</button>'
             '%s'
             '<button class="hbtn hicon hsettings" onclick="openModal(\'m-settings\')" aria-label="%s">⚙️</button>'
             '<a id="cartHeader" class="hbtn hicon" href="/cart" aria-label="%s">🛒<span class="hcount" id="cbadge2">0</span></a>'
             '<button class="hbtn hlang" onclick="setLang(\'%s\')">%s</button>'
             '<div class="hd-search"><div class="sbox hd-sbox">'
-            '<input id="sq" placeholder="%s" onkeydown="if(event.key===\'Enter\')applyFilters()">'
-            '<button onclick="applyFilters()">🔍</button></div></div>'
-            '</div></div>') % (links, mobile_tools, fav_btn + cheer + acc_btn, d["settings_btn"], d["cart_title"], other, d["lang_name"], d["search_ph"])
+            '<input id="sq" placeholder="%s" aria-label="%s" onkeydown="if(event.key===\'Enter\')applyFilters()">'
+            '<button onclick="applyFilters()" aria-label="%s">🔍</button></div></div>'
+            '</div></div>') % (links, mobile_tools, close_label, menu_label,
+                               fav_btn + cheer + acc_btn, d["settings_btn"], d["cart_title"],
+                               other, d["lang_name"], d["search_ph"], d["search_ph"], search_label)
 
 
 def footer_html():

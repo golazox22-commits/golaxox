@@ -93,17 +93,17 @@ COLOR_FILTERS = [
 # calculated from the current visible jersey catalogue on every request.
 WORLD_COUNTRIES = [
     {"id": "england", "ar": "إنجلترا", "en": "England", "flag": "🇬🇧",
-     "clubs": ("arsenal", "liver", "united", "city"), "x": 43, "y": 22, "color": "#6EC8FF"},
+     "clubs": ("arsenal", "liver", "united", "city"), "x": 43, "y": 22, "color": "#D71920", "flag_gradient": "linear-gradient(135deg,#FFFFFF 0 42%,#D71920 42% 64%,#FFFFFF 64% 100%)"},
     {"id": "spain", "ar": "إسبانيا", "en": "Spain", "flag": "🇪🇸",
-     "clubs": ("real", "barca"), "x": 43, "y": 45, "color": "#FFD34D"},
+     "clubs": ("real", "barca"), "x": 43, "y": 45, "color": "#FFD21E", "flag_gradient": "linear-gradient(180deg,#AA151B 0 28%,#F1BF00 28% 72%,#AA151B 72% 100%)"},
     {"id": "france", "ar": "فرنسا", "en": "France", "flag": "🇫🇷",
-     "clubs": ("psg",), "x": 49, "y": 35, "color": "#6A8CFF"},
+     "clubs": ("psg",), "x": 49, "y": 35, "color": "#2B59C3", "flag_gradient": "linear-gradient(90deg,#0055A4 0 33.333%,#FFFFFF 33.333% 66.666%,#EF4135 66.666% 100%)"},
     {"id": "germany", "ar": "ألمانيا", "en": "Germany", "flag": "🇩🇪",
-     "clubs": ("bayern",), "x": 55, "y": 25, "color": "#FF9F43"},
+     "clubs": ("bayern",), "x": 55, "y": 25, "color": "#DD0000", "flag_gradient": "linear-gradient(180deg,#111111 0 33.333%,#DD0000 33.333% 66.666%,#FFCE00 66.666% 100%)"},
     {"id": "italy", "ar": "إيطاليا", "en": "Italy", "flag": "🇮🇹",
-     "clubs": ("juve",), "x": 56, "y": 45, "color": "#44D17A"},
+     "clubs": ("juve",), "x": 56, "y": 45, "color": "#009246", "flag_gradient": "linear-gradient(90deg,#009246 0 33.333%,#FFFFFF 33.333% 66.666%,#CE2B37 66.666% 100%)"},
     {"id": "saudi", "ar": "السعودية", "en": "Saudi Arabia", "flag": "🇸🇦",
-     "clubs": ("nassr",), "x": 66, "y": 54, "color": "#18E875"},
+     "clubs": ("nassr",), "x": 66, "y": 54, "color": "#006C35", "flag_gradient": "linear-gradient(135deg,#006C35 0 58%,#FFFFFF 58% 100%)"},
 ]
 
 
@@ -1577,11 +1577,17 @@ html[data-theme="light"] .gx-globe-center::after { color:rgba(15,23,42,.065); }
   background:linear-gradient(112deg,rgba(255,255,255,.09) 0%,transparent 20%,transparent 69%,rgba(0,0,0,.43) 91%),radial-gradient(circle at 54% 106%,rgba(0,0,0,.57),transparent 44%); }
 .gx-globe-sphere::after { content:''; position:absolute; inset:1.1%; z-index:5; pointer-events:none; border-radius:50%;
   box-shadow:inset 0 0 0 1px rgba(113,255,186,.28),inset 0 0 34px rgba(24,232,117,.11); }
-.gx-globe-marker { --dot:#18E875; position:absolute; left:var(--gx); top:var(--gy); z-index:8; width:17px; height:17px; border-radius:50%; border:2px solid #E7FFF1; background:color-mix(in srgb,var(--mc,#18E875) 72%,#0B2016); transform:translate(-50%,-50%); cursor:pointer;
-  box-shadow:0 0 0 5px color-mix(in srgb,var(--mc,#18E875) 12%,transparent),0 0 18px color-mix(in srgb,var(--mc,#18E875) 66%,transparent); transition:transform .2s ease,box-shadow .2s ease,filter .2s ease; }
-.gx-globe-marker::before { content:''; position:absolute; inset:-11px; border-radius:50%; background:radial-gradient(circle,color-mix(in srgb,var(--mc,#18E875) 25%,transparent),transparent 66%); filter:blur(2px); }
-.gx-globe-marker::after { content:''; position:absolute; inset:-9px; border-radius:50%; border:1px solid color-mix(in srgb,var(--mc,#18E875) 58%,transparent); animation:gxGlobePulse 2.8s ease-out infinite; animation-delay:var(--delay,0s); }
-.gx-globe-marker:hover,.gx-globe-marker.on { transform:translate(-50%,-50%) scale(1.20); box-shadow:0 0 0 7px color-mix(in srgb,var(--mc,#18E875) 18%,transparent),0 0 30px var(--mc,#18E875); filter:brightness(1.14); }
+.gx-globe-marker { --dot:#18E875; position:absolute; left:var(--gx); top:var(--gy); z-index:8; width:22px; height:22px; border-radius:50%; border:2px solid rgba(255,255,255,.96);
+  /* The ACTUAL point on the globe now carries the country flag colours. */
+  background:var(--flag-gradient,var(--mc,#18E875)); background-size:100% 100%; background-position:center; transform:translate(-50%,-50%); cursor:pointer;
+  box-shadow:0 0 0 4px rgba(255,255,255,.055),0 0 14px color-mix(in srgb,var(--mc,#18E875) 54%,transparent);
+  transition:transform .2s ease,box-shadow .2s ease,filter .2s ease; isolation:isolate; }
+.gx-globe-marker::before { content:''; position:absolute; inset:-13px; z-index:-1; border-radius:50%;
+  /* Repeat the flag colours in the halo so it is obvious even on small screens. */
+  background:var(--flag-gradient,var(--mc,#18E875)); opacity:.42; filter:blur(9px); transform:scale(.88); }
+.gx-globe-marker > .gx-globe-marker-label::before { content:''; display:inline-block; width:9px; height:9px; margin-inline-end:6px; border-radius:50%; background:var(--flag-gradient,var(--mc,#18E875)); border:1px solid rgba(255,255,255,.82); vertical-align:middle; }
+.gx-globe-marker::after { content:''; position:absolute; inset:-9px; border-radius:50%; border:1px solid color-mix(in srgb,var(--mc,#18E875) 66%,transparent); animation:gxGlobePulse 2.8s ease-out infinite; animation-delay:var(--delay,0s); }
+.gx-globe-marker:hover,.gx-globe-marker.on { transform:translate(-50%,-50%) scale(1.24); box-shadow:0 0 0 6px rgba(255,255,255,.075),0 0 28px color-mix(in srgb,var(--mc,#18E875) 82%,transparent); filter:brightness(1.14) saturate(1.08); }
 .gx-globe-marker-label { position:absolute; left:50%; bottom:28px; transform:translateX(-50%) translateY(5px); white-space:nowrap; max-width:160px; overflow:hidden; text-overflow:ellipsis; padding:6px 11px; border-radius:11px; border:1px solid color-mix(in srgb,var(--mc,#18E875) 42%,transparent); background:rgba(1,7,4,.94); color:#fff; font-size:.68rem; font-weight:950; opacity:0; pointer-events:none; transition:.2s ease; box-shadow:0 10px 22px rgba(0,0,0,.38),0 0 16px color-mix(in srgb,var(--mc,#18E875) 13%,transparent); }
 .gx-globe-marker.on .gx-globe-marker-label,.gx-globe-marker:hover .gx-globe-marker-label { opacity:1; transform:translateX(-50%) translateY(0); }
 .gx-globe-motto { position:absolute; inset-inline-start:2px; bottom:74px; z-index:8; transform:rotate(-11deg); color:rgba(225,255,238,.56); font-weight:800; line-height:1.45; font-size:.77rem; text-align:center; pointer-events:none; }
@@ -1647,7 +1653,7 @@ html[data-theme="light"] .gx-world-slogan { color:#90A59A; }
   .gx-globe-center { order:2; min-height:auto; padding:4px 0 47px; }
   .gx-globe-wrap { width:min(100%,430px); }
   .gx-globe-sphere { width:94%; }
-  .gx-globe-marker { width:16px; height:16px; }
+  .gx-globe-marker { width:19px; height:19px; }
   .gx-globe-marker-label { bottom:23px; font-size:.61rem; }
   .gx-globe-motto { display:none; }
   .gx-globe-helper { bottom:9px; }
@@ -5205,10 +5211,10 @@ def world_map_section(jersey_prods, en=False):
         gx, gy = marker_positions.get(key, (gx, gy))
         markers.append(
             '<button type="button" class="gx-globe-marker{state}" data-country="{key}" '
-            'style="--gx:{gx}%;--gy:{gy}%;--mc:{color};--delay:{delay}" aria-label="{label}" '
+            'style="--gx:{gx}%;--gy:{gy}%;--mc:{color};--flag-gradient:{flag_gradient};--delay:{delay}" aria-label="{label}" '
             'aria-pressed="{pressed}" onclick="gxWorldSelect(\'{key}\')">'
             '<span class="gx-globe-marker-label">{name}</span></button>'.format(
-                state=state, key=key, gx=gx, gy=gy, color=color, delay=delay,
+                state=state, key=key, gx=gx, gy=gy, color=color, flag_gradient=country.get("flag_gradient", color), delay=delay,
                 label=esc(("Choose " if en else "اختر ") + name), pressed=pressed, name=esc(name)))
 
         slides = []

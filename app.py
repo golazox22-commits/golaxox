@@ -1558,35 +1558,37 @@ html[data-theme="light"] .gx-country-tab.on { background:color-mix(in srgb,var(-
 .gx-country-tab-count { min-width:24px; height:24px; display:grid; place-items:center; border-radius:999px; color:var(--mc,#18E875); border:1px solid color-mix(in srgb,var(--mc,#18E875) 40%,transparent); font-size:.67rem; font-weight:950; }
 .gx-country-rail-foot { margin-top:auto; padding-top:14px; color:rgba(255,255,255,.32); font-family:'Poppins',sans-serif; font-size:.58rem; font-weight:900; letter-spacing:3px; }
 html[data-theme="light"] .gx-country-rail-foot { color:#91A59A; }
-/* globe */
-.gx-globe-center { position:relative; min-height:570px; overflow:hidden; display:flex; align-items:center; justify-content:center; border-radius:28px; isolation:isolate; }
-.gx-globe-center::before { content:''; position:absolute; inset:3% 4% 7%; border-radius:50%; border:1px solid rgba(24,232,117,.08); transform:rotate(-8deg); box-shadow:0 0 60px rgba(24,232,117,.04); }
-.gx-globe-center::after { content:'FOOTBALL HAS NO BORDERS'; position:absolute; inset-inline-end:10px; top:18px; max-width:150px; white-space:normal; color:rgba(255,255,255,.035); font-family:'Poppins',sans-serif; font-weight:950; font-size:1.05rem; line-height:1.04; text-align:end; pointer-events:none; }
-html[data-theme="light"] .gx-globe-center::after { color:rgba(15,23,42,.055); }
-.gx-globe-wrap { position:relative; width:min(100%,570px); aspect-ratio:1; display:grid; place-items:center; }
-.gx-globe-orbit { position:absolute; inset:8% -3%; border:1px solid rgba(24,232,117,.34); border-radius:50%; transform:rotate(14deg) scaleY(.48); box-shadow:0 0 22px rgba(24,232,117,.08); pointer-events:none; }
-.gx-globe-orbit.o2 { inset:15% -7%; transform:rotate(-14deg) scaleY(.68); opacity:.28; }
-.gx-globe-sphere { position:relative; width:88%; aspect-ratio:1; border-radius:50%; overflow:hidden; isolation:isolate; border:1px solid rgba(104,255,183,.64); background:
-  radial-gradient(circle at 39% 32%,rgba(86,255,176,.18),transparent 12%),
-  radial-gradient(circle at 42% 42%,#123e2c 0%,#0a2b20 33%,#061b14 61%,#020907 100%);
-  box-shadow:inset -70px -16px 90px rgba(0,0,0,.72),inset 30px 8px 60px rgba(28,240,132,.09),0 0 7px rgba(76,255,170,.85),0 0 36px rgba(24,232,117,.32),0 0 95px rgba(24,232,117,.13); animation:gxGlobeFloat 8s ease-in-out infinite; }
-.gx-globe-sphere::before { content:''; position:absolute; inset:0; z-index:3; pointer-events:none; border-radius:50%; background:linear-gradient(105deg,rgba(255,255,255,.09) 0%,transparent 23%,transparent 68%,rgba(0,0,0,.46) 93%),radial-gradient(circle at 50% 102%,rgba(0,0,0,.68),transparent 48%); }
-.gx-globe-sphere::after { content:''; position:absolute; inset:0; z-index:5; pointer-events:none; border-radius:50%; box-shadow:inset 0 0 0 2px rgba(64,255,166,.14),inset 0 0 38px rgba(24,232,117,.16); }
-.gx-globe-svg { position:absolute; inset:5%; width:90%; height:90%; z-index:1; opacity:.94; filter:drop-shadow(0 0 5px rgba(24,232,117,.2)); }
-.gx-globe-grid { fill:none; stroke:rgba(119,255,187,.15); stroke-width:1; }
-.gx-globe-land { fill:#154831; stroke:#4AB875; stroke-width:1.7; }
-.gx-globe-land .land-hi { fill:#1A583B; }
-.gx-globe-citylights { fill:#C8FF9D; opacity:.58; filter:drop-shadow(0 0 3px #7CFF8B); }
-.gx-globe-marker { --dot:#18E875; position:absolute; left:var(--gx); top:var(--gy); z-index:7; width:18px; height:18px; border-radius:50%; border:2px solid #D8FFE9; background:color-mix(in srgb,var(--mc,#18E875) 72%,#0B2016); transform:translate(-50%,-50%); cursor:pointer; box-shadow:0 0 0 6px color-mix(in srgb,var(--mc,#18E875) 13%,transparent),0 0 18px color-mix(in srgb,var(--mc,#18E875) 62%,transparent); transition:.2s ease; }
+/* globe — cinematic 3D earth */
+.gx-globe-center { position:relative; min-height:620px; overflow:hidden; display:flex; align-items:center; justify-content:center; border-radius:30px; isolation:isolate;
+  background:radial-gradient(circle at 50% 48%,rgba(17,120,76,.10),transparent 57%); }
+.gx-globe-center::before { content:''; position:absolute; width:88%; aspect-ratio:1; left:50%; top:50%; transform:translate(-50%,-50%); border-radius:50%; pointer-events:none;
+  background:radial-gradient(circle,rgba(24,232,117,.09) 0 45%,rgba(24,232,117,.025) 57%,transparent 71%); filter:blur(10px); }
+.gx-globe-center::after { content:'FOOTBALL HAS NO BORDERS'; position:absolute; inset-inline-start:16px; top:18px; max-width:145px; white-space:normal; color:rgba(255,255,255,.045); font-family:'Poppins',sans-serif; font-weight:950; font-size:1.03rem; line-height:1.02; text-align:start; pointer-events:none; }
+html[data-theme="light"] .gx-globe-center::after { color:rgba(15,23,42,.065); }
+.gx-globe-wrap { position:relative; width:min(100%,650px); aspect-ratio:1; display:grid; place-items:center; }
+.gx-globe-wrap::before { content:''; position:absolute; inset:7% 1% 10%; border-radius:50%; pointer-events:none; z-index:0;
+  box-shadow:0 0 80px rgba(24,232,117,.12),0 0 155px rgba(24,232,117,.055); }
+.gx-globe-orbit { position:absolute; z-index:0; inset:13% -6%; border:1px solid rgba(31,255,135,.42); border-radius:50%; transform:rotate(13deg) scaleY(.46); box-shadow:0 0 18px rgba(24,232,117,.13); pointer-events:none; }
+.gx-globe-orbit.o2 { inset:20% -9%; transform:rotate(-15deg) scaleY(.63); opacity:.30; }
+.gx-globe-sphere { position:relative; z-index:1; width:95%; aspect-ratio:1; border-radius:50%; overflow:visible; isolation:isolate; background:transparent;
+  filter:drop-shadow(0 0 6px rgba(39,255,145,.48)) drop-shadow(0 0 34px rgba(24,232,117,.18)); animation:gxGlobeFloat 8s ease-in-out infinite; }
+.gx-globe-earth { position:absolute; inset:0; z-index:1; width:100%; height:100%; object-fit:contain; border-radius:50%; user-select:none; pointer-events:none; }
+.gx-globe-sphere::before { content:''; position:absolute; inset:1.4%; z-index:3; pointer-events:none; border-radius:50%;
+  background:linear-gradient(112deg,rgba(255,255,255,.09) 0%,transparent 20%,transparent 69%,rgba(0,0,0,.43) 91%),radial-gradient(circle at 54% 106%,rgba(0,0,0,.57),transparent 44%); }
+.gx-globe-sphere::after { content:''; position:absolute; inset:1.1%; z-index:5; pointer-events:none; border-radius:50%;
+  box-shadow:inset 0 0 0 1px rgba(113,255,186,.28),inset 0 0 34px rgba(24,232,117,.11); }
+.gx-globe-marker { --dot:#18E875; position:absolute; left:var(--gx); top:var(--gy); z-index:8; width:17px; height:17px; border-radius:50%; border:2px solid #E7FFF1; background:color-mix(in srgb,var(--mc,#18E875) 72%,#0B2016); transform:translate(-50%,-50%); cursor:pointer;
+  box-shadow:0 0 0 5px color-mix(in srgb,var(--mc,#18E875) 12%,transparent),0 0 18px color-mix(in srgb,var(--mc,#18E875) 66%,transparent); transition:transform .2s ease,box-shadow .2s ease,filter .2s ease; }
+.gx-globe-marker::before { content:''; position:absolute; inset:-11px; border-radius:50%; background:radial-gradient(circle,color-mix(in srgb,var(--mc,#18E875) 25%,transparent),transparent 66%); filter:blur(2px); }
 .gx-globe-marker::after { content:''; position:absolute; inset:-9px; border-radius:50%; border:1px solid color-mix(in srgb,var(--mc,#18E875) 58%,transparent); animation:gxGlobePulse 2.8s ease-out infinite; animation-delay:var(--delay,0s); }
-.gx-globe-marker:hover,.gx-globe-marker.on { transform:translate(-50%,-50%) scale(1.16); box-shadow:0 0 0 7px color-mix(in srgb,var(--mc,#18E875) 16%,transparent),0 0 26px var(--mc,#18E875); }
-.gx-globe-marker-label { position:absolute; left:50%; bottom:26px; transform:translateX(-50%) translateY(4px); white-space:nowrap; max-width:150px; overflow:hidden; text-overflow:ellipsis; padding:5px 9px; border-radius:10px; border:1px solid color-mix(in srgb,var(--mc,#18E875) 36%,transparent); background:rgba(1,7,4,.90); color:#fff; font-size:.67rem; font-weight:900; opacity:0; pointer-events:none; transition:.2s ease; box-shadow:0 8px 18px rgba(0,0,0,.34); }
+.gx-globe-marker:hover,.gx-globe-marker.on { transform:translate(-50%,-50%) scale(1.20); box-shadow:0 0 0 7px color-mix(in srgb,var(--mc,#18E875) 18%,transparent),0 0 30px var(--mc,#18E875); filter:brightness(1.14); }
+.gx-globe-marker-label { position:absolute; left:50%; bottom:28px; transform:translateX(-50%) translateY(5px); white-space:nowrap; max-width:160px; overflow:hidden; text-overflow:ellipsis; padding:6px 11px; border-radius:11px; border:1px solid color-mix(in srgb,var(--mc,#18E875) 42%,transparent); background:rgba(1,7,4,.94); color:#fff; font-size:.68rem; font-weight:950; opacity:0; pointer-events:none; transition:.2s ease; box-shadow:0 10px 22px rgba(0,0,0,.38),0 0 16px color-mix(in srgb,var(--mc,#18E875) 13%,transparent); }
 .gx-globe-marker.on .gx-globe-marker-label,.gx-globe-marker:hover .gx-globe-marker-label { opacity:1; transform:translateX(-50%) translateY(0); }
-.gx-globe-motto { position:absolute; inset-inline-start:7px; bottom:66px; z-index:8; transform:rotate(-10deg); color:rgba(225,255,238,.52); font-weight:800; line-height:1.4; font-size:.76rem; text-align:center; pointer-events:none; }
-.gx-globe-motto::after { content:''; display:block; width:70px; height:3px; margin:5px auto 0; border-radius:4px; background:#18E875; box-shadow:0 0 14px rgba(24,232,117,.5); }
-.gx-globe-helper { position:absolute; left:0; right:0; bottom:15px; z-index:8; display:flex; align-items:center; justify-content:center; gap:8px; color:rgba(236,255,245,.64); font-size:.72rem; }
+.gx-globe-motto { position:absolute; inset-inline-start:2px; bottom:74px; z-index:8; transform:rotate(-11deg); color:rgba(225,255,238,.56); font-weight:800; line-height:1.45; font-size:.77rem; text-align:center; pointer-events:none; }
+.gx-globe-motto::after { content:''; display:block; width:72px; height:3px; margin:6px auto 0; border-radius:4px; background:#18E875; box-shadow:0 0 14px rgba(24,232,117,.52); }
+.gx-globe-helper { position:absolute; left:0; right:0; bottom:8px; z-index:8; display:flex; align-items:center; justify-content:center; gap:8px; color:rgba(236,255,245,.70); font-size:.73rem; }
 html[data-theme="light"] .gx-globe-helper,.gx-globe-motto { color:#678174; }
-.gx-globe-mouse { width:20px; height:29px; border:1.5px solid currentColor; border-radius:10px; position:relative; }
+.gx-globe-mouse { width:20px; height:30px; border:1.5px solid currentColor; border-radius:10px; position:relative; }
 .gx-globe-mouse::before { content:''; position:absolute; width:2px; height:6px; left:50%; top:4px; transform:translateX(-50%); background:currentColor; border-radius:2px; }
 /* preview */
 .gx-world-preview { padding:14px; min-width:0; display:flex; }
@@ -5196,8 +5198,9 @@ def world_map_section(jersey_prods, en=False):
         # breathing room so nearby European markers stay tappable on phones.
         gx, gy = country["x"], country["y"]
         marker_positions = {
-            "england": (40, 27), "spain": (38, 39), "france": (45, 34),
-            "germany": (51, 28), "italy": (51, 40), "saudi": (63, 49),
+            # Positions match the orthographic Europe/Africa/Middle East globe asset.
+            "england": (37.5, 21.2), "spain": (33.2, 30.1), "france": (38.1, 25.9),
+            "germany": (43.5, 22.6), "italy": (43.9, 29.1), "saudi": (67.8, 43.7),
         }
         gx, gy = marker_positions.get(key, (gx, gy))
         markers.append(
@@ -5251,24 +5254,12 @@ def world_map_section(jersey_prods, en=False):
     helper = "Tap any country on the globe" if en else "اضغط على أي دولة في الكوكب"
     motto = "Football\nwithout borders" if en else "كرة القدم\nبلا حدود"
 
-    # Stylised map projected inside a circular sphere.  The sphere itself is CSS,
-    # so it stays crisp, lightweight and responsive without a heavy 3D library.
+    # Detailed orthographic globe image generated locally and shipped with the app.
+    # Interactive country markers remain real buttons layered above it.
     world_svg = (
-        '<svg class="gx-globe-svg" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet" aria-hidden="true">'
-        '<g class="gx-globe-grid">'
-        '<ellipse cx="500" cy="250" rx="470" ry="205"/><ellipse cx="500" cy="250" rx="470" ry="137"/>'
-        '<ellipse cx="500" cy="250" rx="470" ry="69"/><path d="M500 45C390 100 345 177 345 250s45 150 155 205"/>'
-        '<path d="M500 45C610 100 655 177 655 250s-45 150-155 205"/><path d="M30 250H970"/>'
-        '</g><g class="gx-globe-land">'
-        '<path d="M72 119C92 78 145 54 205 67l43 31 62 7 39 37-25 37-53 3-28 35-41 8-31 45-42-14-17-50-40-31z"/>'
-        '<path d="M271 266l43 17 30 45-8 52-27 70-28-29-10-62-27-50z"/>'
-        '<path d="M372 66l54-35 49 15-18 43-59 18z"/>'
-        '<path class="land-hi" d="M443 138l45-25 55 10 36-14 55 13 38-17 82 11 52 27 96 2 70 31-27 41-69 2-35 31-63-10-47 27-57-14-42 30-54-20-40-55-46-15-54-28z"/>'
-        '<path d="M461 216l63 5 52 49-17 74-48 75-37-30-24-77-28-54z"/>'
-        '<path d="M789 333l68-20 65 31-17 57-62 15-58-37z"/><path d="M925 232l17 18-10 26-15-21z"/>'
-        '</g><g class="gx-globe-citylights"><circle cx="451" cy="153" r="3"/><circle cx="487" cy="161" r="2.5"/>'
-        '<circle cx="522" cy="173" r="2.6"/><circle cx="566" cy="189" r="2.3"/><circle cx="620" cy="225" r="2.4"/>'
-        '<circle cx="518" cy="273" r="2.2"/><circle cx="543" cy="318" r="2.2"/></g></svg>')
+        '<img class="gx-globe-earth" src="/img/gx_globe_earth" alt="" '
+        'loading="lazy" decoding="async" aria-hidden="true">'
+    )
 
     return (
         '<section class="sec rv gx-world-sec" id="clubs">'

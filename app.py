@@ -88,6 +88,24 @@ COLOR_FILTERS = [
     ("purple", "بنفسجي", "#8B5CF6"), ("gold", "ذهبي", "#C9A24B"),
 ]
 
+# Football country grouping used by the interactive home-page world map.
+# Coordinates are presentation positions on the stylized map, while counts are
+# calculated from the current visible jersey catalogue on every request.
+WORLD_COUNTRIES = [
+    {"id": "england", "ar": "إنجلترا", "en": "England", "flag": "🇬🇧",
+     "clubs": ("arsenal", "liver", "united", "city"), "x": 43, "y": 22},
+    {"id": "spain", "ar": "إسبانيا", "en": "Spain", "flag": "🇪🇸",
+     "clubs": ("real", "barca"), "x": 43, "y": 45},
+    {"id": "france", "ar": "فرنسا", "en": "France", "flag": "🇫🇷",
+     "clubs": ("psg",), "x": 49, "y": 35},
+    {"id": "germany", "ar": "ألمانيا", "en": "Germany", "flag": "🇩🇪",
+     "clubs": ("bayern",), "x": 55, "y": 25},
+    {"id": "italy", "ar": "إيطاليا", "en": "Italy", "flag": "🇮🇹",
+     "clubs": ("juve",), "x": 56, "y": 45},
+    {"id": "saudi", "ar": "السعودية", "en": "Saudi Arabia", "flag": "🇸🇦",
+     "clubs": ("nassr",), "x": 66, "y": 54},
+]
+
 
 def hex_rgb(h):
     h = h.lstrip("#")
@@ -1502,6 +1520,51 @@ html[data-club] .hero-ball { filter:drop-shadow(0 24px 36px var(--glow, rgba(225
 .cc-go { position:relative; z-index:1; font-size:.76rem; font-weight:900; color:var(--cc,#E11D48);
   opacity:0; transform:translateY(6px); transition:opacity .25s ease, transform .25s ease; }
 .clubcard:hover .cc-go { opacity:1; transform:none; }
+/* ============================== JERSEYS AROUND THE WORLD ============================== */
+.gx-world-layout { display:grid; grid-template-columns:minmax(0,1.65fr) minmax(270px,.78fr); gap:16px; align-items:stretch; }
+.gx-world-map { position:relative; min-height:430px; overflow:hidden; direction:ltr; border:1px solid rgba(24,232,117,.13);
+  border-radius:26px; background:radial-gradient(circle at 52% 45%,rgba(24,232,117,.09),transparent 42%),linear-gradient(160deg,#07110c,#030605); }
+html[data-theme="light"] .gx-world-map { background:radial-gradient(circle at 52% 45%,rgba(11,159,80,.10),transparent 42%),linear-gradient(160deg,#F8FCFA,#EEF7F2); border-color:var(--line); }
+.gx-world-map::before { content:'GOLAZOX WORLD'; position:absolute; inset-inline-start:18px; bottom:14px; z-index:1;
+  color:rgba(24,232,117,.22); font-family:'Poppins',sans-serif; font-size:.66rem; font-weight:900; letter-spacing:4px; }
+.gx-world-map svg { position:absolute; inset:0; width:100%; height:100%; }
+.gx-map-grid { fill:none; stroke:rgba(255,255,255,.045); stroke-width:1; }
+html[data-theme="light"] .gx-map-grid { stroke:rgba(15,23,42,.065); }
+.gx-map-land { fill:#102219; stroke:#28533b; stroke-width:2; transition:fill .25s ease,stroke .25s ease; }
+html[data-theme="light"] .gx-map-land { fill:#DDEDE4; stroke:#A8CCB8; }
+.gx-map-marker { position:absolute; left:var(--mx); top:var(--my); transform:translate(-50%,-50%); z-index:3;
+  display:flex; align-items:center; justify-content:center; gap:5px; min-width:58px; min-height:46px; padding:5px 8px;
+  border:1px solid rgba(255,255,255,.16); border-radius:15px; background:rgba(5,10,7,.88); color:#F5F7F6;
+  font-family:inherit; cursor:pointer; box-shadow:0 8px 22px rgba(0,0,0,.36); backdrop-filter:blur(9px); transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease; }
+.gx-map-marker::after { content:''; position:absolute; width:8px; height:8px; bottom:-5px; border-radius:50%; background:var(--ac); box-shadow:0 0 0 5px rgba(24,232,117,.12),0 0 18px var(--ac); }
+.gx-map-marker:hover,.gx-map-marker.on { transform:translate(-50%,-50%) scale(1.08); border-color:var(--ac); box-shadow:0 10px 28px rgba(24,232,117,.2); }
+html[data-theme="light"] .gx-map-marker { background:rgba(255,255,255,.94); color:#0F172A; border-color:rgba(15,23,42,.12); box-shadow:0 8px 20px rgba(15,23,42,.13); }
+.gx-marker-flag { font-size:1.05rem; line-height:1; }.gx-marker-count { font-size:.69rem; font-weight:900; white-space:nowrap; }
+.gx-world-side { display:flex; flex-direction:column; min-width:0; padding:14px; border-radius:24px; background:var(--card); border:1px solid var(--line); }
+.gx-country-nav-title { color:var(--mut); font-size:.72rem; font-weight:800; margin:2px 2px 9px; }
+.gx-country-nav { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
+.gx-country-tab { display:flex; align-items:center; justify-content:space-between; gap:7px; min-width:0; min-height:44px; padding:8px 9px;
+  border:1px solid var(--line); border-radius:12px; background:var(--card2); color:var(--txt); font-family:inherit; font-size:.73rem; font-weight:800; cursor:pointer; }
+.gx-country-tab span:first-child { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.gx-country-tab small { color:var(--mut); font-size:.65rem; }.gx-country-tab.on { border-color:var(--ac); background:rgba(24,232,117,.08); color:var(--ac); }
+.gx-country-panel { margin-top:12px; padding-top:12px; border-top:1px solid var(--line); }.gx-country-panel[hidden] { display:none!important; }
+.gx-country-panel-head { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px; }
+.gx-country-panel-head b { font-size:.96rem; }.gx-country-panel-head span { color:var(--ac); font-size:.72rem; font-weight:900; }
+.gx-map-clubs { display:grid; gap:8px; }.gx-map-club { display:grid; grid-template-columns:52px minmax(0,1fr); align-items:center; gap:9px;
+  min-height:68px; padding:7px; border-radius:13px; background:var(--card2); border:1px solid var(--line); text-decoration:none; transition:border-color .18s ease,transform .18s ease; }
+.gx-map-club:hover { border-color:var(--cc,var(--ac)); transform:translateY(-2px); }.gx-map-club img { width:52px; height:54px; object-fit:contain; border-radius:9px; background:rgba(0,0,0,.16); }
+.gx-map-club b { display:block; min-width:0; color:var(--txt); font-size:.8rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.gx-map-club span { display:block; margin-top:3px; color:var(--mut); font-size:.68rem; }
+@media(max-width:768px){
+  .gx-world-layout{grid-template-columns:1fr}.gx-world-map{min-height:280px;border-radius:20px}.gx-world-side{padding:12px;border-radius:18px}
+  .gx-map-marker{min-width:46px;min-height:44px;padding:4px 6px;border-radius:13px}.gx-marker-flag{font-size:.95rem}.gx-marker-count{font-size:.62rem}
+  .gx-country-nav{display:flex;overflow-x:auto;gap:7px;padding-bottom:4px;scroll-snap-type:x proximity;scrollbar-width:none}.gx-country-nav::-webkit-scrollbar{display:none}
+  .gx-country-tab{flex:0 0 auto;min-width:112px;scroll-snap-align:start}.gx-map-clubs{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:390px){
+  .gx-world-map{min-height:250px}.gx-world-map::before{font-size:.58rem;letter-spacing:2px}.gx-map-marker{min-width:44px;gap:3px}.gx-marker-flag{font-size:.88rem}
+  .gx-map-club{grid-template-columns:44px minmax(0,1fr);gap:6px;padding:6px}.gx-map-club img{width:44px;height:48px}.gx-map-club b{font-size:.74rem}.gx-map-club span{font-size:.64rem}
+}
 /* ============================== CLUB PAGE ============================== */
 .club-banner { border-radius:26px; padding:40px 26px; color:#fff; text-align:center; position:relative; overflow:hidden;
   box-shadow:0 22px 50px var(--glow, rgba(225,29,72,.25)); }
@@ -2996,6 +3059,27 @@ function pickLoyal(cid,btn){
   if(go) go.href='/club/'+cid;
   if(out) out.style.display='block';
 }
+function gxWorldSelect(code){
+  if(!/^[a-z-]+$/.test(code||'')) return;
+  var root=document.getElementById('clubs'); if(!root) return;
+  var found=false;
+  root.querySelectorAll('.gx-country-panel').forEach(function(panel){
+    var active=panel.getAttribute('data-country')===code;
+    panel.hidden=!active; if(active) found=true;
+  });
+  if(!found) return;
+  root.querySelectorAll('.gx-map-marker,.gx-country-tab').forEach(function(button){
+    var active=button.getAttribute('data-country')===code;
+    button.classList.toggle('on',active); button.setAttribute('aria-pressed',active?'true':'false');
+  });
+  try{gxSet('gx_world_country',code);}catch(e){}
+}
+document.addEventListener('DOMContentLoaded',function(){
+  try{
+    var code=gxGet('gx_world_country','england');
+    if(document.querySelector('#clubs .gx-country-panel[data-country="'+code+'"]')) gxWorldSelect(code);
+  }catch(e){}
+});
 function esc(s){ var d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
 function pmoney(v){ var n=Math.round(Number(v)*1000)/1000; return Number.isInteger(n)?String(n):String(n).replace(/0+$/,"").replace(/[.]$/,""); }
 /* ---------- search & filters ---------- */
@@ -4928,6 +5012,98 @@ def spotlight_html(prods):
              desc=esc(desc or ""), pr=pr, cur=cur(), view=d["view"])
 
 
+def world_map_section(jersey_prods, en=False):
+    """Build the home-page world map from the current visible jersey catalogue."""
+    available = []
+    for country in WORLD_COUNTRIES:
+        club_rows = []
+        country_count = 0
+        for cid in country["clubs"]:
+            products = [p for p in jersey_prods if p.get("club_id") == cid]
+            if not products:
+                continue
+            country_count += len(products)
+            club = cfg.CLUBS.get(cid, {})
+            name = club.get("en" if en else "ar", cid)
+            theme = club_themes().get(cid, {})
+            accent = safe_css_hex(theme.get("ac"), "#18E875")
+            accent2 = safe_css_hex(theme.get("ac2"), "#0B9F50")
+            image = esc((products[0].get("imgs") or [""])[0])
+            item_word = "jersey" if en and len(products) == 1 else ("jerseys" if en else "تيشيرت")
+            club_rows.append(
+                '<a class="gx-map-club" href="/club/{cid}" style="--cc:{ac};--cc2:{ac2}">'
+                '<img src="/img/{img}" alt="{name}" loading="lazy">'
+                '<span><b>{name}</b><span>{count} {word}</span></span></a>'.format(
+                    cid=cid, ac=accent, ac2=accent2, img=image, name=esc(name),
+                    count=len(products), word=item_word))
+        if country_count:
+            available.append((country, country_count, "".join(club_rows)))
+
+    if not available:
+        return ""
+
+    markers = []
+    tabs = []
+    panels = []
+    for index, (country, count, club_rows) in enumerate(available):
+        key = country["id"]
+        name = country["en" if en else "ar"]
+        flag = country["flag"]
+        selected = index == 0
+        state_class = " on" if selected else ""
+        pressed = "true" if selected else "false"
+        hidden = "" if selected else " hidden"
+        word = "jersey" if en and count == 1 else ("jerseys" if en else "تيشيرت")
+        label = "%s: %d %s" % (name, count, word)
+        markers.append(
+            '<button type="button" class="gx-map-marker{state}" data-country="{key}" '
+            'style="--mx:{x}%;--my:{y}%" aria-label="{label}" aria-pressed="{pressed}" '
+            'onclick="gxWorldSelect(\'{key}\')"><span class="gx-marker-flag">{flag}</span>'
+            '<span class="gx-marker-count">{count}</span></button>'.format(
+                state=state_class, key=key, x=country["x"], y=country["y"],
+                label=esc(label), pressed=pressed, flag=flag, count=count))
+        tabs.append(
+            '<button type="button" class="gx-country-tab{state}" data-country="{key}" '
+            'aria-pressed="{pressed}" onclick="gxWorldSelect(\'{key}\')">'
+            '<span>{flag} {name}</span><small>{count}</small></button>'.format(
+                state=state_class, key=key, pressed=pressed, flag=flag,
+                name=esc(name), count=count))
+        panels.append(
+            '<div class="gx-country-panel" data-country="{key}"{hidden}>'
+            '<div class="gx-country-panel-head"><b>{flag} {name}</b>'
+            '<span>{count} {word}</span></div><div class="gx-map-clubs">{clubs}</div></div>'.format(
+                key=key, hidden=hidden, flag=flag, name=esc(name), count=count,
+                word=word, clubs=club_rows))
+
+    title = "Jerseys Around the World 🌍" if en else "تيشيرتات من حول العالم 🌍"
+    subtitle = "Pick a country and explore its clubs." if en else "اختر دولة وشوف أنديتها وتشكيلتها."
+    nav_title = "Available countries" if en else "الدول المتوفرة"
+    map_label = "Interactive map of countries with available jerseys" if en else "خريطة تفاعلية للدول التي تتوفر منها تيشيرتات"
+    world_svg = (
+        '<svg viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet" aria-hidden="true">'
+        '<g class="gx-map-grid"><path d="M0 125H1000M0 250H1000M0 375H1000"/>'
+        '<path d="M200 0V500M400 0V500M600 0V500M800 0V500"/>'
+        '<ellipse cx="500" cy="250" rx="470" ry="205"/></g>'
+        '<g class="gx-map-land">'
+        '<path d="M72 119C92 78 145 54 205 67l43 31 62 7 39 37-25 37-53 3-28 35-41 8-31 45-42-14-17-50-40-31z"/>'
+        '<path d="M271 266l43 17 30 45-8 52-27 70-28-29-10-62-27-50z"/>'
+        '<path d="M372 66l54-35 49 15-18 43-59 18z"/>'
+        '<path d="M443 138l45-25 55 10 36-14 55 13 38-17 82 11 52 27 96 2 70 31-27 41-69 2-35 31-63-10-47 27-57-14-42 30-54-20-40-55-46-15-54-28z"/>'
+        '<path d="M461 216l63 5 52 49-17 74-48 75-37-30-24-77-28-54z"/>'
+        '<path d="M789 333l68-20 65 31-17 57-62 15-58-37z"/>'
+        '<path d="M925 232l17 18-10 26-15-21z"/>'
+        '</g></svg>')
+    return (
+        '<section class="sec rv" id="clubs"><div class="sec-head"><h2><span class="bar"></span>{title}</h2>'
+        '<span class="sec-sub">{subtitle}</span></div><div class="gx-world-layout">'
+        '<div class="gx-world-map" role="group" aria-label="{map_label}">{svg}{markers}</div>'
+        '<div class="gx-world-side"><div class="gx-country-nav-title">{nav_title}</div>'
+        '<div class="gx-country-nav">{tabs}</div><div aria-live="polite">{panels}</div></div>'
+        '</div></section>').format(title=title, subtitle=subtitle, map_label=map_label,
+                                  svg=world_svg, markers="".join(markers), nav_title=nav_title,
+                                  tabs="".join(tabs), panels="".join(panels))
+
+
 def home_body():
     en = lang() == "en"
     d = cfg.L[lang()]
@@ -4984,10 +5160,9 @@ def home_body():
         club_swatches.append('<button class="gx-club-swatch" data-cid="%s" data-a="%s" data-b="%s" data-name="%s" data-emoji="%s" onclick="gxPickClubColor(this)">%s</button>' % (cid,th.get("ac","#18E875"),th.get("ac2","#0B9F50"),esc(c.get("en" if en else "ar",cid)),esc(c.get("emoji","⚽")),esc(c.get("en" if en else "ar",cid))))
     club_color_section=('<div class="sec rv"><div class="gx-club-color" id="gxClubColor"><div class="gx-club-color-inner"><div class="gx-club-color-top"><div><h3 id="gxClubColorName">YOUR CLUB. YOUR COLOR.</h3><small>{sub}</small></div><div id="gxClubColorEmoji" style="font-size:2rem">⚽</div></div><div class="gx-club-swatches">{swatches}</div><a id="gxClubColorLink" class="gx-club-color-cta" href="/products">{cta}</a></div></div></div>').format(sub=("اختار ناديك، وخلي ألوان GOLAZOX على مزاجك." if not en else "Pick your club and make GOLAZOX feel like your colors."),swatches="".join(club_swatches),cta=("شوف قمصان النادي" if not en else "Shop this club"))
 
-    clubs_sec = ('<div class="sec rv" id="clubs"><div class="sec-head"><h2><span class="bar"></span>{t}</h2>'
-                 '<span class="sec-sub">{s}</span></div>'
-                 '<div class="clubs">{cards}</div></div>'
-                 ).format(t=d["clubs_pick_title"], s=d["clubs_pick_sub"], cards=clubs_html)
+    # Replace the dense club-card grid with a country-first world map. Counts
+    # and club links are derived from the current jersey catalogue.
+    clubs_sec = world_map_section(jersey_prods, en)
 
     loyal_sec = ('<div class="sec rv"><div class="sec-head"><h2><span class="bar"></span>{t}</h2></div>'
                  '<div class="loyal">'

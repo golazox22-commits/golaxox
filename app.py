@@ -1557,13 +1557,13 @@ html[data-theme="light"] .loyal { background:linear-gradient(135deg, var(--card)
 .loyal-out .loyal-go { margin-top:14px; }
 /* ============================== SIZE BANNER ============================== */
 .szsec-banner { display:flex; align-items:center; gap:18px; background:linear-gradient(120deg, var(--ac), var(--ac2));
-  border-radius:24px; padding:26px 26px; color:var(--bg); box-shadow:0 20px 44px rgba(24,232,117,.25);
+  border-radius:24px; padding:26px 26px; color:#FFFFFF; box-shadow:0 20px 44px rgba(24,232,117,.25);
   position:relative; overflow:hidden; }
 .szsec-banner::after { content:'👕'; position:absolute; font-size:7rem; opacity:.1; inset-inline-end:6%; top:-18px; }
 .szsec-banner .big-ic { font-size:46px; }
-.szsec-banner h2 { font-size:1.35rem; font-weight:900; }
-.szsec-banner p { opacity:.92; font-size:.88rem; margin-top:4px; }
-.szsec-banner .btn-light { margin-inline-start:auto; background:var(--bg); color:var(--ac); border:none; }
+.szsec-banner h2 { font-size:1.35rem; font-weight:900; color:#FFFFFF; text-shadow:0 1px 2px rgba(0,0,0,.28); }
+.szsec-banner p { opacity:1; color:#F4F7F5; font-size:.88rem; line-height:1.75; margin-top:4px; text-shadow:0 1px 2px rgba(0,0,0,.24); }
+.szsec-banner .btn-light { margin-inline-start:auto; background:#FFFFFF; color:#111814; border:1px solid rgba(255,255,255,.72); box-shadow:0 8px 20px rgba(0,0,0,.18); }
 /* ============================== HOW TO ORDER STEPS ============================== */
 .steps-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:16px; }
 .step-card { position:relative; background:rgba(10,13,12,.80); border:1px solid rgba(24,232,117,.06); border-radius:20px;
@@ -2361,9 +2361,10 @@ html[data-theme="light"] .sg-size-sources{background:#F8FAFC;border-color:#E2E8F
 }
 html[data-theme="light"] .sg-trust-item { background: #FFFFFF; border-color: #E2E8F0; }
 .sg-trust-ic { font-size: 1.6rem; }
-.sg-trust-item b { font-size: .82rem; font-weight: 800; color: #F5F7F6; }
+.sg-trust-item div { display:flex; flex-direction:column; align-items:center; gap:5px; }
+.sg-trust-item b { display:block; font-size: .86rem; line-height:1.6; font-weight: 900; color: #F5F7F6; }
 html[data-theme="light"] .sg-trust-item b { color: #0F172A; }
-.sg-trust-item span { font-size: .72rem; color: #6B7A73; line-height: 1.5; }
+.sg-trust-item span:not(.sg-trust-ic) { display:block; font-size: .76rem; color: #BEC9C2; line-height: 1.75; }
 html[data-theme="light"] .sg-trust-item span { color: #5B6782; }
 @media (max-width: 768px) {
   .sg-hero { min-height: 260px; padding: 30px 18px; }
@@ -4327,7 +4328,7 @@ def base_page(body, active="", page_js="", extra_club=None,
                 '<div style="margin-top:14px"><a class="btn pri" href="/home#jerseys">{c}</a></div></div>'
                 ).format(a=d["drop_live"], b=drop.get(en and "en" or "ar", ""), c=d["drop_shop"])
     return """<!DOCTYPE html>
-<html lang="LANG" dir="DIR">
+<html lang="__LANG__" dir="__DIR__">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>PAGE_TITLE</title>
@@ -6375,7 +6376,7 @@ def enter_page():
     en = lang() == "en"
     d = cfg.L[lang()]
     return """<!DOCTYPE html>
-<html lang="LANG" dir="DIR">
+<html lang="__LANG__" dir="__DIR__">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>GOLAZOX — Stadium Entry</title>
 <meta name="theme-color" content="#050607">
@@ -6383,7 +6384,7 @@ def enter_page():
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'FONT','Segoe UI',sans-serif;background:#050607;color:#fff;min-height:100vh;overflow:hidden}
+body{font-family:'__FONT__','Segoe UI',sans-serif;background:#050607;color:#fff;min-height:100vh;overflow:hidden}
 .st{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px 20px;overflow:hidden}
 .st-bg{position:absolute;inset:0;background:radial-gradient(ellipse 120% 60% at 50% 100%,rgba(16,37,26,.6),transparent 60%),radial-gradient(ellipse 80% 40% at 50% 0%,rgba(16,37,26,.4),transparent 50%),linear-gradient(180deg,#050607 0%,#0A0D0C 40%,#0B1712 100%);z-index:0}
 .grass{position:absolute;bottom:0;left:0;right:0;height:28%;background:repeating-linear-gradient(0deg,transparent 0 44px,rgba(255,255,255,.03) 44px 88px),linear-gradient(180deg,rgba(16,37,26,.5),rgba(11,23,18,.8));z-index:1}
@@ -6477,7 +6478,7 @@ body{font-family:'FONT','Segoe UI',sans-serif;background:#050607;color:#fff;min-
 </button>
 </div>
 <div id="languagePanel" class="lang-section" hidden>
-<div class="lang-label">CHOOSE YOUR LANGUAGE</div>
+<div class="lang-label">اختر اللغة • CHOOSE YOUR LANGUAGE</div>
 <div class="lang-btns">
 <a href="/enter/ar" class="lang-btn"><span class="flag">🇸🇦</span><span class="lname">العربية<span>ARABIC</span></span></a>
 <a href="/enter/en" class="lang-btn"><span class="flag">🇬🇧</span><span class="lname">English<span>UNITED KINGDOM</span></span></a>
@@ -6518,9 +6519,9 @@ body{font-family:'FONT','Segoe UI',sans-serif;background:#050607;color:#fff;min-
   }
 })();
 </script>
-</body></html>""".replace("LANG", "en" if en else "ar") \
-        .replace("DIR", "ltr" if en else "rtl") \
-        .replace("FONT", "Poppins" if en else "Cairo") \
+</body></html>""".replace("__LANG__", "en" if en else "ar") \
+        .replace("__DIR__", "ltr" if en else "rtl") \
+        .replace("__FONT__", "Poppins" if en else "Cairo") \
         .replace("__WELC__", d["ent_welc"]).replace("__TAG__", d["ent_tag"])
 
 
@@ -6741,7 +6742,7 @@ def welcome_page():
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'FONT','Segoe UI',sans-serif;background:#050607;color:#fff;min-height:100vh;overflow:hidden}
+body{font-family:'__FONT__','Segoe UI',sans-serif;background:#050607;color:#fff;min-height:100vh;overflow:hidden}
 .st{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px 20px;overflow:hidden}
 .st-bg{position:absolute;inset:0;background:radial-gradient(ellipse 120% 60% at 50% 100%,rgba(16,37,26,.6),transparent 60%),radial-gradient(ellipse 80% 40% at 50% 0%,rgba(16,37,26,.4),transparent 50%),linear-gradient(180deg,#050607 0%,#0A0D0C 40%,#0B1712 100%);z-index:0}
 .grass{position:absolute;bottom:0;left:0;right:0;height:28%;background:repeating-linear-gradient(0deg,transparent 0 44px,rgba(255,255,255,.03) 44px 88px),linear-gradient(180deg,rgba(16,37,26,.5),rgba(11,23,18,.8));z-index:1}
@@ -6760,10 +6761,10 @@ body{font-family:'FONT','Segoe UI',sans-serif;background:#050607;color:#fff;min-
 .logo{font-size:2.8rem;font-weight:900;letter-spacing:6px;color:#F5F7F5;text-shadow:0 0 40px rgba(24,232,117,.15),0 0 80px rgba(24,232,117,.05);animation:lI 1s ease both}
 .logo-sub{font-size:.65rem;font-weight:800;letter-spacing:8px;color:rgba(24,232,117,.5);margin-top:4px;animation:lI 1s ease .2s both}
 @keyframes lI{from{opacity:0;transform:translateY(20px) scale(.95)}to{opacity:1;transform:none}}
-.welcome{font-size:1.1rem;font-weight:700;color:rgba(255,255,255,.7);margin-top:20px;letter-spacing:1px;animation:fU .8s ease .4s both}
-.tagline{font-size:.82rem;color:rgba(255,255,255,.35);margin-top:8px;letter-spacing:2px;font-weight:600;animation:fU .8s ease .5s both}
+.welcome{font-size:1.1rem;font-weight:800;color:#F5F7F5;margin-top:20px;letter-spacing:1px;animation:fU .8s ease .4s both}
+.tagline{font-size:.82rem;color:#C7D1CB;margin-top:8px;letter-spacing:1px;font-weight:600;line-height:1.8;animation:fU .8s ease .5s both}
 .lang-section{margin-top:32px;animation:fU .8s ease .6s both}
-.lang-label{font-size:.7rem;font-weight:800;letter-spacing:3px;color:rgba(255,255,255,.3);margin-bottom:14px;text-transform:uppercase}
+.lang-label{font-size:.72rem;font-weight:900;letter-spacing:2px;color:#AEBBB3;margin-bottom:14px;text-transform:uppercase}
 .lang-btns{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
 .lang-btn{display:flex;align-items:center;gap:12px;padding:16px 36px;border-radius:16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#F5F7F5;font-weight:800;font-size:1rem;text-decoration:none;min-width:220px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:all .3s;cursor:pointer;position:relative;overflow:hidden}
 .lang-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(24,232,117,.05),transparent);opacity:0;transition:opacity .3s}
@@ -6792,7 +6793,7 @@ body{font-family:'FONT','Segoe UI',sans-serif;background:#050607;color:#fff;min-
 <div class="welcome">__WT__</div>
 <div class="tagline">__WS__</div>
 <div class="lang-section">
-<div class="lang-label">CHOOSE YOUR LANGUAGE</div>
+<div class="lang-label">اختر اللغة • CHOOSE YOUR LANGUAGE</div>
 <div class="lang-btns">
 <a href="/enter/ar" class="lang-btn"><span class="flag">🇸🇦</span><span class="lname">العربية<span>ARABIC</span></span></a>
 <a href="/enter/en" class="lang-btn"><span class="flag">🇬🇧</span><span class="lname">English<span>ENGLISH</span></span></a>
@@ -6803,9 +6804,9 @@ body{font-family:'FONT','Segoe UI',sans-serif;background:#050607;color:#fff;min-
 (function(){var c=document.getElementById('particles');if(!c)return;
 for(var i=0;i<12;i++){var p=document.createElement('div');p.className='particle';p.style.left=Math.random()*100+'%';p.style.animationDuration=(8+Math.random()*12)+'s';p.style.animationDelay=Math.random()*8+'s';p.style.width=p.style.height=(1+Math.random()*2)+'px';c.appendChild(p)}})();
 </script>
-</body></html>""".replace("LANG", "en" if en else "ar") \
-        .replace("DIR", "ltr" if en else "rtl") \
-        .replace("FONT", "Poppins" if en else "Cairo") \
+</body></html>""".replace("__LANG__", "en" if en else "ar") \
+        .replace("__DIR__", "ltr" if en else "rtl") \
+        .replace("__FONT__", "Poppins" if en else "Cairo") \
         .replace("__WT__", d["welcome_t"]).replace("__WS__", d["welcome_s"])
 
 
@@ -7012,8 +7013,8 @@ def track_page(code=""):
 # ============================== ROUTES ==============================
 @app.route("/")
 def index():
-    if has_lang() and request.cookies.get("gx_entry_completed") == "1":
-        return redirect("/home")
+    # Opening the public root intentionally starts the experience again.
+    # Internal Home links use /home, so normal browsing never restarts it.
     return welcome_page()
 
 
@@ -7143,9 +7144,10 @@ def setlang(l):
 def enter(l):
     if l not in ("ar", "en"):
         return redirect("/")
-    r = redirect("/home")
+    # After language selection show the stadium screen.  It marks the intro as
+    # complete only when the visitor presses its enter button.
+    r = Response(jersey_tunnel_page(l), content_type="text/html")
     r.set_cookie("lang", l, max_age=31536000)
-    r.set_cookie("gx_entry_completed", "1", max_age=31536000, samesite="Lax")
     return r
 
 
@@ -7223,10 +7225,10 @@ backdrop-filter:blur(7px)}
 .jt-card span{display:block;margin-top:4px;font-size:.55rem;color:rgba(255,255,255,.65)}
 .jt-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
 text-align:center;z-index:4;padding:20px}
-.jt-kicker{font-size:.62rem;letter-spacing:4px;color:#18e875;font-weight:900}
+.jt-kicker{font-size:.68rem;letter-spacing:4px;color:#34f28d;font-weight:900}
 .jt-title{font-size:clamp(2.5rem,6vw,5.4rem);font-weight:900;letter-spacing:.08em;text-shadow:0 0 45px rgba(24,232,117,.22)}
-.jt-sub{margin-top:8px;font-size:.9rem;letter-spacing:2px;color:rgba(255,255,255,.62)}
-.jt-copy{margin-top:12px;max-width:520px;font-size:.78rem;line-height:1.7;color:rgba(255,255,255,.45)}
+.jt-sub{margin-top:8px;font-size:.94rem;letter-spacing:1.5px;color:#F4F7F5;font-weight:800}
+.jt-copy{margin-top:12px;max-width:520px;font-size:.84rem;line-height:1.85;color:#C7D1CB;font-weight:600}
 .jt-ball{font-size:2.6rem;margin:18px 0 10px;filter:drop-shadow(0 0 18px rgba(255,255,255,.22));animation:jtBall 2.2s ease-in-out infinite}
 .jt-enter{border:1px solid rgba(24,232,117,.48);background:linear-gradient(135deg,#18e875,#0bb95b);
 color:#031009;border-radius:16px;padding:14px 25px;min-width:250px;font-weight:900;cursor:pointer;
@@ -7238,7 +7240,7 @@ box-shadow:0 0 34px rgba(24,232,117,.25);transition:.25s transform,.25s box-shad
 @keyframes jtFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 @keyframes jtBall{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-7px) rotate(10deg)}}
 @media(max-width:760px){
-  .jt-side{display:none}.jt-title{font-size:2.35rem}.jt-sub{font-size:.72rem}.jt-copy{font-size:.7rem;max-width:315px}
+  .jt-side{display:none}.jt-title{font-size:2.35rem}.jt-sub{font-size:.78rem}.jt-copy{font-size:.78rem;max-width:330px;padding:0 8px}
   .jt-enter{width:88vw;min-height:54px}
 }
 @media(prefers-reduced-motion:reduce){

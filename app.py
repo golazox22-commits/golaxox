@@ -527,7 +527,7 @@ button { font-family:inherit; cursor:pointer; }
 html[data-club] .hd { border-bottom:1px solid var(--line); }
 html[data-club] .hd::after { content:''; display:block; height:3px;
   background:linear-gradient(90deg, var(--ac), var(--ac2)); }
-.wrap { max-width:1120px; margin:0 auto; padding:22px 18px 100px; }
+.wrap { width:100%; max-width:1120px; margin-left:auto; margin-right:auto; padding:22px 18px 100px; }
 html[data-theme="light"] .wrap { padding-bottom:80px; }
 .hd { position:sticky; top:0; z-index:95; background:rgba(5,6,7,.78); backdrop-filter:blur(22px) saturate(1.8);
   -webkit-backdrop-filter:blur(22px) saturate(1.8); border-bottom:1px solid rgba(255,255,255,.08);
@@ -535,7 +535,7 @@ html[data-theme="light"] .wrap { padding-bottom:80px; }
   transition:background .3s ease, border-color .3s ease, box-shadow .3s ease; }
 html[data-theme="light"] .hd { background:rgba(255,255,255,.92); backdrop-filter:blur(16px) saturate(1.5);
   -webkit-backdrop-filter:blur(16px) saturate(1.5); box-shadow:0 2px 14px rgba(15,23,42,.04); border-bottom-color:rgba(0,0,0,.06); }
-.hd-in { max-width:1120px; margin:0 auto; padding:10px 16px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.hd-in { width:100%; max-width:1120px; margin-left:auto; margin-right:auto; padding:10px 16px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
 .logo { font-size:1.4rem; font-weight:900; display:flex; align-items:center; gap:6px; color:var(--txt); }
 .logo .ball { font-size:1.3rem; }
 .nav { display:flex; gap:2px; flex:1; flex-wrap:wrap; }
@@ -4445,9 +4445,9 @@ MODALS
 __PAGEJS_SLOT__
 __BASEJS_SLOT__
 </body>
-</html>""".replace("LANG", "en" if en else "ar") \
-        .replace("DIR", "ltr" if en else "rtl") \
-        .replace("FONT", "Poppins" if en else "Cairo") \
+</html>""".replace("__LANG__", "en" if en else "ar") \
+        .replace("__DIR__", "ltr" if en else "rtl") \
+        .replace("__FONT__", "Poppins" if en else "Cairo") \
         .replace("PAGE_TITLE", esc(page_title)) \
         .replace("PAGE_DESCRIPTION", esc(page_description)) \
         .replace("CSS", CSS) \
@@ -4971,8 +4971,6 @@ def home_body():
                      sub=d["home_hero_sub"], cj=d["home_cta_shop"], ct=d["home_cta_team"],
                      pj=fmt_cur(cfg.PRICE_JERSEY), pm=fmt_cur(cfg.PRICE_MUG))
 
-    fit_home = ("<div class='sec rv'><div class='gx-fit-card'><div class='gx-fit-head'><div><h3>✨ {title}</h3><p>{sub}</p></div><button class='fit-check-btn' onclick=\"openModal('m-fitcheck')\">{btn}</button></div></div></div>").format(title=("اعرف مقاسك قبل الطلب" if not en else "KNOW YOUR SIZE BEFORE YOU ORDER"),sub=("الطول والوزن، ومعهما عرض تيشيرت مناسب لك للدقة." if not en else "Height and weight, plus a well-fitting shirt width for better accuracy."),btn=("ابدأ Fit Check" if not en else "Start Fit Check"))
-
     club_swatches=[]
     for cid,c in cfg.CLUBS.items():
         th=club_themes().get(cid,{})
@@ -5176,7 +5174,6 @@ def home_body():
             + shop_section_html(home_jgrid, "gridJ", "jersey")
             + '<div style="text-align:center;margin-top:14px"><a class="btn ghost" href="/products">{va} ←</a></div>'
             + size_sec
-            + fit_home
             + steps_sec
             + '<div class="sec rv" id="mugs"><div class="sec-head"><h2><span class="bar"></span>{sm}</h2><span class="sec-sub">{sm_sub}</span></div>'
             + '<div class="grid" id="gridM">{mgrid}</div></div>'
@@ -6734,7 +6731,7 @@ def welcome_page():
     en = lang() == "en"
     d = cfg.L[lang()]
     return """<!DOCTYPE html>
-<html lang="LANG" dir="DIR">
+<html lang="__LANG__" dir="__DIR__">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>GOLAZOX — Football Universe</title>
 <meta name="theme-color" content="#050607">

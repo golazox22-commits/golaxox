@@ -1520,73 +1520,155 @@ html[data-club] .hero-ball { filter:drop-shadow(0 24px 36px var(--glow, rgba(225
 .cc-go { position:relative; z-index:1; font-size:.76rem; font-weight:900; color:var(--cc,#E11D48);
   opacity:0; transform:translateY(6px); transition:opacity .25s ease, transform .25s ease; }
 .clubcard:hover .cc-go { opacity:1; transform:none; }
-/* ============================== JERSEYS AROUND THE WORLD ============================== */
-.gx-world-layout { display:grid; grid-template-columns:minmax(0,1.65fr) minmax(270px,.78fr); gap:16px; align-items:stretch; }
-.gx-world-map { position:relative; min-height:430px; overflow:hidden; direction:ltr; border:1px solid rgba(24,232,117,.13);
-  isolation:isolate; border-radius:26px;
-  background:radial-gradient(circle at 18% 18%,rgba(67,145,255,.17),transparent 27%),radial-gradient(circle at 82% 78%,rgba(255,159,67,.12),transparent 29%),radial-gradient(circle at 52% 45%,rgba(24,232,117,.13),transparent 44%),linear-gradient(160deg,#07120d,#020504); }
-html[data-theme="light"] .gx-world-map { background:radial-gradient(circle at 18% 18%,rgba(67,145,255,.12),transparent 27%),radial-gradient(circle at 82% 78%,rgba(255,159,67,.10),transparent 29%),radial-gradient(circle at 52% 45%,rgba(11,159,80,.11),transparent 44%),linear-gradient(160deg,#F8FCFA,#EAF5EF); border-color:var(--line); }
-.gx-world-map::before { content:'GOLAZOX WORLD'; position:absolute; inset-inline-start:18px; bottom:14px; z-index:3; pointer-events:none;
-  color:rgba(24,232,117,.28); text-shadow:0 0 18px rgba(24,232,117,.22); font-family:'Poppins',sans-serif; font-size:.66rem; font-weight:900; letter-spacing:4px; }
-.gx-world-map::after { content:''; position:absolute; inset:-38% -55%; z-index:2; pointer-events:none;
-  background:linear-gradient(105deg,transparent 43%,rgba(255,255,255,.085) 49%,rgba(24,232,117,.07) 51%,transparent 57%);
-  transform:translateX(-38%); animation:gxWorldSweep 8s ease-in-out infinite; }
-.gx-world-map svg { position:absolute; inset:0; z-index:1; width:100%; height:100%; }
-.gx-world-lights { position:absolute; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
-.gx-world-lights span { position:absolute; top:-32%; width:31%; height:118%; opacity:.34; filter:blur(9px); transform-origin:50% 0; mix-blend-mode:screen; }
-.gx-world-lights span:nth-child(1) { left:5%; background:linear-gradient(180deg,rgba(74,144,255,.5),rgba(74,144,255,.05) 58%,transparent 76%); transform:rotate(-18deg); animation:gxWorldLightLeft 7s ease-in-out infinite; }
-.gx-world-lights span:nth-child(2) { left:38%; background:linear-gradient(180deg,rgba(24,232,117,.42),rgba(24,232,117,.04) 58%,transparent 76%); transform:rotate(5deg); animation:gxWorldLightMid 8.5s ease-in-out infinite; }
-.gx-world-lights span:nth-child(3) { right:4%; background:linear-gradient(180deg,rgba(255,184,77,.43),rgba(255,184,77,.04) 58%,transparent 76%); transform:rotate(18deg); animation:gxWorldLightRight 7.8s ease-in-out infinite; }
-.gx-map-grid { fill:none; stroke:rgba(255,255,255,.07); stroke-width:1; }
-html[data-theme="light"] .gx-map-grid { stroke:rgba(15,23,42,.075); }
-.gx-map-land { fill:url(#gxWorldLandGradient); stroke:#3B7654; stroke-width:2; filter:drop-shadow(0 0 10px rgba(24,232,117,.16)); transition:fill .25s ease,stroke .25s ease; }
-html[data-theme="light"] .gx-map-land { fill:#DDEDE4; stroke:#94C5A8; filter:drop-shadow(0 5px 9px rgba(15,23,42,.08)); }
-.gx-map-marker { position:absolute; left:var(--mx); top:var(--my); transform:translate(-50%,-50%); z-index:4;
-  display:flex; align-items:center; justify-content:center; gap:5px; min-width:58px; min-height:46px; padding:5px 8px;
-  border:1px solid color-mix(in srgb,var(--mc,var(--ac)) 46%,rgba(255,255,255,.2)); border-radius:15px; background:rgba(4,10,7,.88); color:#F5F7F6;
-  font-family:inherit; cursor:pointer; box-shadow:0 8px 22px rgba(0,0,0,.36),0 0 20px color-mix(in srgb,var(--mc,var(--ac)) 17%,transparent); backdrop-filter:blur(9px); transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease; }
-.gx-map-marker::before { content:''; position:absolute; inset:-7px; pointer-events:none; border:1px solid var(--mc,var(--ac)); border-radius:19px; opacity:.13; animation:gxMapHalo 2.8s ease-in-out infinite; animation-delay:var(--delay,0s); }
-.gx-map-marker::after { content:''; position:absolute; width:8px; height:8px; bottom:-5px; border-radius:50%; background:var(--mc,var(--ac)); box-shadow:0 0 0 5px color-mix(in srgb,var(--mc,var(--ac)) 15%,transparent),0 0 18px var(--mc,var(--ac)); animation:gxMapDot 2.8s ease-in-out infinite; animation-delay:var(--delay,0s); }
-.gx-map-marker:hover,.gx-map-marker.on { transform:translate(-50%,-50%) scale(1.08); border-color:var(--mc,var(--ac)); box-shadow:0 10px 28px color-mix(in srgb,var(--mc,var(--ac)) 27%,transparent),0 0 24px color-mix(in srgb,var(--mc,var(--ac)) 22%,transparent); }
-html[data-theme="light"] .gx-map-marker { background:rgba(255,255,255,.94); color:#0F172A; border-color:rgba(15,23,42,.12); box-shadow:0 8px 20px rgba(15,23,42,.13); }
-.gx-marker-flag,.gx-marker-count { position:relative; z-index:1; }.gx-marker-flag { font-size:1.05rem; line-height:1; }.gx-marker-count { font-size:.69rem; font-weight:900; white-space:nowrap; }
-.gx-world-side { display:flex; flex-direction:column; min-width:0; padding:14px; border-radius:24px; background:var(--card); border:1px solid var(--line); }
-.gx-country-nav-title { color:var(--mut); font-size:.72rem; font-weight:800; margin:2px 2px 9px; }
-.gx-country-nav { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
-.gx-country-tab { display:flex; align-items:center; justify-content:space-between; gap:7px; min-width:0; min-height:44px; padding:8px 9px;
-  border:1px solid var(--line); border-radius:12px; background:var(--card2); color:var(--txt); font-family:inherit; font-size:.73rem; font-weight:800; cursor:pointer; }
-.gx-country-tab span:first-child { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.gx-country-tab small { color:var(--mut); font-size:.65rem; }.gx-country-tab.on { border-color:var(--mc,var(--ac)); background:color-mix(in srgb,var(--mc,var(--ac)) 10%,var(--card2)); color:var(--mc,var(--ac)); box-shadow:inset 0 0 18px color-mix(in srgb,var(--mc,var(--ac)) 8%,transparent); }
-.gx-country-panel { position:relative; margin-top:12px; padding-top:12px; border-top:1px solid color-mix(in srgb,var(--mc,var(--ac)) 34%,var(--line)); }.gx-country-panel[hidden] { display:none!important; }
-.gx-country-panel-head { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px; }
-.gx-country-panel-head b { font-size:.96rem; }.gx-country-panel-head span { color:var(--mc,var(--ac)); font-size:.72rem; font-weight:900; }
-.gx-map-clubs { display:grid; gap:8px; }.gx-map-club { display:grid; grid-template-columns:52px minmax(0,1fr); align-items:center; gap:9px;
-  min-height:68px; padding:7px; border-radius:13px; background:var(--card2); border:1px solid var(--line); text-decoration:none; transition:border-color .18s ease,transform .18s ease; }
-.gx-map-club:hover { border-color:var(--cc,var(--ac)); transform:translateY(-2px); }.gx-map-club img { width:52px; height:54px; object-fit:contain; border-radius:9px; background:rgba(0,0,0,.16); }
-.gx-map-club b { display:block; min-width:0; color:var(--txt); font-size:.8rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.gx-map-club span { display:block; margin-top:3px; color:var(--mut); font-size:.68rem; }
-@media(max-width:768px){
-  .gx-world-layout{grid-template-columns:1fr}.gx-world-map{min-height:280px;border-radius:20px}.gx-world-side{padding:12px;border-radius:18px}
-  .gx-world-lights span{opacity:.25}.gx-world-map::after{opacity:.75}
-  .gx-map-marker{min-width:46px;min-height:44px;padding:4px 6px;border-radius:13px}.gx-marker-flag{font-size:.95rem}.gx-marker-count{font-size:.62rem}
-  .gx-map-marker[data-country="england"]{--mx:36%!important;--my:18%!important}.gx-map-marker[data-country="germany"]{--mx:60%!important;--my:18%!important}
-  .gx-map-marker[data-country="france"]{--mx:48%!important;--my:34%!important}.gx-map-marker[data-country="spain"]{--mx:34%!important;--my:51%!important}
-  .gx-map-marker[data-country="italy"]{--mx:60%!important;--my:49%!important}.gx-map-marker[data-country="saudi"]{--mx:76%!important;--my:58%!important}
-  .gx-country-nav{display:flex;overflow-x:auto;gap:7px;padding-bottom:4px;scroll-snap-type:x proximity;scrollbar-width:none}.gx-country-nav::-webkit-scrollbar{display:none}
-  .gx-country-tab{flex:0 0 auto;min-width:112px;scroll-snap-align:start}.gx-map-clubs{grid-template-columns:repeat(2,minmax(0,1fr))}
+/* ============================== JERSEYS AROUND THE WORLD — INTERACTIVE GLOBE ============================== */
+#clubs.gx-world-sec { position:relative; overflow:hidden; border-radius:30px; padding:28px 22px 24px;
+  border:1px solid rgba(24,232,117,.13);
+  background:
+    radial-gradient(70% 75% at 50% 48%,rgba(14,114,73,.17),transparent 72%),
+    radial-gradient(36% 50% at 2% 18%,rgba(24,232,117,.08),transparent 75%),
+    radial-gradient(35% 48% at 100% 80%,rgba(24,232,117,.07),transparent 75%),
+    linear-gradient(145deg,#030806 0%,#020504 48%,#06100b 100%);
+  box-shadow:inset 0 1px rgba(255,255,255,.025),0 24px 70px rgba(0,0,0,.30); }
+#clubs.gx-world-sec::before { content:''; position:absolute; inset:0; pointer-events:none; opacity:.25;
+  background-image:radial-gradient(circle at 12% 23%,rgba(255,255,255,.7) 0 1px,transparent 1.5px),radial-gradient(circle at 81% 18%,rgba(24,232,117,.8) 0 1px,transparent 1.5px),radial-gradient(circle at 73% 72%,rgba(255,255,255,.55) 0 1px,transparent 1.5px),radial-gradient(circle at 26% 84%,rgba(24,232,117,.55) 0 1px,transparent 1.5px); background-size:170px 150px,210px 180px,190px 165px,230px 190px; }
+html[data-theme="light"] #clubs.gx-world-sec { background:linear-gradient(145deg,#F9FFFC,#EFFAF4); border-color:#CFE8D9; box-shadow:0 18px 48px rgba(15,23,42,.08); }
+.gx-world-head { position:relative; z-index:2; text-align:center; margin-bottom:18px; }
+.gx-world-head h2 { display:flex; align-items:center; justify-content:center; gap:10px; font-size:clamp(1.55rem,3vw,2.25rem); font-weight:950; letter-spacing:-.6px; }
+.gx-world-head h2 .gx-green { color:#18E875; text-shadow:0 0 24px rgba(24,232,117,.28); }
+.gx-world-head p { color:var(--mut); margin-top:7px; font-size:.9rem; }
+.gx-world-stage { position:relative; z-index:2; display:grid; grid-template-columns:minmax(220px,.78fr) minmax(390px,1.75fr) minmax(240px,.82fr); gap:20px; align-items:stretch; min-height:570px; }
+.gx-world-panel { border:1px solid rgba(24,232,117,.18); border-radius:24px; background:rgba(3,11,7,.72); box-shadow:inset 0 1px rgba(255,255,255,.025),0 18px 42px rgba(0,0,0,.22); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); }
+html[data-theme="light"] .gx-world-panel { background:rgba(255,255,255,.86); border-color:#D9E7DF; box-shadow:0 14px 35px rgba(15,23,42,.08); }
+/* country rail */
+.gx-country-rail { padding:16px; display:flex; flex-direction:column; min-width:0; }
+.gx-country-search { display:flex; align-items:center; gap:8px; border:1px solid rgba(24,232,117,.16); background:rgba(8,22,15,.78); border-radius:16px; padding:0 12px; min-height:46px; }
+html[data-theme="light"] .gx-country-search { background:#F7FBF9; border-color:#D8E7DF; }
+.gx-country-search input { width:100%; min-width:0; border:0; outline:0; background:transparent; color:var(--txt); font:inherit; font-size:.78rem; }
+.gx-country-search input::placeholder { color:var(--mut); }
+.gx-country-nav-title { color:var(--txt); font-size:.78rem; font-weight:900; margin:18px 2px 9px; }
+.gx-country-nav { display:grid; gap:7px; }
+.gx-country-tab { width:100%; display:grid; grid-template-columns:30px minmax(0,1fr) auto; align-items:center; gap:9px; min-height:54px; padding:8px 10px; border:1px solid rgba(255,255,255,.075); border-radius:14px; background:rgba(9,22,15,.58); color:var(--txt); font-family:inherit; cursor:pointer; text-align:start; transition:.2s ease; }
+html[data-theme="light"] .gx-country-tab { background:#F8FBF9; border-color:#E0E8E3; }
+.gx-country-tab:hover { transform:translateY(-1px); border-color:color-mix(in srgb,var(--mc,#18E875) 48%,rgba(255,255,255,.1)); }
+.gx-country-tab.on { background:linear-gradient(90deg,color-mix(in srgb,var(--mc,#18E875) 16%,rgba(8,20,14,.8)),rgba(7,16,11,.7)); border-color:var(--mc,#18E875); box-shadow:0 0 24px color-mix(in srgb,var(--mc,#18E875) 16%,transparent),inset 0 0 18px color-mix(in srgb,var(--mc,#18E875) 7%,transparent); }
+html[data-theme="light"] .gx-country-tab.on { background:color-mix(in srgb,var(--mc,#18E875) 10%,white); }
+.gx-country-tab-flag { font-size:1.25rem; line-height:1; filter:drop-shadow(0 3px 6px rgba(0,0,0,.25)); }
+.gx-country-tab b { display:block; font-size:.79rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.gx-country-tab small { display:block; color:var(--mut); font-size:.65rem; margin-top:2px; }
+.gx-country-tab-count { min-width:24px; height:24px; display:grid; place-items:center; border-radius:999px; color:var(--mc,#18E875); border:1px solid color-mix(in srgb,var(--mc,#18E875) 40%,transparent); font-size:.67rem; font-weight:950; }
+.gx-country-rail-foot { margin-top:auto; padding-top:14px; color:rgba(255,255,255,.32); font-family:'Poppins',sans-serif; font-size:.58rem; font-weight:900; letter-spacing:3px; }
+html[data-theme="light"] .gx-country-rail-foot { color:#91A59A; }
+/* globe */
+.gx-globe-center { position:relative; min-height:570px; overflow:hidden; display:flex; align-items:center; justify-content:center; border-radius:28px; isolation:isolate; }
+.gx-globe-center::before { content:''; position:absolute; inset:3% 4% 7%; border-radius:50%; border:1px solid rgba(24,232,117,.08); transform:rotate(-8deg); box-shadow:0 0 60px rgba(24,232,117,.04); }
+.gx-globe-center::after { content:'FOOTBALL HAS NO BORDERS'; position:absolute; inset-inline-end:10px; top:18px; max-width:150px; white-space:normal; color:rgba(255,255,255,.035); font-family:'Poppins',sans-serif; font-weight:950; font-size:1.05rem; line-height:1.04; text-align:end; pointer-events:none; }
+html[data-theme="light"] .gx-globe-center::after { color:rgba(15,23,42,.055); }
+.gx-globe-wrap { position:relative; width:min(100%,570px); aspect-ratio:1; display:grid; place-items:center; }
+.gx-globe-orbit { position:absolute; inset:8% -3%; border:1px solid rgba(24,232,117,.34); border-radius:50%; transform:rotate(14deg) scaleY(.48); box-shadow:0 0 22px rgba(24,232,117,.08); pointer-events:none; }
+.gx-globe-orbit.o2 { inset:15% -7%; transform:rotate(-14deg) scaleY(.68); opacity:.28; }
+.gx-globe-sphere { position:relative; width:88%; aspect-ratio:1; border-radius:50%; overflow:hidden; isolation:isolate; border:1px solid rgba(104,255,183,.64); background:
+  radial-gradient(circle at 39% 32%,rgba(86,255,176,.18),transparent 12%),
+  radial-gradient(circle at 42% 42%,#123e2c 0%,#0a2b20 33%,#061b14 61%,#020907 100%);
+  box-shadow:inset -70px -16px 90px rgba(0,0,0,.72),inset 30px 8px 60px rgba(28,240,132,.09),0 0 7px rgba(76,255,170,.85),0 0 36px rgba(24,232,117,.32),0 0 95px rgba(24,232,117,.13); animation:gxGlobeFloat 8s ease-in-out infinite; }
+.gx-globe-sphere::before { content:''; position:absolute; inset:0; z-index:3; pointer-events:none; border-radius:50%; background:linear-gradient(105deg,rgba(255,255,255,.09) 0%,transparent 23%,transparent 68%,rgba(0,0,0,.46) 93%),radial-gradient(circle at 50% 102%,rgba(0,0,0,.68),transparent 48%); }
+.gx-globe-sphere::after { content:''; position:absolute; inset:0; z-index:5; pointer-events:none; border-radius:50%; box-shadow:inset 0 0 0 2px rgba(64,255,166,.14),inset 0 0 38px rgba(24,232,117,.16); }
+.gx-globe-svg { position:absolute; inset:5%; width:90%; height:90%; z-index:1; opacity:.94; filter:drop-shadow(0 0 5px rgba(24,232,117,.2)); }
+.gx-globe-grid { fill:none; stroke:rgba(119,255,187,.15); stroke-width:1; }
+.gx-globe-land { fill:#154831; stroke:#4AB875; stroke-width:1.7; }
+.gx-globe-land .land-hi { fill:#1A583B; }
+.gx-globe-citylights { fill:#C8FF9D; opacity:.58; filter:drop-shadow(0 0 3px #7CFF8B); }
+.gx-globe-marker { --dot:#18E875; position:absolute; left:var(--gx); top:var(--gy); z-index:7; width:18px; height:18px; border-radius:50%; border:2px solid #D8FFE9; background:color-mix(in srgb,var(--mc,#18E875) 72%,#0B2016); transform:translate(-50%,-50%); cursor:pointer; box-shadow:0 0 0 6px color-mix(in srgb,var(--mc,#18E875) 13%,transparent),0 0 18px color-mix(in srgb,var(--mc,#18E875) 62%,transparent); transition:.2s ease; }
+.gx-globe-marker::after { content:''; position:absolute; inset:-9px; border-radius:50%; border:1px solid color-mix(in srgb,var(--mc,#18E875) 58%,transparent); animation:gxGlobePulse 2.8s ease-out infinite; animation-delay:var(--delay,0s); }
+.gx-globe-marker:hover,.gx-globe-marker.on { transform:translate(-50%,-50%) scale(1.16); box-shadow:0 0 0 7px color-mix(in srgb,var(--mc,#18E875) 16%,transparent),0 0 26px var(--mc,#18E875); }
+.gx-globe-marker-label { position:absolute; left:50%; bottom:26px; transform:translateX(-50%) translateY(4px); white-space:nowrap; max-width:150px; overflow:hidden; text-overflow:ellipsis; padding:5px 9px; border-radius:10px; border:1px solid color-mix(in srgb,var(--mc,#18E875) 36%,transparent); background:rgba(1,7,4,.90); color:#fff; font-size:.67rem; font-weight:900; opacity:0; pointer-events:none; transition:.2s ease; box-shadow:0 8px 18px rgba(0,0,0,.34); }
+.gx-globe-marker.on .gx-globe-marker-label,.gx-globe-marker:hover .gx-globe-marker-label { opacity:1; transform:translateX(-50%) translateY(0); }
+.gx-globe-motto { position:absolute; inset-inline-start:7px; bottom:66px; z-index:8; transform:rotate(-10deg); color:rgba(225,255,238,.52); font-weight:800; line-height:1.4; font-size:.76rem; text-align:center; pointer-events:none; }
+.gx-globe-motto::after { content:''; display:block; width:70px; height:3px; margin:5px auto 0; border-radius:4px; background:#18E875; box-shadow:0 0 14px rgba(24,232,117,.5); }
+.gx-globe-helper { position:absolute; left:0; right:0; bottom:15px; z-index:8; display:flex; align-items:center; justify-content:center; gap:8px; color:rgba(236,255,245,.64); font-size:.72rem; }
+html[data-theme="light"] .gx-globe-helper,.gx-globe-motto { color:#678174; }
+.gx-globe-mouse { width:20px; height:29px; border:1.5px solid currentColor; border-radius:10px; position:relative; }
+.gx-globe-mouse::before { content:''; position:absolute; width:2px; height:6px; left:50%; top:4px; transform:translateX(-50%); background:currentColor; border-radius:2px; }
+/* preview */
+.gx-world-preview { padding:14px; min-width:0; display:flex; }
+.gx-country-panel { width:100%; display:flex; flex-direction:column; min-width:0; }
+.gx-country-panel[hidden] { display:none!important; }
+.gx-country-panel-head { min-height:104px; display:flex; align-items:center; gap:12px; padding:8px 7px 14px; border-bottom:1px solid rgba(24,232,117,.12); }
+.gx-selected-flag { flex:0 0 auto; width:82px; height:66px; display:grid; place-items:center; font-size:3.1rem; border-radius:15px; background:linear-gradient(145deg,rgba(24,232,117,.15),rgba(255,255,255,.025)); border:1px solid color-mix(in srgb,var(--mc,#18E875) 40%,transparent); filter:drop-shadow(0 8px 15px rgba(0,0,0,.28)); }
+.gx-country-panel:not([hidden]) .gx-selected-flag { animation:gxFlagIn .36s cubic-bezier(.2,.8,.2,1) both; }
+.gx-country-panel-head h3 { font-size:1.14rem; font-weight:950; }
+.gx-country-panel-head p { color:var(--mut); font-size:.69rem; margin-top:4px; line-height:1.55; }
+.gx-preview-frame { position:relative; margin-top:12px; flex:1; min-height:340px; display:flex; align-items:stretch; }
+.gx-product-slide { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; opacity:0; pointer-events:none; transform:translateX(10px) scale(.985); transition:opacity .24s ease,transform .24s ease; }
+.gx-product-slide.on { opacity:1; pointer-events:auto; transform:none; }
+.gx-country-panel:not([hidden]) .gx-product-slide.on { animation:gxJerseyIn .42s .09s cubic-bezier(.2,.8,.2,1) both; }
+.gx-product-image-box { width:100%; flex:1; min-height:220px; display:grid; place-items:center; border-radius:20px; border:1px solid rgba(24,232,117,.12); background:radial-gradient(circle at 50% 40%,rgba(24,232,117,.08),transparent 48%),rgba(4,12,8,.56); overflow:hidden; }
+html[data-theme="light"] .gx-product-image-box { background:#F7FBF9; border-color:#DEE9E3; }
+.gx-product-image-box img { width:88%; height:220px; object-fit:contain; filter:drop-shadow(0 16px 22px rgba(0,0,0,.34)); transition:transform .25s ease; }
+.gx-product-slide:hover .gx-product-image-box img { transform:scale(1.035); }
+.gx-product-info { width:100%; padding:12px 4px 2px; text-align:center; }
+.gx-product-info b { display:block; font-size:.86rem; line-height:1.45; color:var(--txt); }
+.gx-product-info small { display:block; color:#18E875; margin-top:4px; font-size:.64rem; font-weight:850; letter-spacing:.2px; }
+.gx-product-go { width:100%; display:flex; align-items:center; justify-content:center; gap:7px; min-height:46px; margin-top:10px; border-radius:14px; text-decoration:none; color:#fff; font-size:.77rem; font-weight:950; background:linear-gradient(135deg,#0B9F50,#08773D); border:1px solid #19E87C; box-shadow:0 10px 25px rgba(24,232,117,.14),inset 0 1px rgba(255,255,255,.16); }
+.gx-product-go:hover { filter:brightness(1.08); transform:translateY(-1px); }
+.gx-preview-arrow { position:absolute; z-index:5; top:42%; transform:translateY(-50%); width:32px; height:32px; display:grid; place-items:center; border-radius:50%; border:1px solid rgba(24,232,117,.25); background:rgba(2,10,6,.78); color:#fff; cursor:pointer; font-family:inherit; font-size:1rem; }
+.gx-preview-arrow.prev { inset-inline-start:7px; }.gx-preview-arrow.next { inset-inline-end:7px; }
+.gx-preview-arrow[hidden] { display:none!important; }
+.gx-preview-dots { display:flex; justify-content:center; gap:5px; padding-top:8px; }
+.gx-preview-dot { width:7px; height:7px; border:0; padding:0; border-radius:50%; background:rgba(255,255,255,.18); cursor:pointer; }
+.gx-preview-dot.on { width:20px; border-radius:5px; background:#18E875; box-shadow:0 0 10px rgba(24,232,117,.45); }
+.gx-world-slogan { position:absolute; z-index:2; inset-inline-end:26px; bottom:12px; color:rgba(255,255,255,.28); font-family:'Poppins',sans-serif; font-size:.58rem; letter-spacing:2.4px; }
+html[data-theme="light"] .gx-world-slogan { color:#90A59A; }
+@keyframes gxGlobeFloat { 0%,100%{transform:translateY(0) rotate(-.6deg)} 50%{transform:translateY(-6px) rotate(.6deg)} }
+@keyframes gxGlobePulse { 0%{transform:scale(.6);opacity:.65} 70%,100%{transform:scale(1.9);opacity:0} }
+@keyframes gxFlagIn { from{opacity:0;transform:translateY(-8px) scale(.9)} to{opacity:1;transform:none} }
+@keyframes gxJerseyIn { from{opacity:0;transform:translateY(8px) scale(.97)} to{opacity:1;transform:none} }
+@media(max-width:1000px){
+  .gx-world-stage { grid-template-columns:minmax(190px,.72fr) minmax(350px,1.5fr); }
+  .gx-world-preview { grid-column:1/-1; min-height:380px; }
+  .gx-world-preview .gx-country-panel { display:grid; grid-template-columns:230px minmax(0,1fr); gap:14px; }
+  .gx-world-preview .gx-country-panel[hidden] { display:none!important; }
+  .gx-country-panel-head { border-bottom:0; border-inline-end:1px solid rgba(24,232,117,.12); align-self:stretch; flex-direction:column; justify-content:center; text-align:center; }
+  .gx-preview-frame { margin-top:0; min-height:330px; }
+}
+@media(max-width:720px){
+  #clubs.gx-world-sec { padding:22px 12px 18px; border-radius:24px; }
+  .gx-world-head { margin-bottom:12px; }
+  .gx-world-head p { font-size:.78rem; padding:0 8px; }
+  .gx-world-stage { display:flex; flex-direction:column; gap:12px; min-height:0; }
+  .gx-country-rail { order:1; padding:11px; }
+  .gx-country-search { min-height:42px; }
+  .gx-country-nav-title { margin-top:12px; }
+  .gx-country-nav { display:flex; gap:7px; overflow-x:auto; padding-bottom:3px; scrollbar-width:none; scroll-snap-type:x proximity; }
+  .gx-country-nav::-webkit-scrollbar { display:none; }
+  .gx-country-tab { flex:0 0 148px; min-height:50px; scroll-snap-align:start; }
+  .gx-country-rail-foot { display:none; }
+  .gx-globe-center { order:2; min-height:auto; padding:4px 0 47px; }
+  .gx-globe-wrap { width:min(100%,430px); }
+  .gx-globe-sphere { width:94%; }
+  .gx-globe-marker { width:16px; height:16px; }
+  .gx-globe-marker-label { bottom:23px; font-size:.61rem; }
+  .gx-globe-motto { display:none; }
+  .gx-globe-helper { bottom:9px; }
+  .gx-world-preview { order:3; padding:10px; min-height:420px; }
+  .gx-world-preview .gx-country-panel { display:flex; gap:0; }
+  .gx-world-preview .gx-country-panel[hidden] { display:none!important; }
+  .gx-country-panel-head { min-height:86px; flex-direction:row; justify-content:flex-start; text-align:start; border-inline-end:0; border-bottom:1px solid rgba(24,232,117,.12); }
+  .gx-selected-flag { width:70px; height:56px; font-size:2.7rem; }
+  .gx-preview-frame { min-height:305px; }
+  .gx-product-image-box { min-height:205px; }
+  .gx-product-image-box img { height:205px; }
+  .gx-globe-center::after { display:none; }
+  .gx-world-slogan { display:none; }
 }
 @media(max-width:390px){
-  .gx-world-map{min-height:250px}.gx-world-map::before{font-size:.58rem;letter-spacing:2px}.gx-map-marker{min-width:44px;gap:3px}.gx-marker-flag{font-size:.88rem}
-  .gx-map-club{grid-template-columns:44px minmax(0,1fr);gap:6px;padding:6px}.gx-map-club img{width:44px;height:48px}.gx-map-club b{font-size:.74rem}.gx-map-club span{font-size:.64rem}
+  .gx-world-head h2 { font-size:1.4rem; }
+  .gx-country-tab { flex-basis:138px; }
+  .gx-globe-helper { font-size:.66rem; }
+  .gx-world-preview { min-height:400px; }
+  .gx-product-image-box img { height:190px; }
 }
-@keyframes gxWorldSweep { 0%,18%{transform:translateX(-38%);opacity:0} 40%{opacity:1} 64%,100%{transform:translateX(38%);opacity:0} }
-@keyframes gxWorldLightLeft { 0%,100%{transform:rotate(-18deg);opacity:.25} 50%{transform:rotate(-10deg);opacity:.42} }
-@keyframes gxWorldLightMid { 0%,100%{transform:rotate(5deg);opacity:.25} 50%{transform:rotate(-2deg);opacity:.39} }
-@keyframes gxWorldLightRight { 0%,100%{transform:rotate(18deg);opacity:.24} 50%{transform:rotate(10deg);opacity:.4} }
-@keyframes gxMapHalo { 0%,100%{transform:scale(.86);opacity:.08} 50%{transform:scale(1.08);opacity:.28} }
-@keyframes gxMapDot { 0%,100%{transform:scale(.86)} 50%{transform:scale(1.16)} }
 @media(prefers-reduced-motion:reduce){
-  .gx-world-map::after,.gx-world-lights span,.gx-map-marker::before,.gx-map-marker::after{animation:none!important}
+  .gx-globe-sphere,.gx-globe-marker::after,.gx-country-panel:not([hidden]) .gx-selected-flag,.gx-country-panel:not([hidden]) .gx-product-slide.on { animation:none!important; }
 }
 /* ============================== CLUB PAGE ============================== */
 .club-banner { border-radius:26px; padding:40px 26px; color:#fff; text-align:center; position:relative; overflow:hidden;
@@ -3088,19 +3170,54 @@ function gxWorldSelect(code){
   var found=false;
   root.querySelectorAll('.gx-country-panel').forEach(function(panel){
     var active=panel.getAttribute('data-country')===code;
-    panel.hidden=!active; if(active) found=true;
+    panel.hidden=!active;
+    if(active){ found=true; gxWorldShowProduct(panel,0); }
   });
   if(!found) return;
-  root.querySelectorAll('.gx-map-marker,.gx-country-tab').forEach(function(button){
+  root.querySelectorAll('.gx-globe-marker,.gx-country-tab').forEach(function(button){
     var active=button.getAttribute('data-country')===code;
     button.classList.toggle('on',active); button.setAttribute('aria-pressed',active?'true':'false');
+    if(active && button.classList.contains('gx-country-tab')){
+      try{button.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});}catch(e){}
+    }
   });
   try{gxSet('gx_world_country',code);}catch(e){}
 }
+function gxWorldShowProduct(panel,index){
+  if(!panel) return;
+  var slides=Array.prototype.slice.call(panel.querySelectorAll('.gx-product-slide'));
+  if(!slides.length) return;
+  index=((Number(index)||0)%slides.length+slides.length)%slides.length;
+  panel.setAttribute('data-product-index',String(index));
+  slides.forEach(function(slide,i){ slide.classList.toggle('on',i===index); slide.setAttribute('aria-hidden',i===index?'false':'true'); });
+  panel.querySelectorAll('.gx-preview-dot').forEach(function(dot,i){ dot.classList.toggle('on',i===index); dot.setAttribute('aria-pressed',i===index?'true':'false'); });
+}
+function gxWorldProduct(code,step){
+  var root=document.getElementById('clubs'); if(!root) return;
+  var panel=root.querySelector('.gx-country-panel[data-country="'+code+'"]'); if(!panel) return;
+  var current=Number(panel.getAttribute('data-product-index')||0);
+  gxWorldShowProduct(panel,current+(Number(step)||0));
+}
+function gxWorldProductGo(code,index){
+  var root=document.getElementById('clubs'); if(!root) return;
+  var panel=root.querySelector('.gx-country-panel[data-country="'+code+'"]'); if(panel) gxWorldShowProduct(panel,index);
+}
+function gxWorldFilter(value){
+  var q=(value||'').trim().toLowerCase();
+  var root=document.getElementById('clubs'); if(!root) return;
+  root.querySelectorAll('.gx-country-tab').forEach(function(btn){
+    var text=(btn.getAttribute('data-search')||btn.textContent||'').toLowerCase();
+    btn.style.display=(!q||text.indexOf(q)!==-1)?'grid':'none';
+  });
+}
 document.addEventListener('DOMContentLoaded',function(){
   try{
-    var code=gxGet('gx_world_country','england');
-    if(document.querySelector('#clubs .gx-country-panel[data-country="'+code+'"]')) gxWorldSelect(code);
+    var code=gxGet('gx_world_country','saudi');
+    if(!document.querySelector('#clubs .gx-country-panel[data-country="'+code+'"]')) code='saudi';
+    if(!document.querySelector('#clubs .gx-country-panel[data-country="'+code+'"]')){
+      var first=document.querySelector('#clubs .gx-country-panel'); code=first?first.getAttribute('data-country'):'';
+    }
+    if(code) gxWorldSelect(code);
   }catch(e){}
 });
 function esc(s){ var d=document.createElement('div'); d.textContent=s||''; return d.innerHTML; }
@@ -5036,102 +5153,141 @@ def spotlight_html(prods):
 
 
 def world_map_section(jersey_prods, en=False):
-    """Build the home-page world map from the current visible jersey catalogue."""
+    """Interactive country globe: choose a country, reveal its flag, then browse jerseys."""
     available = []
     for country in WORLD_COUNTRIES:
-        club_rows = []
-        country_count = 0
-        for cid in country["clubs"]:
-            products = [p for p in jersey_prods if p.get("club_id") == cid]
-            if not products:
-                continue
-            country_count += len(products)
-            club = cfg.CLUBS.get(cid, {})
-            name = club.get("en" if en else "ar", cid)
-            theme = club_themes().get(cid, {})
-            accent = safe_css_hex(theme.get("ac"), "#18E875")
-            accent2 = safe_css_hex(theme.get("ac2"), "#0B9F50")
-            image = esc((products[0].get("imgs") or [""])[0])
-            item_word = "jersey" if en and len(products) == 1 else ("jerseys" if en else "تيشيرت")
-            club_rows.append(
-                '<a class="gx-map-club" href="/club/{cid}" style="--cc:{ac};--cc2:{ac2}">'
-                '<img src="/img/{img}" alt="{name}" loading="lazy">'
-                '<span><b>{name}</b><span>{count} {word}</span></span></a>'.format(
-                    cid=cid, ac=accent, ac2=accent2, img=image, name=esc(name),
-                    count=len(products), word=item_word))
-        if country_count:
-            available.append((country, country_count, "".join(club_rows)))
+        products = [p for p in jersey_prods if p.get("club_id") in country["clubs"]]
+        if products:
+            available.append((country, products))
 
     if not available:
         return ""
 
-    markers = []
-    tabs = []
-    panels = []
-    for index, (country, count, club_rows) in enumerate(available):
+    available_keys = {country["id"] for country, _ in available}
+    selected_key = "saudi" if "saudi" in available_keys else available[0][0]["id"]
+
+    tabs, markers, panels = [], [], []
+    for index, (country, products) in enumerate(available):
         key = country["id"]
         name = country["en" if en else "ar"]
         flag = country["flag"]
-        country_color = safe_css_hex(country.get("color"), "#18E875")
-        animation_delay = "%.2fs" % (index * 0.22)
-        selected = index == 0
-        state_class = " on" if selected else ""
+        count = len(products)
+        color = safe_css_hex(country.get("color"), "#18E875")
+        selected = key == selected_key
+        state = " on" if selected else ""
         pressed = "true" if selected else "false"
         hidden = "" if selected else " hidden"
-        word = "jersey" if en and count == 1 else ("jerseys" if en else "تيشيرت")
-        label = "%s: %d %s" % (name, count, word)
-        markers.append(
-            '<button type="button" class="gx-map-marker{state}" data-country="{key}" '
-            'style="--mx:{x}%;--my:{y}%;--mc:{color};--delay:{delay}" aria-label="{label}" aria-pressed="{pressed}" '
-            'onclick="gxWorldSelect(\'{key}\')"><span class="gx-marker-flag">{flag}</span>'
-            '<span class="gx-marker-count">{count}</span></button>'.format(
-                state=state_class, key=key, x=country["x"], y=country["y"],
-                color=country_color, delay=animation_delay, label=esc(label),
-                pressed=pressed, flag=flag, count=count))
-        tabs.append(
-            '<button type="button" class="gx-country-tab{state}" data-country="{key}" '
-            'style="--mc:{color}" aria-pressed="{pressed}" onclick="gxWorldSelect(\'{key}\')">'
-            '<span>{flag} {name}</span><small>{count}</small></button>'.format(
-                state=state_class, key=key, color=country_color, pressed=pressed, flag=flag,
-                name=esc(name), count=count))
-        panels.append(
-            '<div class="gx-country-panel" data-country="{key}" style="--mc:{color}"{hidden}>'
-            '<div class="gx-country-panel-head"><b>{flag} {name}</b>'
-            '<span>{count} {word}</span></div><div class="gx-map-clubs">{clubs}</div></div>'.format(
-                key=key, color=country_color, hidden=hidden, flag=flag, name=esc(name),
-                count=count, word=word, clubs=club_rows))
+        delay = "%.2fs" % (index * 0.23)
 
-    title = "Jerseys Around the World 🌍" if en else "تيشيرتات من حول العالم 🌍"
-    subtitle = "Pick a country and explore its clubs." if en else "اختر دولة وشوف أنديتها وتشكيلتها."
+        if en:
+            item_text = "1 jersey" if count == 1 else "%d jerseys" % count
+        else:
+            item_text = "1 تيشيرت" if count == 1 else "%d تيشيرتات" % count
+
+        tabs.append(
+            '<button type="button" class="gx-country-tab{state}" data-country="{key}" data-search="{search}" '
+            'style="--mc:{color}" aria-pressed="{pressed}" onclick="gxWorldSelect(\'{key}\')">'
+            '<span class="gx-country-tab-flag">{flag}</span><span><b>{name}</b><small>{items}</small></span>'
+            '<span class="gx-country-tab-count">{count}</span></button>'.format(
+                state=state, key=key, search=esc((name + " " + country["en"] + " " + country["ar"])),
+                color=color, pressed=pressed, flag=flag, name=esc(name), items=item_text, count=count))
+
+        # The map coordinates are reused inside the circular globe, with a little
+        # breathing room so nearby European markers stay tappable on phones.
+        gx, gy = country["x"], country["y"]
+        marker_positions = {
+            "england": (40, 27), "spain": (38, 39), "france": (45, 34),
+            "germany": (51, 28), "italy": (51, 40), "saudi": (63, 49),
+        }
+        gx, gy = marker_positions.get(key, (gx, gy))
+        markers.append(
+            '<button type="button" class="gx-globe-marker{state}" data-country="{key}" '
+            'style="--gx:{gx}%;--gy:{gy}%;--mc:{color};--delay:{delay}" aria-label="{label}" '
+            'aria-pressed="{pressed}" onclick="gxWorldSelect(\'{key}\')">'
+            '<span class="gx-globe-marker-label">{name}</span></button>'.format(
+                state=state, key=key, gx=gx, gy=gy, color=color, delay=delay,
+                label=esc(("Choose " if en else "اختر ") + name), pressed=pressed, name=esc(name)))
+
+        slides = []
+        dots = []
+        for product_index, product in enumerate(products):
+            product_name = product.get("name_en" if en else "name_ar") or ""
+            image = esc((product.get("imgs") or [""])[0])
+            product_state = " on" if product_index == 0 else ""
+            aria_hidden = "false" if product_index == 0 else "true"
+            slides.append(
+                '<div class="gx-product-slide{state}" data-index="{idx}" aria-hidden="{aria}">'
+                '<div class="gx-product-image-box"><img src="/img/{img}" alt="{name}" loading="lazy"></div>'
+                '<div class="gx-product-info"><b>{name}</b><small>Players Version · 2026/2027</small></div>'
+                '<a class="gx-product-go" href="/product/{pid}">🛒 {view}</a></div>'.format(
+                    state=product_state, idx=product_index, aria=aria_hidden, img=image,
+                    name=esc(product_name), pid=product["id"], view=("View product" if en else "عرض المنتج")))
+            dots.append(
+                '<button type="button" class="gx-preview-dot{state}" aria-label="{label}" aria-pressed="{pressed}" '
+                'onclick="gxWorldProductGo(\'{key}\',{idx})"></button>'.format(
+                    state=product_state, label=esc(("Jersey " if en else "تيشيرت ") + str(product_index + 1)),
+                    pressed=("true" if product_index == 0 else "false"), key=key, idx=product_index))
+
+        panel_desc = ("Choose a jersey from this country." if en else "اختر التيشيرت اللي يعجبك من هذه الدولة.")
+        arrows_hidden = " hidden" if count <= 1 else ""
+        panels.append(
+            '<div class="gx-country-panel" data-country="{key}" data-product-index="0" style="--mc:{color}"{hidden}>'
+            '<div class="gx-country-panel-head"><div class="gx-selected-flag" aria-hidden="true">{flag}</div>'
+            '<div><h3>{name}</h3><p>{desc}</p></div></div>'
+            '<div class="gx-preview-frame">'
+            '<button type="button" class="gx-preview-arrow prev"{arrows} aria-label="{prev}" onclick="gxWorldProduct(\'{key}\',-1)">‹</button>'
+            '{slides}'
+            '<button type="button" class="gx-preview-arrow next"{arrows} aria-label="{next}" onclick="gxWorldProduct(\'{key}\',1)">›</button>'
+            '</div><div class="gx-preview-dots">{dots}</div></div>'.format(
+                key=key, color=color, hidden=hidden, flag=flag, name=esc(name), desc=esc(panel_desc),
+                arrows=arrows_hidden, prev=("Previous jersey" if en else "التيشيرت السابق"),
+                next=("Next jersey" if en else "التيشيرت التالي"), slides="".join(slides), dots="".join(dots)))
+
+    title = "Jerseys Around the World" if en else "تيشيرتات من حول العالم"
+    subtitle = ("Choose a country on the globe to reveal its flag and jerseys."
+                if en else "اختر دولة من الكوكب وشوف علمها والتيشيرت الخاص بها")
+    search_placeholder = "Search for a country…" if en else "ابحث عن دولة…"
     nav_title = "Available countries" if en else "الدول المتوفرة"
-    map_label = "Interactive map of countries with available jerseys" if en else "خريطة تفاعلية للدول التي تتوفر منها تيشيرتات"
+    helper = "Tap any country on the globe" if en else "اضغط على أي دولة في الكوكب"
+    motto = "Football\nwithout borders" if en else "كرة القدم\nبلا حدود"
+
+    # Stylised map projected inside a circular sphere.  The sphere itself is CSS,
+    # so it stays crisp, lightweight and responsive without a heavy 3D library.
     world_svg = (
-        '<svg viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet" aria-hidden="true">'
-        '<defs><linearGradient id="gxWorldLandGradient" x1="0" y1="0" x2="1" y2="1">'
-        '<stop offset="0" stop-color="#183D2A"/><stop offset=".48" stop-color="#102A1D"/>'
-        '<stop offset="1" stop-color="#0A1B12"/></linearGradient></defs>'
-        '<g class="gx-map-grid"><path d="M0 125H1000M0 250H1000M0 375H1000"/>'
-        '<path d="M200 0V500M400 0V500M600 0V500M800 0V500"/>'
-        '<ellipse cx="500" cy="250" rx="470" ry="205"/></g>'
-        '<g class="gx-map-land">'
+        '<svg class="gx-globe-svg" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid meet" aria-hidden="true">'
+        '<g class="gx-globe-grid">'
+        '<ellipse cx="500" cy="250" rx="470" ry="205"/><ellipse cx="500" cy="250" rx="470" ry="137"/>'
+        '<ellipse cx="500" cy="250" rx="470" ry="69"/><path d="M500 45C390 100 345 177 345 250s45 150 155 205"/>'
+        '<path d="M500 45C610 100 655 177 655 250s-45 150-155 205"/><path d="M30 250H970"/>'
+        '</g><g class="gx-globe-land">'
         '<path d="M72 119C92 78 145 54 205 67l43 31 62 7 39 37-25 37-53 3-28 35-41 8-31 45-42-14-17-50-40-31z"/>'
         '<path d="M271 266l43 17 30 45-8 52-27 70-28-29-10-62-27-50z"/>'
         '<path d="M372 66l54-35 49 15-18 43-59 18z"/>'
-        '<path d="M443 138l45-25 55 10 36-14 55 13 38-17 82 11 52 27 96 2 70 31-27 41-69 2-35 31-63-10-47 27-57-14-42 30-54-20-40-55-46-15-54-28z"/>'
+        '<path class="land-hi" d="M443 138l45-25 55 10 36-14 55 13 38-17 82 11 52 27 96 2 70 31-27 41-69 2-35 31-63-10-47 27-57-14-42 30-54-20-40-55-46-15-54-28z"/>'
         '<path d="M461 216l63 5 52 49-17 74-48 75-37-30-24-77-28-54z"/>'
-        '<path d="M789 333l68-20 65 31-17 57-62 15-58-37z"/>'
-        '<path d="M925 232l17 18-10 26-15-21z"/>'
-        '</g></svg>')
+        '<path d="M789 333l68-20 65 31-17 57-62 15-58-37z"/><path d="M925 232l17 18-10 26-15-21z"/>'
+        '</g><g class="gx-globe-citylights"><circle cx="451" cy="153" r="3"/><circle cx="487" cy="161" r="2.5"/>'
+        '<circle cx="522" cy="173" r="2.6"/><circle cx="566" cy="189" r="2.3"/><circle cx="620" cy="225" r="2.4"/>'
+        '<circle cx="518" cy="273" r="2.2"/><circle cx="543" cy="318" r="2.2"/></g></svg>')
+
     return (
-        '<section class="sec rv" id="clubs"><div class="sec-head"><h2><span class="bar"></span>{title}</h2>'
-        '<span class="sec-sub">{subtitle}</span></div><div class="gx-world-layout">'
-        '<div class="gx-world-map" role="group" aria-label="{map_label}">'
-        '<div class="gx-world-lights" aria-hidden="true"><span></span><span></span><span></span></div>{svg}{markers}</div>'
-        '<div class="gx-world-side"><div class="gx-country-nav-title">{nav_title}</div>'
-        '<div class="gx-country-nav">{tabs}</div><div aria-live="polite">{panels}</div></div>'
-        '</div></section>').format(title=title, subtitle=subtitle, map_label=map_label,
-                                  svg=world_svg, markers="".join(markers), nav_title=nav_title,
-                                  tabs="".join(tabs), panels="".join(panels))
+        '<section class="sec rv gx-world-sec" id="clubs">'
+        '<div class="gx-world-head"><h2>{title} <span class="gx-green">🌍</span></h2><p>{subtitle}</p></div>'
+        '<div class="gx-world-stage">'
+        '<aside class="gx-world-panel gx-country-rail">'
+        '<label class="gx-country-search">🔎<input type="search" placeholder="{search}" oninput="gxWorldFilter(this.value)" aria-label="{search}"></label>'
+        '<div class="gx-country-nav-title">{nav_title}</div><div class="gx-country-nav">{tabs}</div>'
+        '<div class="gx-country-rail-foot">GOLAZOX WORLD</div></aside>'
+        '<div class="gx-globe-center" role="group" aria-label="{globe_label}"><div class="gx-globe-wrap">'
+        '<span class="gx-globe-orbit"></span><span class="gx-globe-orbit o2"></span>'
+        '<div class="gx-globe-sphere">{svg}{markers}</div>'
+        '<div class="gx-globe-motto">{motto}</div></div>'
+        '<div class="gx-globe-helper"><span class="gx-globe-mouse"></span><span>{helper}</span></div></div>'
+        '<aside class="gx-world-panel gx-world-preview" aria-live="polite">{panels}</aside>'
+        '</div><div class="gx-world-slogan">GOLAZOX WORLD · MORE THAN A JERSEY</div></section>'.format(
+            title=esc(title), subtitle=esc(subtitle), search=esc(search_placeholder), nav_title=esc(nav_title),
+            tabs="".join(tabs), globe_label=esc(subtitle), svg=world_svg, markers="".join(markers),
+            motto=esc(motto).replace("\n", "<br>"), helper=esc(helper), panels="".join(panels)))
 
 
 def home_body():
